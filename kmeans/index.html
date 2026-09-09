@@ -1,0 +1,986 @@
+```html
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>K-means 互動式分群</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, "Microsoft JhengHei", sans-serif;
+            background: #f4f6f8;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 30px auto;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .panel {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+
+        .input-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        label {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        input {
+            width: 120px;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 8px;
+            background: #2563eb;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        #canvas {
+            width: 100%;
+            max-width: 900px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            background: white;
+            display: block;
+            margin: auto;
+        }
+
+        #info {
+            margin-top: 15px;
+            line-height: 1.8;
+        }
+
+        .center-info {
+            padding: 10px;
+            background: #f8fafc;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+
+        .description {
+            text-align: center;
+            color: #666;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>📊 K-means 互動式分群系統</h1>
+
+    <p class="description">
+        自行設定資料筆數與分群數量，觀察 K-means 分群結果
+    </p>
+
+    <div class="panel">
+
+        <div class="input-group">
+
+            <label for="dataCount">
+                資料筆數：
+            </label>
+
+            <input
+                type="number"
+                id="dataCount"
+                min="10"
+                max="10000"
+                value="1000"
+            >
+
+            <label for="k">
+                分群數量 K：
+            </label>
+
+            <input
+                type="number"
+                id="k"
+                min="1"
+                max="20"
+                value="5"
+            >
+
+        </div>
+
+        <br>
+
+        <button onclick="runKMeans()">
+            執行 K-means
+        </button>
+
+        <button onclick="generateData()">
+            重新產生資料
+        </button>
+
+    </div>
+
+
+    <div class="panel">
+
+        <canvas
+            id="canvas"
+            width="900"
+            height="600">
+        </canvas>
+
+        <div id="info">
+            尚未執行分群
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+/* =====================================================
+   全域變數
+===================================================== */
+
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+
+const WIDTH = canvas.width;
+const HEIGHT = canvas.height;
+
+let data = [];
+
+
+/* =====================================================
+   產生常態分布亂數
+===================================================== */
+
+function randomNormal() {
+
+    let u = 0;
+    let v = 0;
+
+    while (u === 0) {
+        u = Math.random();
+    }
+
+    while (v === 0) {
+        v = Math.random();
+    }
+
+    return Math.sqrt(-2 * Math.log(u))
+        * Math.cos(2 * Math.PI * v);
+}
+
+
+/* =====================================================
+   產生資料
+===================================================== */
+
+function generateData() {
+
+    const dataCount =
+        parseInt(
+            document.getElementById("dataCount").value
+        );
+
+
+    /* 檢查資料筆數 */
+
+    if (
+        isNaN(dataCount) ||
+        dataCount < 10 ||
+        dataCount > 10000
+    ) {
+
+        alert(
+            "資料筆數請輸入 10 到 10000 之間！"
+        );
+
+        return;
+
+    }
+
+
+    data = [];
+
+
+    /* 產生指定數量的資料 */
+
+    for (
+        let i = 0;
+        i < dataCount;
+        i++
+    ) {
+
+        const x = randomNormal();
+        const y = randomNormal();
+
+        data.push({
+
+            x: x,
+
+            y: y,
+
+            cluster: -1
+
+        });
+
+    }
+
+
+    /* 顯示原始資料 */
+
+    drawOriginalData();
+
+
+    document.getElementById(
+        "info"
+    ).innerHTML =
+
+        "已產生 " +
+        dataCount +
+        " 筆隨機資料。";
+
+}
+
+
+/* =====================================================
+   座標轉換
+===================================================== */
+
+function toCanvasX(x) {
+
+    return WIDTH / 2 + x * 100;
+
+}
+
+
+function toCanvasY(y) {
+
+    return HEIGHT / 2 - y * 100;
+
+}
+
+
+/* =====================================================
+   顯示原始資料
+===================================================== */
+
+function drawOriginalData() {
+
+    ctx.clearRect(
+        0,
+        0,
+        WIDTH,
+        HEIGHT
+    );
+
+
+    drawAxis();
+
+
+    ctx.fillStyle = "black";
+
+
+    for (
+        let point of data
+    ) {
+
+        const x =
+            toCanvasX(point.x);
+
+        const y =
+            toCanvasY(point.y);
+
+
+        ctx.beginPath();
+
+
+        ctx.arc(
+            x,
+            y,
+            2,
+            0,
+            Math.PI * 2
+        );
+
+
+        ctx.fill();
+
+    }
+
+}
+
+
+/* =====================================================
+   畫座標軸
+===================================================== */
+
+function drawAxis() {
+
+    ctx.strokeStyle = "#cccccc";
+
+    ctx.lineWidth = 1;
+
+
+    /* X 軸 */
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+        0,
+        HEIGHT / 2
+    );
+
+    ctx.lineTo(
+        WIDTH,
+        HEIGHT / 2
+    );
+
+    ctx.stroke();
+
+
+    /* Y 軸 */
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+        WIDTH / 2,
+        0
+    );
+
+    ctx.lineTo(
+        WIDTH / 2,
+        HEIGHT
+    );
+
+    ctx.stroke();
+
+}
+
+
+/* =====================================================
+   計算兩點距離
+===================================================== */
+
+function distance(p1, p2) {
+
+    return Math.sqrt(
+
+        Math.pow(
+            p1.x - p2.x,
+            2
+        )
+
+        +
+
+        Math.pow(
+            p1.y - p2.y,
+            2
+        )
+
+    );
+
+}
+
+
+/* =====================================================
+   執行 K-means
+===================================================== */
+
+function runKMeans() {
+
+    const dataCount =
+        parseInt(
+            document.getElementById("dataCount").value
+        );
+
+
+    const K =
+        parseInt(
+            document.getElementById("k").value
+        );
+
+
+    /* 檢查資料筆數 */
+
+    if (
+        isNaN(dataCount) ||
+        dataCount < 10 ||
+        dataCount > 10000
+    ) {
+
+        alert(
+            "資料筆數請輸入 10 到 10000 之間！"
+        );
+
+        return;
+
+    }
+
+
+    /* 檢查 K */
+
+    if (
+        isNaN(K) ||
+        K < 1 ||
+        K > dataCount
+    ) {
+
+        alert(
+            "分群數量 K 必須介於 1 到資料筆數之間！"
+        );
+
+        return;
+
+    }
+
+
+    /* 每次執行時重新產生資料 */
+
+    data = [];
+
+
+    for (
+        let i = 0;
+        i < dataCount;
+        i++
+    ) {
+
+        data.push({
+
+            x: randomNormal(),
+
+            y: randomNormal(),
+
+            cluster: -1
+
+        });
+
+    }
+
+
+    /* ==========================================
+       隨機選擇初始群中心
+    ========================================== */
+
+    let centers = [];
+
+
+    for (
+        let i = 0;
+        i < K;
+        i++
+    ) {
+
+        const randomIndex =
+            Math.floor(
+                Math.random() * data.length
+            );
+
+
+        centers.push({
+
+            x: data[randomIndex].x,
+
+            y: data[randomIndex].y
+
+        });
+
+    }
+
+
+    /* 最大迭代次數 */
+
+    const maxIterations = 100;
+
+
+    /* ==========================================
+       K-means 迭代
+    ========================================== */
+
+    for (
+        let iteration = 0;
+        iteration < maxIterations;
+        iteration++
+    ) {
+
+
+        /* --------------------------------------
+           Step 1：分配資料到最近的群中心
+        -------------------------------------- */
+
+        for (
+            let point of data
+        ) {
+
+            let minDistance =
+                Infinity;
+
+            let clusterIndex = 0;
+
+
+            for (
+                let i = 0;
+                i < K;
+                i++
+            ) {
+
+                const d =
+                    distance(
+                        point,
+                        centers[i]
+                    );
+
+
+                if (
+                    d < minDistance
+                ) {
+
+                    minDistance = d;
+
+                    clusterIndex = i;
+
+                }
+
+            }
+
+
+            point.cluster =
+                clusterIndex;
+
+        }
+
+
+        /* --------------------------------------
+           Step 2：重新計算群中心
+        -------------------------------------- */
+
+        let newCenters = [];
+
+
+        for (
+            let i = 0;
+            i < K;
+            i++
+        ) {
+
+            const points =
+                data.filter(
+                    p =>
+                    p.cluster === i
+                );
+
+
+            /* 如果該群沒有資料 */
+
+            if (
+                points.length === 0
+            ) {
+
+                newCenters.push({
+
+                    x:
+                    randomNormal(),
+
+                    y:
+                    randomNormal()
+
+                });
+
+                continue;
+
+            }
+
+
+            let sumX = 0;
+
+            let sumY = 0;
+
+
+            for (
+                let point of points
+            ) {
+
+                sumX += point.x;
+
+                sumY += point.y;
+
+            }
+
+
+            newCenters.push({
+
+                x:
+                sumX / points.length,
+
+                y:
+                sumY / points.length
+
+            });
+
+        }
+
+
+        /* --------------------------------------
+           Step 3：判斷是否收斂
+        -------------------------------------- */
+
+        let moved = false;
+
+
+        for (
+            let i = 0;
+            i < K;
+            i++
+        ) {
+
+            if (
+
+                distance(
+                    centers[i],
+                    newCenters[i]
+                )
+
+                > 0.0001
+
+            ) {
+
+                moved = true;
+
+            }
+
+        }
+
+
+        centers =
+            newCenters;
+
+
+        /* 如果中心沒有明顯移動，代表收斂 */
+
+        if (!moved) {
+
+            break;
+
+        }
+
+    }
+
+
+    /* 顯示分群結果 */
+
+    drawClusters(
+        centers,
+        K
+    );
+
+
+    /* 顯示資訊 */
+
+    showInfo(
+        centers,
+        K
+    );
+
+}
+
+
+/* =====================================================
+   顏色
+===================================================== */
+
+function getColor(index) {
+
+    const colors = [
+
+        "#ef4444",
+        "#3b82f6",
+        "#22c55e",
+        "#f59e0b",
+        "#a855f7",
+        "#ec4899",
+        "#06b6d4",
+        "#84cc16",
+        "#f97316",
+        "#6366f1",
+        "#14b8a6",
+        "#e11d48",
+        "#8b5cf6",
+        "#0ea5e9",
+        "#65a30d",
+        "#ca8a04",
+        "#9333ea",
+        "#db2777",
+        "#0891b2",
+        "#4f46e5"
+
+    ];
+
+
+    return colors[
+        index % colors.length
+    ];
+
+}
+
+
+/* =====================================================
+   繪製分群結果
+===================================================== */
+
+function drawClusters(
+    centers,
+    K
+) {
+
+    ctx.clearRect(
+        0,
+        0,
+        WIDTH,
+        HEIGHT
+    );
+
+
+    drawAxis();
+
+
+    /* --------------------------------------
+       繪製資料點
+    -------------------------------------- */
+
+    for (
+        let point of data
+    ) {
+
+        ctx.fillStyle =
+            getColor(
+                point.cluster
+            );
+
+
+        ctx.beginPath();
+
+
+        ctx.arc(
+
+            toCanvasX(
+                point.x
+            ),
+
+            toCanvasY(
+                point.y
+            ),
+
+            3,
+
+            0,
+
+            Math.PI * 2
+
+        );
+
+
+        ctx.fill();
+
+    }
+
+
+    /* --------------------------------------
+       繪製群中心
+    -------------------------------------- */
+
+    for (
+        let i = 0;
+        i < K;
+        i++
+    ) {
+
+        const center =
+            centers[i];
+
+
+        const x =
+            toCanvasX(
+                center.x
+            );
+
+
+        const y =
+            toCanvasY(
+                center.y
+            );
+
+
+        /* 黑色 X */
+
+        ctx.strokeStyle =
+            "black";
+
+        ctx.lineWidth = 3;
+
+
+        ctx.beginPath();
+
+
+        ctx.moveTo(
+            x - 10,
+            y - 10
+        );
+
+        ctx.lineTo(
+            x + 10,
+            y + 10
+        );
+
+
+        ctx.moveTo(
+            x + 10,
+            y - 10
+        );
+
+        ctx.lineTo(
+            x - 10,
+            y + 10
+        );
+
+
+        ctx.stroke();
+
+    }
+
+}
+
+
+/* =====================================================
+   顯示分群資訊
+===================================================== */
+
+function showInfo(
+    centers,
+    K
+) {
+
+    let html =
+        "<h3>📌 K-means 分群結果</h3>";
+
+
+    html +=
+        "資料筆數：" +
+        data.length +
+        "<br>";
+
+
+    html +=
+        "分群數量 K：" +
+        K +
+        "<br>";
+
+
+    html +=
+        "<div class='center-info'>";
+
+
+    html +=
+        "<strong>各群中心與資料數量：</strong><br>";
+
+
+    /* --------------------------------------
+       顯示每一群資訊
+    -------------------------------------- */
+
+    for (
+        let i = 0;
+        i < K;
+        i++
+    ) {
+
+        const count =
+            data.filter(
+                p =>
+                p.cluster === i
+            ).length;
+
+
+        html +=
+
+            "群組 " +
+            (i + 1) +
+
+            "：中心 = (" +
+
+            centers[i].x.toFixed(3) +
+
+            ", " +
+
+            centers[i].y.toFixed(3) +
+
+            ")，資料數量 = " +
+
+            count +
+
+            "<br>";
+
+    }
+
+
+    html +=
+        "</div>";
+
+
+    document.getElementById(
+        "info"
+    ).innerHTML =
+        html;
+
+}
+
+
+/* =====================================================
+   網頁第一次開啟時
+===================================================== */
+
+generateData();
+
+</script>
+
+</body>
+</html>
+```
