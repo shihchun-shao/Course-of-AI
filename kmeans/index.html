@@ -473,27 +473,22 @@ function runKMeans() {
     }
 
 
-    /* 每次執行時重新產生資料 */
+    /* 使用目前畫面上的資料進行 K-means */
 
-    data = [];
+    if (data.length !== dataCount) {
 
+        alert(
+            "資料筆數已變更，請先按「重新產生資料」！"
+        );
 
-    for (
-        let i = 0;
-        i < dataCount;
-        i++
-    ) {
+        return;
 
-        data.push({
+    }
 
-            x: randomNormal(),
+    /* 重設既有資料的分群狀態，但不重新產生座標 */
 
-            y: randomNormal(),
-
-            cluster: -1
-
-        });
-
+    for (let point of data) {
+        point.cluster = -1;
     }
 
 
