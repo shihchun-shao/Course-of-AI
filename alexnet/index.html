@@ -91,11 +91,25 @@ main{
   overflow:hidden;
   background:#0f172a;
 }
-video, canvas{
+video{
   display:block;
   width:100%;
   aspect-ratio:16/10;
   background:#0f172a;
+  object-fit:cover;
+}
+canvas{
+  display:block;
+  width:100%;
+  aspect-ratio:16/10;
+}
+#overlay{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  background:transparent !important;
+  pointer-events:none;
 }
 #overlay{
   position:absolute;
