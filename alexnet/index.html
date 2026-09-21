@@ -1,0 +1,800 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="AlexNet 即時影像辨識｜AI 工程素養互動教學平台">
+<title>深度學習 / AlexNet－影像辨識</title>
+<script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js"></script>
+<style>
+:root{
+  --bg:#f4f7fb;
+  --card:#ffffff;
+  --text:#172033;
+  --muted:#667085;
+  --line:#d9e1ec;
+  --primary:#2563eb;
+  --primary-dark:#1d4ed8;
+  --soft:#eaf2ff;
+  --green:#15803d;
+  --shadow:0 14px 36px rgba(15,23,42,.08);
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+  background:linear-gradient(180deg,#f8fbff 0%,var(--bg) 100%);
+  color:var(--text);
+}
+header{
+  border-bottom:1px solid var(--line);
+  background:#fff;
+}
+.header-inner{
+  max-width:1280px;
+  margin:auto;
+  padding:20px 18px 22px;
+}
+.back{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  text-decoration:none;
+  color:var(--primary-dark);
+  font-weight:800;
+  font-size:14px;
+  margin-bottom:14px;
+}
+h1{
+  margin:0 0 10px;
+  font-size:clamp(30px,4.8vw,48px);
+  letter-spacing:-.03em;
+}
+header p{
+  margin:0;
+  color:var(--muted);
+  line-height:1.8;
+}
+main{
+  max-width:1280px;
+  margin:20px auto 44px;
+  padding:0 18px;
+  display:grid;
+  grid-template-columns:minmax(0,1.45fr) minmax(340px,.85fr);
+  gap:20px;
+}
+.card{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:18px;
+  box-shadow:var(--shadow);
+  padding:18px;
+}
+.stage-head, .panel-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  margin-bottom:12px;
+}
+.stage-head strong, .panel-head strong{
+  font-size:18px;
+}
+.stage-hint{
+  font-size:12px;
+  color:var(--muted);
+}
+.stage{
+  position:relative;
+  border:1px solid var(--line);
+  border-radius:14px;
+  overflow:hidden;
+  background:#0f172a;
+}
+video, canvas{
+  display:block;
+  width:100%;
+  aspect-ratio:16/10;
+  background:#0f172a;
+}
+#overlay{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+}
+.status-chip{
+  position:absolute;
+  left:12px;
+  top:12px;
+  z-index:3;
+  padding:8px 12px;
+  border-radius:999px;
+  background:rgba(15,23,42,.72);
+  color:#fff;
+  font-size:12px;
+  font-weight:800;
+  backdrop-filter:blur(8px);
+}
+.controls{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  margin-top:14px;
+}
+button{
+  border:0;
+  border-radius:10px;
+  padding:11px 15px;
+  font-weight:800;
+  cursor:pointer;
+  color:#fff;
+  background:var(--primary);
+}
+button.secondary{background:#475467}
+button.success{background:var(--green)}
+button:disabled{opacity:.55;cursor:not-allowed}
+.grid2{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;
+  margin-top:14px;
+}
+.stat{
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:14px;
+  background:#fbfdff;
+}
+.stat .k{
+  font-size:12px;
+  color:var(--muted);
+  margin-bottom:8px;
+  font-weight:700;
+}
+.stat .v{
+  font-size:24px;
+  font-weight:900;
+  letter-spacing:-.02em;
+}
+.range-block{
+  margin-top:14px;
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:14px;
+  background:#fbfdff;
+}
+.range-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:8px;
+  font-weight:800;
+}
+input[type="range"]{
+  width:100%;
+}
+.notice{
+  margin-top:14px;
+  border-radius:14px;
+  padding:13px 14px;
+  font-size:14px;
+  line-height:1.7;
+}
+.notice.info{
+  background:#eff6ff;
+  border:1px solid #bfdbfe;
+  color:#1e3a8a;
+}
+.notice.warn{
+  background:#fff7ed;
+  border:1px solid #fed7aa;
+  color:#9a3412;
+}
+.notice.ok{
+  background:#ecfdf3;
+  border:1px solid #abefc6;
+  color:#067647;
+}
+.result-box{
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:16px;
+  background:#fbfdff;
+}
+.result-title{
+  margin:0 0 12px;
+  font-size:15px;
+  font-weight:900;
+}
+.top1{
+  border:1px solid #dbeafe;
+  background:#eff6ff;
+  border-radius:14px;
+  padding:14px;
+  margin-bottom:14px;
+}
+.top1 .label{
+  font-size:24px;
+  font-weight:900;
+  letter-spacing:-.02em;
+  margin-bottom:6px;
+}
+.top1 .score{
+  font-size:14px;
+  color:#1d4ed8;
+  font-weight:800;
+}
+.top5-list{
+  display:grid;
+  gap:10px;
+}
+.item{
+  display:grid;
+  grid-template-columns:auto 1fr auto;
+  gap:10px;
+  align-items:center;
+}
+.rank{
+  width:28px;
+  height:28px;
+  border-radius:999px;
+  display:grid;
+  place-items:center;
+  background:#eaf2ff;
+  color:#1d4ed8;
+  font-size:12px;
+  font-weight:900;
+}
+.item .name{
+  font-weight:700;
+  line-height:1.4;
+}
+.item .prob{
+  font-size:13px;
+  color:var(--muted);
+  font-weight:800;
+}
+.bar{
+  margin-top:4px;
+  height:8px;
+  background:#eef2f6;
+  border-radius:999px;
+  overflow:hidden;
+}
+.fill{
+  height:100%;
+  background:linear-gradient(90deg,#60a5fa,#2563eb);
+}
+.compare{
+  margin-top:14px;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+.compare-card{
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:14px;
+  background:#fbfdff;
+}
+.compare-card h3{
+  margin:0 0 8px;
+  font-size:15px;
+}
+.compare-card ul{
+  margin:0;
+  padding-left:18px;
+  line-height:1.7;
+  color:#475467;
+}
+footer{
+  border-top:1px solid var(--line);
+  background:rgba(255,255,255,.72);
+}
+.footer-inner{
+  max-width:1280px;
+  margin:auto;
+  padding:24px 18px 30px;
+  color:var(--muted);
+  font-size:13px;
+  line-height:1.8;
+}
+.hidden{display:none!important}
+@media(max-width:960px){
+  main{grid-template-columns:1fr}
+}
+@media(max-width:640px){
+  .grid2, .compare{grid-template-columns:1fr}
+  .top1 .label{font-size:21px}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="header-inner">
+    <a class="back" href="../">← 返回首頁</a>
+    <h1>深度學習 / AlexNet－影像辨識</h1>
+    <p>
+      透過 Webcam 即時影像，使用 AlexNet 深度學習模型進行影像分類，
+      觀察 Top-1 / Top-5 辨識結果、信心值與即時推論效能。
+    </p>
+  </div>
+</header>
+
+<main>
+  <section class="card">
+    <div class="stage-head">
+      <strong>Webcam 即時影像</strong>
+      <span class="stage-hint">分類任務：判斷整張影像最可能屬於哪一個類別</span>
+    </div>
+
+    <div class="stage">
+      <div id="engineChip" class="status-chip">尚未啟動</div>
+      <video id="video" autoplay playsinline muted></video>
+      <canvas id="overlay"></canvas>
+    </div>
+
+    <div class="controls">
+      <button id="startBtn" class="success">開始辨識</button>
+      <button id="stopBtn" class="secondary" disabled>停止辨識</button>
+      <button id="mirrorBtn" disabled>切換鏡像：開</button>
+    </div>
+
+    <div class="grid2">
+      <div class="stat">
+        <div class="k">目前狀態</div>
+        <div class="v" id="statusValue">待機中</div>
+      </div>
+      <div class="stat">
+        <div class="k">推論引擎</div>
+        <div class="v" id="engineValue">尚未載入</div>
+      </div>
+      <div class="stat">
+        <div class="k">FPS</div>
+        <div class="v" id="fpsValue">0.0</div>
+      </div>
+      <div class="stat">
+        <div class="k">單次推論時間</div>
+        <div class="v" id="latencyValue">0 ms</div>
+      </div>
+    </div>
+
+    <div class="range-block">
+      <div class="range-head">
+        <span>Confidence Threshold</span>
+        <span id="thresholdLabel">0.20</span>
+      </div>
+      <input id="thresholdRange" type="range" min="0" max="0.95" step="0.01" value="0.20">
+      <div class="stage-hint" style="margin-top:6px;">
+        若 Top-1 信心值低於門檻，將顯示「辨識結果不明確」。
+      </div>
+    </div>
+
+    <div id="msgBox" class="notice info">
+      請先將 <strong>alexnet.onnx</strong> 放到 <strong>alexnet/models/</strong> 資料夾。
+      若有 <strong>imagenet_classes.txt</strong>，也可一併放入相同資料夾，以顯示完整 ImageNet 類別名稱。
+    </div>
+  </section>
+
+  <aside class="card">
+    <div class="panel-head">
+      <strong>AlexNet 影像辨識結果</strong>
+      <span class="stage-hint">Top-1 / Top-5</span>
+    </div>
+
+    <div class="result-box">
+      <h2 class="result-title">Top-1 辨識結果</h2>
+      <div class="top1">
+        <div class="label" id="top1Label">尚未開始</div>
+        <div class="score" id="top1Score">Confidence：0.0%</div>
+      </div>
+
+      <h2 class="result-title">Top-5 Results</h2>
+      <div id="top5List" class="top5-list"></div>
+    </div>
+
+    <div class="notice ok" style="margin-top:14px;">
+      <strong>AlexNet 是什麼？</strong><br>
+      AlexNet 是經典的 CNN 影像分類模型。它會針對整張影像輸出各類別分數，
+      適合用來說明深度學習中的影像分類（Classification）概念。
+    </div>
+
+    <div class="compare">
+      <div class="compare-card">
+        <h3>AlexNet</h3>
+        <ul>
+          <li>任務：影像分類</li>
+          <li>輸出：類別名稱與信心值</li>
+          <li>問題：這張圖最像什麼？</li>
+          <li>例：coffee mug、banana、keyboard</li>
+        </ul>
+      </div>
+      <div class="compare-card">
+        <h3>RetinaFace / YOLO</h3>
+        <ul>
+          <li>任務：物件或人臉偵測</li>
+          <li>輸出：Bounding Box + 類別</li>
+          <li>問題：什麼東西？在哪裡？</li>
+          <li>例：臉部位置、物件位置</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="notice warn">
+      <strong>教學提醒：</strong><br>
+      AlexNet 預訓練模型通常使用 ImageNet 1000 類別，因此日常物品、動物較容易得到合理結果；
+      若是工業設備、PLC 或特殊零件，則可能出現與預期不同的分類結果。
+    </div>
+  </aside>
+</main>
+
+<footer>
+  <div class="footer-inner">
+    AI 工程素養互動教學平台<br>
+    大安高工控制科邵時俊老師製作
+  </div>
+</footer>
+
+<script>
+const MODEL_PATH = './models/alexnet.onnx';
+const LOCAL_LABELS_PATH = './models/imagenet_classes.txt';
+const REMOTE_LABELS_PATH = 'https://raw.githubusercontent.com/pytorch/hub/master/imagenet_classes.txt';
+
+const video = document.getElementById('video');
+const overlay = document.getElementById('overlay');
+const ctx = overlay.getContext('2d');
+
+const startBtn = document.getElementById('startBtn');
+const stopBtn = document.getElementById('stopBtn');
+const mirrorBtn = document.getElementById('mirrorBtn');
+
+const statusValue = document.getElementById('statusValue');
+const engineValue = document.getElementById('engineValue');
+const fpsValue = document.getElementById('fpsValue');
+const latencyValue = document.getElementById('latencyValue');
+const engineChip = document.getElementById('engineChip');
+
+const top1Label = document.getElementById('top1Label');
+const top1Score = document.getElementById('top1Score');
+const top5List = document.getElementById('top5List');
+
+const thresholdRange = document.getElementById('thresholdRange');
+const thresholdLabel = document.getElementById('thresholdLabel');
+const msgBox = document.getElementById('msgBox');
+
+let session = null;
+let stream = null;
+let running = false;
+let processing = false;
+let mirror = true;
+let inputName = null;
+let inputWidth = 224;
+let inputHeight = 224;
+let labels = [];
+let frameTimer = performance.now();
+let fpsEMA = 0;
+let rafId = null;
+
+const hiddenCanvas = document.createElement('canvas');
+const hiddenCtx = hiddenCanvas.getContext('2d', {willReadFrequently: true});
+
+thresholdRange.addEventListener('input', ()=>{
+  thresholdLabel.textContent = Number(thresholdRange.value).toFixed(2);
+});
+
+mirrorBtn.addEventListener('click', ()=>{
+  mirror = !mirror;
+  mirrorBtn.textContent = '切換鏡像：' + (mirror ? '開' : '關');
+  video.style.transform = mirror ? 'scaleX(-1)' : 'scaleX(1)';
+  overlay.style.transform = mirror ? 'scaleX(-1)' : 'scaleX(1)';
+});
+
+startBtn.addEventListener('click', startSystem);
+stopBtn.addEventListener('click', stopSystem);
+
+function setMessage(type, html){
+  msgBox.className = 'notice ' + type;
+  msgBox.innerHTML = html;
+}
+
+async function loadLabels(){
+  // 先嘗試本地 labels
+  try{
+    const localResp = await fetch(LOCAL_LABELS_PATH, {cache:'no-store'});
+    if(localResp.ok){
+      const txt = await localResp.text();
+      const arr = txt.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
+      if(arr.length >= 1000){
+        return arr;
+      }
+    }
+  }catch(e){}
+
+  // 再嘗試遠端 labels
+  try{
+    const remoteResp = await fetch(REMOTE_LABELS_PATH, {cache:'no-store'});
+    if(remoteResp.ok){
+      const txt = await remoteResp.text();
+      const arr = txt.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
+      if(arr.length >= 1000){
+        return arr;
+      }
+    }
+  }catch(e){}
+
+  // 最後退回 class index
+  return Array.from({length:1000}, (_,i)=>`class_${i}`);
+}
+
+async function createSession(){
+  const providers = [];
+  let engineText = 'WASM';
+
+  if (ort.env && 'webgpu' in navigator) {
+    providers.push('webgpu');
+  }
+  providers.push('wasm');
+
+  for(const provider of providers){
+    try{
+      const options = {
+        executionProviders:[provider],
+        graphOptimizationLevel:'all'
+      };
+      const s = await ort.InferenceSession.create(MODEL_PATH, options);
+      engineText = provider.toUpperCase();
+      return {session:s, engine:engineText};
+    }catch(err){
+      console.warn('Failed provider', provider, err);
+    }
+  }
+  throw new Error('無法建立 ONNX Runtime Session。請確認瀏覽器環境與模型檔案。');
+}
+
+function parseInputShape(sess){
+  const names = sess.inputNames;
+  if(!names || !names.length) throw new Error('模型沒有可用的輸入。');
+  inputName = names[0];
+
+  const meta = sess.inputMetadata[inputName];
+  const dims = meta?.dimensions || [];
+  // 預期 [1,3,H,W]
+  if(dims.length >= 4){
+    inputHeight = Number(dims[dims.length - 2]) || 224;
+    inputWidth = Number(dims[dims.length - 1]) || 224;
+  }else{
+    inputHeight = 224;
+    inputWidth = 224;
+  }
+  hiddenCanvas.width = inputWidth;
+  hiddenCanvas.height = inputHeight;
+}
+
+function softmax(logits){
+  let max = -Infinity;
+  for(let i=0;i<logits.length;i++) if(logits[i] > max) max = logits[i];
+  const exps = new Float32Array(logits.length);
+  let sum = 0;
+  for(let i=0;i<logits.length;i++){
+    const e = Math.exp(logits[i] - max);
+    exps[i] = e;
+    sum += e;
+  }
+  for(let i=0;i<exps.length;i++) exps[i] /= sum;
+  return exps;
+}
+
+function topK(probs, k=5){
+  const pairs = Array.from(probs, (v,i)=>({index:i, prob:v}));
+  pairs.sort((a,b)=>b.prob - a.prob);
+  return pairs.slice(0,k).map(x=>({
+    index:x.index,
+    prob:x.prob,
+    label: labels[x.index] || `class_${x.index}`
+  }));
+}
+
+function preprocessFrame(){
+  hiddenCtx.save();
+  hiddenCtx.clearRect(0,0,inputWidth,inputHeight);
+  if(mirror){
+    hiddenCtx.translate(inputWidth, 0);
+    hiddenCtx.scale(-1, 1);
+  }
+  hiddenCtx.drawImage(video, 0, 0, inputWidth, inputHeight);
+  hiddenCtx.restore();
+
+  const {data} = hiddenCtx.getImageData(0,0,inputWidth,inputHeight);
+
+  const floatData = new Float32Array(1 * 3 * inputHeight * inputWidth);
+  const mean = [0.485, 0.456, 0.406];
+  const std = [0.229, 0.224, 0.225];
+  const channelSize = inputHeight * inputWidth;
+
+  for(let y=0; y<inputHeight; y++){
+    for(let x=0; x<inputWidth; x++){
+      const idx = (y * inputWidth + x) * 4;
+      const r = data[idx] / 255;
+      const g = data[idx + 1] / 255;
+      const b = data[idx + 2] / 255;
+      const offset = y * inputWidth + x;
+
+      floatData[offset] = (r - mean[0]) / std[0];
+      floatData[channelSize + offset] = (g - mean[1]) / std[1];
+      floatData[channelSize * 2 + offset] = (b - mean[2]) / std[2];
+    }
+  }
+
+  return new ort.Tensor('float32', floatData, [1, 3, inputHeight, inputWidth]);
+}
+
+function drawOverlay(){
+  const w = overlay.width = video.videoWidth || 1280;
+  const h = overlay.height = video.videoHeight || 800;
+  ctx.clearRect(0,0,w,h);
+
+  ctx.fillStyle = 'rgba(15,23,42,0.45)';
+  ctx.fillRect(18, h - 84, 360, 60);
+  ctx.fillStyle = '#ffffff';
+  ctx.font = '700 18px "Segoe UI", "Noto Sans TC", sans-serif';
+  ctx.fillText('AlexNet Image Classification', 34, h - 48);
+  ctx.font = '500 14px "Segoe UI", "Noto Sans TC", sans-serif';
+  ctx.fillText(`Input: ${inputWidth} × ${inputHeight}`, 34, h - 24);
+}
+
+function updateResults(top5){
+  const threshold = Number(thresholdRange.value);
+  const best = top5[0];
+  const confidence = best.prob * 100;
+
+  if(best.prob < threshold){
+    top1Label.textContent = '辨識結果不明確';
+  }else{
+    top1Label.textContent = best.label;
+  }
+  top1Score.textContent = `Confidence：${confidence.toFixed(1)}%`;
+
+  top5List.innerHTML = top5.map((item, i)=>`
+    <div class="item">
+      <div class="rank">${i+1}</div>
+      <div>
+        <div class="name">${item.label}</div>
+        <div class="bar"><div class="fill" style="width:${Math.max(2, item.prob * 100)}%"></div></div>
+      </div>
+      <div class="prob">${(item.prob * 100).toFixed(1)}%</div>
+    </div>
+  `).join('');
+}
+
+function tickFPS(){
+  const now = performance.now();
+  const dt = now - frameTimer;
+  frameTimer = now;
+  const instant = dt > 0 ? (1000 / dt) : 0;
+  fpsEMA = fpsEMA === 0 ? instant : fpsEMA * 0.88 + instant * 0.12;
+  fpsValue.textContent = fpsEMA.toFixed(1);
+}
+
+async function classifyLoop(){
+  if(!running) return;
+  drawOverlay();
+  tickFPS();
+
+  if(!processing && video.readyState >= 2){
+    processing = true;
+    try{
+      const inputTensor = preprocessFrame();
+      const t0 = performance.now();
+      const outputs = await session.run({[inputName]: inputTensor});
+      const t1 = performance.now();
+
+      const outName = session.outputNames[0];
+      let logits = outputs[outName]?.data;
+      if(!logits) throw new Error('模型輸出為空。');
+
+      // 若輸出為 [1,1000]，data 直接可用
+      const probs = softmax(logits);
+      const top5 = topK(probs, 5);
+      updateResults(top5);
+
+      latencyValue.textContent = `${(t1 - t0).toFixed(0)} ms`;
+      statusValue.textContent = '辨識中';
+    }catch(err){
+      console.error(err);
+      setMessage('warn', `<strong>推論失敗：</strong>${err.message || err}`);
+      statusValue.textContent = '發生錯誤';
+      stopSystem(false);
+    }finally{
+      processing = false;
+    }
+  }
+
+  rafId = requestAnimationFrame(classifyLoop);
+}
+
+async function startSystem(){
+  startBtn.disabled = true;
+  setMessage('info', '初始化中：載入 AlexNet 模型、標籤與 Webcam...');
+  statusValue.textContent = '初始化中';
+
+  try{
+    labels = await loadLabels();
+
+    const result = await createSession();
+    session = result.session;
+    parseInputShape(session);
+
+    engineValue.textContent = result.engine;
+    engineChip.textContent = `推論引擎：${result.engine}`;
+    setMessage('ok', `模型載入成功。輸入尺寸：<strong>${inputWidth} × ${inputHeight}</strong>。若本地沒有 labels，會自動退回 class index。`);
+
+    stream = await navigator.mediaDevices.getUserMedia({
+      video:{width:{ideal:1280}, height:{ideal:720}, facingMode:'user'},
+      audio:false
+    });
+
+    video.srcObject = stream;
+    await video.play();
+    video.style.transform = mirror ? 'scaleX(-1)' : 'scaleX(1)';
+    overlay.style.transform = mirror ? 'scaleX(-1)' : 'scaleX(1)';
+
+    running = true;
+    stopBtn.disabled = false;
+    mirrorBtn.disabled = false;
+    statusValue.textContent = '辨識中';
+    startBtn.disabled = true;
+    frameTimer = performance.now();
+    fpsEMA = 0;
+    classifyLoop();
+  }catch(err){
+    console.error(err);
+    const msg = err?.message || String(err);
+    statusValue.textContent = '啟動失敗';
+    startBtn.disabled = false;
+    stopBtn.disabled = true;
+    mirrorBtn.disabled = true;
+
+    if(msg.includes('fetch') || msg.includes('Load model') || msg.includes('Failed to fetch') || msg.includes('model')){
+      setMessage('warn', `
+        <strong>啟動失敗：</strong>無法載入 AlexNet ONNX 模型。<br>
+        請將 <strong>alexnet.onnx</strong> 放到 <strong>alexnet/models/</strong> 資料夾。<br>
+        最後錯誤：${msg}
+      `);
+    }else{
+      setMessage('warn', `<strong>啟動失敗：</strong>${msg}`);
+    }
+  }
+}
+
+function stopTracks(){
+  if(stream){
+    stream.getTracks().forEach(t=>t.stop());
+    stream = null;
+  }
+  video.srcObject = null;
+}
+
+function stopSystem(resetMessage=true){
+  running = false;
+  processing = false;
+  if(rafId) cancelAnimationFrame(rafId);
+  rafId = null;
+  stopTracks();
+  ctx.clearRect(0,0,overlay.width,overlay.height);
+  statusValue.textContent = '已停止';
+  fpsValue.textContent = '0.0';
+  latencyValue.textContent = '0 ms';
+  startBtn.disabled = false;
+  stopBtn.disabled = true;
+  mirrorBtn.disabled = true;
+  engineChip.textContent = '尚未啟動';
+  if(resetMessage){
+    setMessage('info', '系統已停止。按「開始辨識」可再次啟動 AlexNet 即時影像辨識。');
+  }
+}
+
+window.addEventListener('beforeunload', stopTracks);
+thresholdLabel.textContent = Number(thresholdRange.value).toFixed(2);
+</script>
+</body>
+</html>
