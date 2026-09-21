@@ -1,0 +1,40 @@
+{
+  "format": "chunked-onnx-v1",
+  "model": "AlexNet INT8",
+  "originalFile": "bvlcalexnet-12-int8.onnx",
+  "totalSize": 60984008,
+  "sha256": "d53bbedf100be79277cf55d78c72bdcb67d88786988561bf5d530f038e443c7b",
+  "chunkSize": 10485760,
+  "parts": [
+    {
+      "file": "alexnet.part01.bin",
+      "size": 10485760,
+      "sha256": "1b3e96dc1eb68a9fc344ae0778b422d9dfc05814b225e86ab5693cf82603732a"
+    },
+    {
+      "file": "alexnet.part02.bin",
+      "size": 10485760,
+      "sha256": "a567dc8819c80e4aede9ff60868b2a2d10faa26e0ae08f0f0ce846e936dc2a31"
+    },
+    {
+      "file": "alexnet.part03.bin",
+      "size": 10485760,
+      "sha256": "da6ccd4e2eebba7f2b4fd878347b331d25e56d19a90b1916c96ee5ae2b8bc38f"
+    },
+    {
+      "file": "alexnet.part04.bin",
+      "size": 10485760,
+      "sha256": "b862977c0b4364dc2c8937d72b88e5677773bac69e8fbe96ebc35b46323af61a"
+    },
+    {
+      "file": "alexnet.part05.bin",
+      "size": 10485760,
+      "sha256": "1eb60a0a2194eca46c36e4056f5fb1bbb3127a2d4fa242b8020c948ac7277e5c"
+    },
+    {
+      "file": "alexnet.part06.bin",
+      "size": 8555208,
+      "sha256": "ef163f1e9f1c1c6e5e659cfd8f0eb93d7fcdf7c09d3e4068b2c1f87a18befe0e"
+    }
+  ]
+}
