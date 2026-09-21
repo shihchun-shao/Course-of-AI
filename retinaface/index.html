@@ -1,0 +1,488 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="RetinaFace 深度學習即時人臉偵測互動教材">
+<title>RetinaFace 即時人臉偵測｜AI 工程素養互動教學平台</title>
+<style>
+:root{
+  --bg:#f4f7fb;--card:#fff;--text:#172033;--muted:#667085;
+  --blue:#2563eb;--blue2:#1d4ed8;--red:#dc2626;--green:#15803d;
+  --purple:#7c3aed;--line:#d9e1ec;--soft:#eef4ff;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;background:var(--bg);color:var(--text)}
+header{padding:22px 6vw;background:#fff;border-bottom:1px solid var(--line)}
+.header-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px}
+.back{color:var(--blue2);text-decoration:none;font-weight:800;font-size:14px}
+h1{margin:0 0 7px;font-size:clamp(28px,4vw,42px)}
+header p{margin:0;color:var(--muted);line-height:1.7}
+main{max-width:1240px;margin:24px auto;padding:0 18px;display:grid;grid-template-columns:1.35fr .85fr;gap:20px}
+.card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:0 8px 28px #0000000a}
+.stage{position:relative;background:#0b1020;border-radius:14px;overflow:hidden;aspect-ratio:4/3;display:flex;align-items:center;justify-content:center}
+video{width:100%;height:100%;object-fit:contain;display:none;background:#0b1020}
+canvas#overlay{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.msg{color:#cbd5e1;text-align:center;padding:26px;line-height:1.7;max-width:620px}
+.msg b{display:block;color:#fff;font-size:21px;margin-bottom:7px}
+.controls{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+button{border:0;border-radius:10px;padding:11px 16px;font-weight:800;cursor:pointer;background:var(--blue);color:#fff}
+button.stop{background:var(--red)}button.gray{background:#e8eef8;color:#1f3b67}button:disabled{opacity:.45;cursor:not-allowed}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}
+.metric{border:1px solid var(--line);border-radius:14px;padding:13px;min-width:0}.metric small{color:var(--muted);font-size:12px}.metric strong{display:block;font-size:23px;margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.setting{border:1px solid var(--line);border-radius:14px;padding:14px;margin-top:14px}
+.setting-row{display:flex;justify-content:space-between;gap:12px;align-items:center}.setting-row b{font-size:15px}.value{font-weight:900;color:var(--blue)}
+input[type=range]{width:100%;margin:12px 0 4px}.scale-label{display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}
+.alert,.ok,.info{margin-top:12px;padding:13px;border-radius:12px;line-height:1.6;display:none}.alert{background:#fff4f4;border:1px solid #fecaca;color:#991b1b}.ok{background:#f0fdf4;border:1px solid #bbf7d0;color:#166534}.info{background:#eff6ff;border:1px solid #bfdbfe;color:#1e40af}
+.progress{height:8px;background:#e8eef8;border-radius:999px;overflow:hidden;margin-top:12px;display:none}.progress>div{height:100%;width:0;background:var(--blue);transition:width .25s}
+h2{font-size:18px;margin:2px 0 12px}.step{padding:11px 12px;border:1px solid var(--line);border-radius:12px;margin-bottom:9px}.step b{display:block;margin-bottom:4px}.step span{font-size:14px;color:var(--muted);line-height:1.6}
+code{background:#eef2f7;padding:2px 5px;border-radius:5px}.tiny{font-size:13px;color:var(--muted);line-height:1.7}.badge{display:inline-block;background:#ede9fe;color:#6d28d9;border-radius:999px;padding:4px 8px;font-size:12px;font-weight:800}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}th{color:var(--muted)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:12px;font-size:12px;color:var(--muted)}.legend span{display:flex;align-items:center;gap:6px}.box-key{width:18px;height:12px;border:3px solid #ff3030;border-radius:2px}.point-key{width:10px;height:10px;border-radius:50%;background:#22c55e}
+footer{border-top:1px solid var(--line);background:#fff;margin-top:12px}.footer-inner{max-width:1240px;margin:auto;padding:22px 18px;color:var(--muted);font-size:13px;line-height:1.8;text-align:center}
+@media(max-width:920px){main{grid-template-columns:1fr}.grid{grid-template-columns:1fr 1fr}}
+@media(max-width:520px){.grid{grid-template-columns:1fr 1fr}.metric strong{font-size:20px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="header-top"><a class="back" href="../">← 回 AI 教學首頁</a><span class="badge">DEEP LEARNING</span></div>
+  <h1>Live 人臉偵測｜RetinaFace</h1>
+  <p>利用 RetinaFace 深度神經網路進行即時人臉偵測，同時輸出 Bounding Box、Confidence 與 5 個 Facial Landmarks。</p>
+</header>
+
+<main>
+<section class="card">
+  <div class="stage" id="stage">
+    <div class="msg" id="msg"><b>尚未啟動攝影機</b>按「開始偵測」，允許瀏覽器使用攝影機。第一次啟動需要下載 RetinaFace 模型。</div>
+    <video id="video" playsinline autoplay muted></video>
+    <canvas id="overlay"></canvas>
+  </div>
+
+  <div class="legend">
+    <span><i class="box-key"></i> 人臉 Bounding Box</span>
+    <span><i class="point-key"></i> 5 個 Facial Landmarks</span>
+  </div>
+
+  <div class="controls">
+    <button id="start">開始偵測</button>
+    <button id="stop" class="stop" disabled>停止偵測</button>
+    <button id="mirror" class="gray">切換鏡像</button>
+  </div>
+
+  <div class="setting">
+    <div class="setting-row"><b>Confidence Threshold</b><span class="value" id="confValue">0.70</span></div>
+    <input id="conf" type="range" min="0.30" max="0.95" step="0.05" value="0.70">
+    <div class="scale-label"><span>0.30：較敏感</span><span>0.95：較嚴格</span></div>
+    <p class="tiny" style="margin:8px 0 0">只顯示信心值高於此門檻的人臉。門檻太低可能增加誤判，太高可能漏掉較困難的人臉。</p>
+  </div>
+
+  <div class="setting">
+    <div class="setting-row"><b>NMS Threshold</b><span class="value" id="nmsValue">0.40</span></div>
+    <input id="nms" type="range" min="0.20" max="0.70" step="0.05" value="0.40">
+    <div class="scale-label"><span>0.20：合併較嚴格</span><span>0.70：保留更多重疊框</span></div>
+  </div>
+
+  <div id="progress" class="progress"><div id="bar"></div></div>
+  <div id="info" class="info"></div>
+  <div id="err" class="alert"></div>
+  <div id="ok" class="ok"></div>
+
+  <div class="grid">
+    <div class="metric"><small>目前人臉數量</small><strong id="count">0</strong></div>
+    <div class="metric"><small>最高 Confidence</small><strong id="best">0.00</strong></div>
+    <div class="metric"><small>推論 FPS</small><strong id="fps">0</strong></div>
+    <div class="metric"><small>執行後端</small><strong id="backend">—</strong></div>
+  </div>
+
+  <p class="tiny"><span class="badge">真正 RetinaFace</span> 本頁使用 RetinaFace MobileNetV1-0.25 ONNX 模型與 ONNX Runtime Web，在使用者自己的瀏覽器中執行深度學習推論。</p>
+</section>
+
+<aside class="card">
+  <h2>RetinaFace 如何偵測人臉？</h2>
+  <div class="step"><b>① CNN Backbone</b><span>使用 MobileNet 擷取影像中的多層次深度特徵，而不是人工設計 Haar-like features。</span></div>
+  <div class="step"><b>② Multi-scale Features</b><span>利用不同解析度的特徵圖，同時處理較大與較小的人臉。</span></div>
+  <div class="step"><b>③ Face Classification</b><span>判斷每一個候選位置是「人臉」或「非人臉」，得到 Confidence。</span></div>
+  <div class="step"><b>④ Bounding Box Regression</b><span>預測人臉框的精確位置與大小。</span></div>
+  <div class="step"><b>⑤ Facial Landmarks</b><span>同時預測左眼、右眼、鼻尖、左嘴角、右嘴角 5 個關鍵點。</span></div>
+  <div class="step"><b>⑥ NMS</b><span>Non-Maximum Suppression 移除高度重疊的重複候選框，保留最有代表性的結果。</span></div>
+
+  <h2 style="margin-top:18px">Haar 與 RetinaFace 比較</h2>
+  <table>
+    <tr><th>項目</th><th>Haar</th><th>RetinaFace</th></tr>
+    <tr><td>方法</td><td>傳統電腦視覺</td><td>深度學習</td></tr>
+    <tr><td>特徵</td><td>人工設計 Haar-like</td><td>CNN 自動學習</td></tr>
+    <tr><td>主要參數</td><td>minNeighbors</td><td>Confidence / NMS</td></tr>
+    <tr><td>輸出</td><td>人臉框</td><td>人臉框 + 5 關鍵點</td></tr>
+  </table>
+
+  <h2 style="margin-top:18px">5 個關鍵點</h2>
+  <p class="tiny">綠點依序代表：左眼、右眼、鼻尖、左嘴角、右嘴角。這些點可以延伸到臉部對齊、姿態判斷與其他人臉分析應用。</p>
+
+  <h2 style="margin-top:18px">使用提醒</h2>
+  <p class="tiny">Webcam 需要 <b>HTTPS 或 localhost</b>。Chrome / Edge 若支援 WebGPU，會優先使用 GPU；否則改用 WebAssembly (CPU)。第一次開啟需要下載 ONNX Runtime Web 與 RetinaFace 模型。</p>
+</aside>
+</main>
+
+<footer><div class="footer-inner">AI 工程素養互動教學平台<br>大安高工控制科邵時俊老師製作</div></footer>
+
+<canvas id="inputCanvas" width="640" height="640" style="display:none"></canvas>
+<script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.22.0/dist/ort.webgpu.min.js"></script>
+<script>
+'use strict';
+
+const MODEL_SIZE = 640;
+const MIN_SIZES = [[16,32],[64,128],[256,512]];
+const STEPS = [8,16,32];
+const VARIANCE = [0.1,0.2];
+const PRE_NMS_TOPK = 1500;
+const POST_NMS_TOPK = 100;
+
+// 優先讀取自己網站中的模型；若尚未上傳模型，改用 GitHub Release 公開模型。
+const MODEL_CANDIDATES = [
+  './models/retinaface_mv1_0.25.onnx',
+  'https://github.com/yakhyo/retinaface-pytorch/releases/download/v0.0.1/retinaface_mv1_0.25.onnx'
+];
+
+const video = document.getElementById('video');
+const overlay = document.getElementById('overlay');
+const ctx = overlay.getContext('2d');
+const inputCanvas = document.getElementById('inputCanvas');
+const inputCtx = inputCanvas.getContext('2d', {willReadFrequently:true});
+const msg = document.getElementById('msg');
+const startBtn = document.getElementById('start');
+const stopBtn = document.getElementById('stop');
+const mirrorBtn = document.getElementById('mirror');
+const confSlider = document.getElementById('conf');
+const nmsSlider = document.getElementById('nms');
+const confValue = document.getElementById('confValue');
+const nmsValue = document.getElementById('nmsValue');
+const countEl = document.getElementById('count');
+const bestEl = document.getElementById('best');
+const fpsEl = document.getElementById('fps');
+const backendEl = document.getElementById('backend');
+const errEl = document.getElementById('err');
+const okEl = document.getElementById('ok');
+const infoEl = document.getElementById('info');
+const progress = document.getElementById('progress');
+const bar = document.getElementById('bar');
+
+let stream = null;
+let session = null;
+let running = false;
+let processing = false;
+let mirrored = true;
+let priors = null;
+let rafId = 0;
+let lastInferAt = 0;
+let inferCounter = 0;
+let fpsClock = performance.now();
+let activeBackend = '—';
+
+confSlider.addEventListener('input',()=>confValue.textContent=Number(confSlider.value).toFixed(2));
+nmsSlider.addEventListener('input',()=>nmsValue.textContent=Number(nmsSlider.value).toFixed(2));
+
+function clearNotices(){errEl.style.display='none';okEl.style.display='none';infoEl.style.display='none'}
+function showError(t){errEl.textContent=t;errEl.style.display='block';okEl.style.display='none';infoEl.style.display='none'}
+function showOk(t){okEl.textContent=t;okEl.style.display='block';errEl.style.display='none';infoEl.style.display='none'}
+function showInfo(t){infoEl.textContent=t;infoEl.style.display='block';errEl.style.display='none';okEl.style.display='none'}
+function setProgress(p){progress.style.display='block';bar.style.width=Math.max(0,Math.min(100,p))+'%'}
+function hideProgress(){setTimeout(()=>progress.style.display='none',300)}
+
+function resizeOverlay(){
+  const r = overlay.getBoundingClientRect();
+  const d = window.devicePixelRatio || 1;
+  overlay.width = Math.max(1,Math.round(r.width*d));
+  overlay.height = Math.max(1,Math.round(r.height*d));
+  ctx.setTransform(d,0,0,d,0,0);
+}
+window.addEventListener('resize',resizeOverlay);
+
+function generatePriors(width,height){
+  const arr=[];
+  for(let k=0;k<STEPS.length;k++){
+    const step=STEPS[k];
+    const fh=Math.ceil(height/step), fw=Math.ceil(width/step);
+    for(let i=0;i<fh;i++){
+      for(let j=0;j<fw;j++){
+        for(const minSize of MIN_SIZES[k]){
+          arr.push([
+            (j+0.5)*step/width,
+            (i+0.5)*step/height,
+            minSize/width,
+            minSize/height
+          ]);
+        }
+      }
+    }
+  }
+  return arr;
+}
+
+function iou(a,b){
+  const xx1=Math.max(a.x1,b.x1), yy1=Math.max(a.y1,b.y1);
+  const xx2=Math.min(a.x2,b.x2), yy2=Math.min(a.y2,b.y2);
+  const w=Math.max(0,xx2-xx1), h=Math.max(0,yy2-yy1);
+  const inter=w*h;
+  const areaA=Math.max(0,a.x2-a.x1)*Math.max(0,a.y2-a.y1);
+  const areaB=Math.max(0,b.x2-b.x1)*Math.max(0,b.y2-b.y1);
+  return inter/(areaA+areaB-inter+1e-9);
+}
+
+function nms(dets,threshold){
+  dets.sort((a,b)=>b.score-a.score);
+  const keep=[];
+  while(dets.length && keep.length<POST_NMS_TOPK){
+    const best=dets.shift();
+    keep.push(best);
+    dets=dets.filter(d=>iou(best,d)<=threshold);
+  }
+  return keep;
+}
+
+function prepareInput(){
+  const vw=video.videoWidth, vh=video.videoHeight;
+  const scale=Math.min(MODEL_SIZE/vw,MODEL_SIZE/vh);
+  const dw=Math.round(vw*scale), dh=Math.round(vh*scale);
+  const padX=Math.floor((MODEL_SIZE-dw)/2), padY=Math.floor((MODEL_SIZE-dh)/2);
+
+  // RGB (123,117,104) 對應 BGR mean (104,117,123)，減均值後 padding 接近 0。
+  inputCtx.save();
+  inputCtx.setTransform(1,0,0,1,0,0);
+  inputCtx.fillStyle='rgb(123,117,104)';
+  inputCtx.fillRect(0,0,MODEL_SIZE,MODEL_SIZE);
+  if(mirrored){
+    inputCtx.translate(padX+dw,padY);
+    inputCtx.scale(-1,1);
+    inputCtx.drawImage(video,0,0,dw,dh);
+  }else{
+    inputCtx.drawImage(video,padX,padY,dw,dh);
+  }
+  inputCtx.restore();
+
+  const rgba=inputCtx.getImageData(0,0,MODEL_SIZE,MODEL_SIZE).data;
+  const hw=MODEL_SIZE*MODEL_SIZE;
+  const tensorData=new Float32Array(hw*3);
+  for(let p=0,i=0;p<hw;p++,i+=4){
+    // Canvas 是 RGB；RetinaFace reference preprocessing 使用 OpenCV BGR。
+    tensorData[p] = rgba[i+2]-104;       // B
+    tensorData[hw+p] = rgba[i+1]-117;    // G
+    tensorData[2*hw+p] = rgba[i]-123;    // R
+  }
+  return {tensor:new ort.Tensor('float32',tensorData,[1,3,MODEL_SIZE,MODEL_SIZE]),scale,padX,padY,vw,vh};
+}
+
+function tensorByLastDim(outputs,lastDim){
+  for(const name of Object.keys(outputs)){
+    const t=outputs[name];
+    if(t && t.dims && t.dims[t.dims.length-1]===lastDim) return t;
+  }
+  return null;
+}
+
+function decodeOutputs(outputs,meta){
+  const locT=tensorByLastDim(outputs,4);
+  const confT=tensorByLastDim(outputs,2);
+  const landT=tensorByLastDim(outputs,10);
+  if(!locT || !confT || !landT) throw new Error('模型輸出格式不符合預期（需要 loc / conf / landmarks）。');
+
+  const loc=locT.data, conf=confT.data, land=landT.data;
+  const n=Math.min(priors.length,Math.floor(loc.length/4),Math.floor(conf.length/2),Math.floor(land.length/10));
+  const threshold=Number(confSlider.value);
+  const candidates=[];
+
+  for(let i=0;i<n;i++){
+    const score=Number(conf[i*2+1]);
+    if(score<threshold) continue;
+    const p=priors[i];
+    const cx=p[0]+loc[i*4]*VARIANCE[0]*p[2];
+    const cy=p[1]+loc[i*4+1]*VARIANCE[0]*p[3];
+    const w=p[2]*Math.exp(loc[i*4+2]*VARIANCE[1]);
+    const h=p[3]*Math.exp(loc[i*4+3]*VARIANCE[1]);
+
+    let x1=(cx-w/2)*MODEL_SIZE, y1=(cy-h/2)*MODEL_SIZE;
+    let x2=(cx+w/2)*MODEL_SIZE, y2=(cy+h/2)*MODEL_SIZE;
+    x1=(x1-meta.padX)/meta.scale; y1=(y1-meta.padY)/meta.scale;
+    x2=(x2-meta.padX)/meta.scale; y2=(y2-meta.padY)/meta.scale;
+
+    const landmarks=[];
+    for(let k=0;k<5;k++){
+      const lx=(p[0]+land[i*10+k*2]*VARIANCE[0]*p[2])*MODEL_SIZE;
+      const ly=(p[1]+land[i*10+k*2+1]*VARIANCE[0]*p[3])*MODEL_SIZE;
+      landmarks.push([(lx-meta.padX)/meta.scale,(ly-meta.padY)/meta.scale]);
+    }
+
+    // 移除完全落在 letterbox 區域外的候選框。
+    if(x2<=0||y2<=0||x1>=meta.vw||y1>=meta.vh) continue;
+    candidates.push({
+      x1:Math.max(0,x1),y1:Math.max(0,y1),x2:Math.min(meta.vw,x2),y2:Math.min(meta.vh,y2),
+      score,landmarks
+    });
+  }
+  candidates.sort((a,b)=>b.score-a.score);
+  return nms(candidates.slice(0,PRE_NMS_TOPK),Number(nmsSlider.value));
+}
+
+function getDisplayRect(){
+  const cw=overlay.clientWidth,ch=overlay.clientHeight;
+  const vw=video.videoWidth||640,vh=video.videoHeight||480;
+  const s=Math.min(cw/vw,ch/vh);
+  const w=vw*s,h=vh*s;
+  return {s,x:(cw-w)/2,y:(ch-h)/2,w,h};
+}
+
+function drawDetections(dets){
+  const W=overlay.clientWidth,H=overlay.clientHeight;
+  ctx.clearRect(0,0,W,H);
+  if(!video.videoWidth) return;
+  const d=getDisplayRect();
+  ctx.lineWidth=4;
+  ctx.font='700 15px system-ui';
+
+  for(const f of dets){
+    const x=d.x+f.x1*d.s,y=d.y+f.y1*d.s,w=(f.x2-f.x1)*d.s,h=(f.y2-f.y1)*d.s;
+    ctx.strokeStyle='#ff3030';
+    ctx.strokeRect(x,y,w,h);
+    const label=`Face ${f.score.toFixed(2)}`;
+    const tw=ctx.measureText(label).width+16;
+    const ly=Math.max(d.y,y-27);
+    ctx.fillStyle='#ff3030';ctx.fillRect(x,ly,tw,26);
+    ctx.fillStyle='#fff';ctx.fillText(label,x+8,ly+18);
+
+    ctx.fillStyle='#22c55e';ctx.strokeStyle='#052e16';ctx.lineWidth=1.5;
+    for(const [px,py] of f.landmarks){
+      const xx=d.x+px*d.s,yy=d.y+py*d.s;
+      ctx.beginPath();ctx.arc(xx,yy,5,0,Math.PI*2);ctx.fill();ctx.stroke();
+    }
+    ctx.lineWidth=4;
+  }
+  countEl.textContent=String(dets.length);
+  bestEl.textContent=dets.length?dets[0].score.toFixed(2):'0.00';
+}
+
+async function fetchModelBuffer(){
+  let lastError=null;
+  for(let i=0;i<MODEL_CANDIDATES.length;i++){
+    const url=MODEL_CANDIDATES[i];
+    try{
+      showInfo(i===0?'正在尋找本地 RetinaFace 模型…':'正在從公開模型來源下載 RetinaFace…');
+      setProgress(i===0?25:45);
+      const res=await fetch(url,{cache:'force-cache'});
+      if(!res.ok) throw new Error('HTTP '+res.status);
+      const contentType=(res.headers.get('content-type')||'').toLowerCase();
+      const buf=await res.arrayBuffer();
+      if(buf.byteLength<100000 || contentType.includes('text/html')) throw new Error('取得的內容不是有效 ONNX 模型');
+      setProgress(70);
+      return buf;
+    }catch(e){lastError=e;}
+  }
+  throw new Error('無法下載 RetinaFace ONNX 模型。請將 retinaface_mv1_0.25.onnx 放到 retinaface/models/ 資料夾。'+(lastError?' 最後錯誤：'+lastError.message:''));
+}
+
+async function ensureSession(){
+  if(session) return;
+  if(!window.ort) throw new Error('ONNX Runtime Web 載入失敗，請確認網路連線。');
+  ort.env.wasm.wasmPaths='https://cdn.jsdelivr.net/npm/onnxruntime-web@1.22.0/dist/';
+  ort.env.wasm.numThreads=1;
+  setProgress(10);
+  const modelBuffer=await fetchModelBuffer();
+
+  const tryProviders=[];
+  if('gpu' in navigator) tryProviders.push(['webgpu','wasm']);
+  tryProviders.push(['wasm']);
+  let last=null;
+  for(const eps of tryProviders){
+    try{
+      showInfo('正在建立 RetinaFace 推論引擎…');
+      setProgress(82);
+      session=await ort.InferenceSession.create(modelBuffer,{executionProviders:eps,graphOptimizationLevel:'all'});
+      activeBackend=eps[0]==='webgpu'?'WebGPU':'WASM';
+      backendEl.textContent=activeBackend;
+      setProgress(100);hideProgress();
+      return;
+    }catch(e){last=e;session=null;}
+  }
+  throw new Error('RetinaFace 模型初始化失敗：'+(last?.message||last));
+}
+
+async function inferFrame(){
+  if(!running||processing||!session||video.readyState<2) return;
+  processing=true;
+  try{
+    const meta=prepareInput();
+    const inputName=session.inputNames[0];
+    const outputs=await session.run({[inputName]:meta.tensor});
+    const dets=decodeOutputs(outputs,meta);
+    drawDetections(dets);
+    inferCounter++;
+  }catch(e){
+    console.error(e);
+    showError('RetinaFace 推論失敗：'+(e.message||e));
+    running=false;
+  }finally{processing=false;}
+}
+
+function loop(now){
+  if(!running) return;
+  // 避免連續排隊推論；約每 80 ms 最多啟動一次，實際 FPS 由裝置效能決定。
+  if(!processing && now-lastInferAt>=80){lastInferAt=now;inferFrame();}
+  if(now-fpsClock>=1000){
+    fpsEl.textContent=String(Math.round(inferCounter*1000/(now-fpsClock)));
+    inferCounter=0;fpsClock=now;
+  }
+  rafId=requestAnimationFrame(loop);
+}
+
+async function startAll(){
+  clearNotices();
+  startBtn.disabled=true;
+  try{
+    if(!window.isSecureContext && location.hostname!=='localhost' && location.hostname!=='127.0.0.1') throw new Error('請使用 HTTPS 或 localhost 開啟。');
+    await ensureSession();
+    showInfo('模型已載入，正在啟動攝影機…');
+    stream=await navigator.mediaDevices.getUserMedia({video:{width:{ideal:640},height:{ideal:480},facingMode:'user'},audio:false});
+    video.srcObject=stream;
+    await video.play();
+    await new Promise(r=>setTimeout(r,120));
+    video.style.transform=mirrored?'scaleX(-1)':'scaleX(1)';
+    video.style.display='block';msg.style.display='none';resizeOverlay();
+    running=true;processing=false;stopBtn.disabled=false;
+    countEl.textContent='0';bestEl.textContent='0.00';fpsEl.textContent='0';backendEl.textContent=activeBackend;
+    inferCounter=0;fpsClock=performance.now();lastInferAt=0;
+    showOk('RetinaFace 已啟動。紅框為人臉位置，綠點為 5 個人臉關鍵點。');
+    rafId=requestAnimationFrame(loop);
+  }catch(e){
+    if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}
+    video.srcObject=null;video.style.display='none';msg.style.display='block';
+    startBtn.disabled=false;stopBtn.disabled=true;hideProgress();
+    const name=e.name||'Error';let extra=e.message||'未知錯誤';
+    if(name==='NotAllowedError') extra='攝影機權限被拒絕，請在網址列的網站權限中允許相機。';
+    if(name==='NotFoundError') extra='找不到攝影機。';
+    if(name==='NotReadableError') extra='攝影機可能正被 Teams、Zoom、Discord 等程式占用。';
+    showError('啟動失敗：'+extra);
+  }
+}
+
+function stopAll(){
+  running=false;processing=false;
+  if(rafId) cancelAnimationFrame(rafId);
+  if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}
+  video.srcObject=null;video.style.display='none';msg.style.display='block';
+  msg.innerHTML='<b>已停止偵測</b>按「開始偵測」可重新啟動 RetinaFace。';
+  countEl.textContent='0';bestEl.textContent='0.00';fpsEl.textContent='0';
+  stopBtn.disabled=true;startBtn.disabled=false;
+  ctx.clearRect(0,0,overlay.clientWidth,overlay.clientHeight);
+}
+
+startBtn.addEventListener('click',startAll);
+stopBtn.addEventListener('click',()=>{clearNotices();stopAll();});
+mirrorBtn.addEventListener('click',()=>{
+  mirrored=!mirrored;
+  video.style.transform=mirrored?'scaleX(-1)':'scaleX(1)';
+});
+
+priors=generatePriors(MODEL_SIZE,MODEL_SIZE);
+resizeOverlay();
+</script>
+</body>
+</html>
