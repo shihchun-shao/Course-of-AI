@@ -1,0 +1,1060 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="YOLOv4-tiny 即時物件偵測｜AI 工程素養互動教學平台">
+<title>深度學習 / YOLOv4-tiny－即時物件偵測</title>
+<style>
+:root{
+  --bg:#f4f7fb;--card:#fff;--text:#172033;--muted:#667085;
+  --blue:#2563eb;--blue2:#1d4ed8;--red:#dc2626;--green:#15803d;
+  --purple:#7c3aed;--line:#d9e1ec;--soft:#eef4ff;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+  background:var(--bg);color:var(--text)
+}
+header{padding:22px 6vw;background:#fff;border-bottom:1px solid var(--line)}
+.header-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px}
+.back{color:var(--blue2);text-decoration:none;font-weight:800;font-size:14px}
+h1{margin:0 0 7px;font-size:clamp(28px,4vw,42px)}
+header p{margin:0;color:var(--muted);line-height:1.7}
+main{
+  max-width:1240px;margin:24px auto;padding:0 18px;
+  display:grid;grid-template-columns:1.35fr .85fr;gap:20px
+}
+.card{
+  background:#fff;border:1px solid var(--line);border-radius:18px;
+  padding:18px;box-shadow:0 8px 28px #0000000a
+}
+.stage{
+  position:relative;background:#0b1020;border-radius:14px;overflow:hidden;
+  aspect-ratio:16/10;display:flex;align-items:center;justify-content:center
+}
+video{
+  width:100%;height:100%;object-fit:cover;display:none;background:#0b1020
+}
+canvas#overlay{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;background:transparent}
+.msg{color:#cbd5e1;text-align:center;padding:26px;line-height:1.7;max-width:620px}
+.msg b{display:block;color:#fff;font-size:21px;margin-bottom:7px}
+.controls{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+button{
+  border:0;border-radius:10px;padding:11px 16px;font-weight:800;
+  cursor:pointer;background:var(--blue);color:#fff
+}
+button.stop{background:var(--red)}
+button.gray{background:#e8eef8;color:#1f3b67}
+button:disabled{opacity:.45;cursor:not-allowed}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}
+.metric{border:1px solid var(--line);border-radius:14px;padding:13px;min-width:0}
+.metric small{color:var(--muted);font-size:12px}
+.metric strong{
+  display:block;font-size:23px;margin-top:4px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap
+}
+.setting{border:1px solid var(--line);border-radius:14px;padding:14px;margin-top:14px}
+.setting-row{display:flex;justify-content:space-between;gap:12px;align-items:center}
+.setting-row b{font-size:15px}
+.value{font-weight:900;color:var(--blue)}
+input[type=range]{width:100%;margin:12px 0 4px}
+.scale-label{display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}
+.alert,.ok,.info{
+  margin-top:12px;padding:13px;border-radius:12px;line-height:1.6;display:none
+}
+.alert{background:#fff4f4;border:1px solid #fecaca;color:#991b1b}
+.ok{background:#f0fdf4;border:1px solid #bbf7d0;color:#166534}
+.info{background:#eff6ff;border:1px solid #bfdbfe;color:#1e40af}
+.progress{
+  height:8px;background:#e8eef8;border-radius:999px;overflow:hidden;
+  margin-top:12px;display:none
+}
+.progress>div{height:100%;width:0;background:var(--blue);transition:width .25s}
+h2{font-size:18px;margin:2px 0 12px}
+.step{
+  padding:11px 12px;border:1px solid var(--line);border-radius:12px;margin-bottom:9px
+}
+.step b{display:block;margin-bottom:4px}
+.step span{font-size:14px;color:var(--muted);line-height:1.6}
+code{background:#eef2f7;padding:2px 5px;border-radius:5px}
+.tiny{font-size:13px;color:var(--muted);line-height:1.7}
+.badge{
+  display:inline-block;background:#ede9fe;color:#6d28d9;border-radius:999px;
+  padding:4px 8px;font-size:12px;font-weight:800
+}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:8px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--muted)}
+.detection-list{
+  margin-top:14px;border:1px solid var(--line);border-radius:14px;padding:14px;background:#fbfdff
+}
+.detection-list h2{margin-bottom:8px}
+.det-row{
+  display:grid;grid-template-columns:1fr auto;gap:10px;
+  padding:7px 0;border-bottom:1px dashed var(--line);font-size:13px
+}
+.det-row:last-child{border-bottom:0}
+.det-row b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.det-row span{color:var(--muted);font-weight:800}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:12px;font-size:12px;color:var(--muted)}
+.legend span{display:flex;align-items:center;gap:6px}
+.box-key{width:18px;height:12px;border:3px solid #ff3030;border-radius:2px}
+footer{border-top:1px solid var(--line);background:#fff;margin-top:12px}
+.footer-inner{
+  max-width:1240px;margin:auto;padding:22px 18px;color:var(--muted);
+  font-size:13px;line-height:1.8;text-align:center
+}
+@media(max-width:920px){main{grid-template-columns:1fr}.grid{grid-template-columns:1fr 1fr}}
+@media(max-width:520px){.grid{grid-template-columns:1fr 1fr}.metric strong{font-size:20px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="header-top">
+    <a class="back" href="../">← 回 AI 教學首頁</a>
+    <span class="badge">DEEP LEARNING</span>
+  </div>
+  <h1>Live 物件偵測｜YOLOv4-tiny</h1>
+  <p>利用 YOLOv4-tiny 深度神經網路進行即時物件偵測，同時輸出 Bounding Box、COCO 類別與 Confidence。</p>
+</header>
+
+<main>
+<section class="card">
+  <div class="stage">
+    <div class="msg" id="msg">
+      <b>尚未啟動攝影機</b>
+      按「開始偵測」，允許瀏覽器使用攝影機；啟動後可使用「切換鏡頭」。
+    </div>
+    <video id="video" playsinline autoplay muted></video>
+    <canvas id="overlay"></canvas>
+  </div>
+
+  <div class="legend">
+    <span><i class="box-key"></i> 物件 Bounding Box + 類別 + Confidence</span>
+  </div>
+
+  <div class="controls">
+    <button id="start">開始偵測</button>
+    <button id="stop" class="stop" disabled>停止偵測</button>
+    <button id="switchCamera" class="gray" disabled>切換鏡頭</button>
+  </div>
+
+  <div class="setting">
+    <div class="setting-row">
+      <b>Confidence Threshold</b>
+      <span class="value" id="confValue">0.40</span>
+    </div>
+    <input id="conf" type="range" min="0.10" max="0.90" step="0.05" value="0.40">
+    <div class="scale-label"><span>0.10：較敏感</span><span>0.90：較嚴格</span></div>
+    <p class="tiny" style="margin:8px 0 0">只顯示 Confidence 高於此門檻的物件。門檻太低可能出現較多誤判。</p>
+  </div>
+
+  <div class="setting">
+    <div class="setting-row">
+      <b>NMS Threshold</b>
+      <span class="value" id="nmsValue">0.45</span>
+    </div>
+    <input id="nms" type="range" min="0.20" max="0.70" step="0.05" value="0.45">
+    <div class="scale-label"><span>0.20：移除較多重疊框</span><span>0.70：保留更多重疊框</span></div>
+  </div>
+
+  <div id="progress" class="progress"><div id="bar"></div></div>
+  <div id="info" class="info"></div>
+  <div id="err" class="alert"></div>
+  <div id="ok" class="ok"></div>
+
+  <div class="grid">
+    <div class="metric"><small>目前物件數量</small><strong id="count">0</strong></div>
+    <div class="metric"><small>最高 Confidence</small><strong id="best">0.00</strong></div>
+    <div class="metric"><small>推論 FPS</small><strong id="fps">0</strong></div>
+    <div class="metric"><small>執行後端</small><strong id="backend">—</strong></div>
+  </div>
+
+  <div class="detection-list">
+    <h2>目前偵測結果</h2>
+    <div id="detList" class="tiny">尚未開始偵測。</div>
+  </div>
+
+  <p class="tiny">
+    <span class="badge">YOLOv4-tiny</span>
+    本頁使用 YOLOv4-tiny ONNX 模型與 ONNX Runtime Web，在使用者自己的瀏覽器中進行物件偵測。
+  </p>
+</section>
+
+<aside class="card">
+  <h2>YOLOv4-tiny 如何偵測物件？</h2>
+  <div class="step"><b>① Input Image</b><span>將 Webcam 畫面縮放並 letterbox 到 416 × 416。</span></div>
+  <div class="step"><b>② CNN Feature Extraction</b><span>利用卷積神經網路擷取不同尺度的影像特徵。</span></div>
+  <div class="step"><b>③ Multi-scale Detection</b><span>使用兩個不同尺度的輸出層，同時處理較大與較小的物件。</span></div>
+  <div class="step"><b>④ Bounding Box</b><span>預測物件中心位置、寬度與高度。</span></div>
+  <div class="step"><b>⑤ Object Classification</b><span>對 COCO 80 個物件類別計算分類分數。</span></div>
+  <div class="step"><b>⑥ Confidence</b><span>結合 Objectness 與類別分數，得到每個候選框的 Confidence。</span></div>
+  <div class="step"><b>⑦ NMS</b><span>Non-Maximum Suppression 移除重疊的重複框，保留代表性最高的結果。</span></div>
+
+  <h2 style="margin-top:18px">AlexNet 與 YOLOv4 比較</h2>
+  <table>
+    <tr><th>項目</th><th>AlexNet</th><th>YOLOv4-tiny</th></tr>
+    <tr><td>任務</td><td>Image Classification</td><td>Object Detection</td></tr>
+    <tr><td>問題</td><td>整張圖是什麼？</td><td>有哪些物件？在哪裡？</td></tr>
+    <tr><td>輸出</td><td>類別 + Confidence</td><td>Bounding Box + 類別 + Confidence</td></tr>
+    <tr><td>多物件</td><td>不適合</td><td>可同時偵測多個物件</td></tr>
+  </table>
+
+  <h2 style="margin-top:18px">常見 COCO 類別</h2>
+  <p class="tiny">
+    person、bicycle、car、motorcycle、bus、truck、cat、dog、backpack、bottle、cup、
+    chair、laptop、mouse、keyboard、cell phone 等，共 80 類。
+  </p>
+
+  <h2 style="margin-top:18px">使用提醒</h2>
+  <p class="tiny">
+    Webcam 需要 <b>HTTPS 或 localhost</b>。第一次開啟需要下載 ONNX Runtime Web 與 YOLOv4-tiny 模型。
+    若 Chrome / Edge 支援 WebGPU，系統會優先使用 GPU；否則改用 WebAssembly。
+  </p>
+</aside>
+</main>
+
+<footer>
+  <div class="footer-inner">
+    AI 工程素養互動教學平台<br>
+    大安高工控制科邵時俊老師製作
+  </div>
+</footer>
+
+<canvas id="inputCanvas" width="416" height="416" style="display:none"></canvas>
+
+<script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.22.0/dist/ort.webgpu.min.js"></script>
+<script>
+'use strict';
+
+const MODEL_SIZE = 416;
+const SCALE_XY = 1.05;
+const MAX_DETECTIONS = 100;
+
+// 建議正式上課時把模型放在自己網站中。
+// 若尚未上傳本地模型，會嘗試從公開來源下載。
+const MODEL_CANDIDATES = [
+  './models/yolov4-tiny-416_float.onnx',
+  'https://huggingface.co/Thefalley/yolov4-tiny-416-int8-qop/resolve/main/yolov4-tiny-416_float.onnx?download=true'
+];
+
+const COCO = [
+'person','bicycle','car','motorcycle','airplane','bus','train','truck','boat','traffic light',
+'fire hydrant','stop sign','parking meter','bench','bird','cat','dog','horse','sheep','cow',
+'elephant','bear','zebra','giraffe','backpack','umbrella','handbag','tie','suitcase','frisbee',
+'skis','snowboard','sports ball','kite','baseball bat','baseball glove','skateboard','surfboard','tennis racket','bottle',
+'wine glass','cup','fork','knife','spoon','bowl','banana','apple','sandwich','orange',
+'broccoli','carrot','hot dog','pizza','donut','cake','chair','couch','potted plant','bed',
+'dining table','toilet','tv','laptop','mouse','remote','keyboard','cell phone','microwave','oven',
+'toaster','sink','refrigerator','book','clock','vase','scissors','teddy bear','hair drier','toothbrush'
+];
+
+// YOLOv4-tiny anchors
+const ANCHORS = [
+  [10,14],[23,27],[37,58],[81,82],[135,169],[344,319]
+];
+
+const MASKS = {
+  13:[[81,82],[135,169],[344,319]],   // mask 3,4,5
+  26:[[23,27],[37,58],[81,82]]         // mask 1,2,3
+};
+
+const COLORS = [
+  '#ef4444','#2563eb','#16a34a','#7c3aed','#f59e0b','#0891b2',
+  '#db2777','#4f46e5','#65a30d','#ea580c','#0f766e','#9333ea'
+];
+
+const video = document.getElementById('video');
+const overlay = document.getElementById('overlay');
+const ctx = overlay.getContext('2d');
+const inputCanvas = document.getElementById('inputCanvas');
+const inputCtx = inputCanvas.getContext('2d',{willReadFrequently:true});
+
+const msg = document.getElementById('msg');
+const startBtn = document.getElementById('start');
+const stopBtn = document.getElementById('stop');
+const switchCameraBtn = document.getElementById('switchCamera');
+
+const confSlider = document.getElementById('conf');
+const nmsSlider = document.getElementById('nms');
+const confValue = document.getElementById('confValue');
+const nmsValue = document.getElementById('nmsValue');
+
+const countEl = document.getElementById('count');
+const bestEl = document.getElementById('best');
+const fpsEl = document.getElementById('fps');
+const backendEl = document.getElementById('backend');
+const detList = document.getElementById('detList');
+
+const errEl = document.getElementById('err');
+const okEl = document.getElementById('ok');
+const infoEl = document.getElementById('info');
+const progress = document.getElementById('progress');
+const bar = document.getElementById('bar');
+
+let stream = null;
+let session = null;
+let running = false;
+let processing = false;
+let mirrored = true;
+let rafId = 0;
+let lastInferAt = 0;
+let inferCounter = 0;
+let fpsClock = performance.now();
+let activeBackend = '—';
+
+let videoDevices = [];
+let currentDeviceId = null;
+let currentDeviceIndex = -1;
+let preferredFacing = 'user';
+let switchingCamera = false;
+
+confSlider.addEventListener('input',()=>confValue.textContent=Number(confSlider.value).toFixed(2));
+nmsSlider.addEventListener('input',()=>nmsValue.textContent=Number(nmsSlider.value).toFixed(2));
+
+function clearNotices(){
+  errEl.style.display='none';
+  okEl.style.display='none';
+  infoEl.style.display='none';
+}
+function showError(t){
+  errEl.textContent=t;
+  errEl.style.display='block';
+  okEl.style.display='none';
+  infoEl.style.display='none';
+}
+function showOk(t){
+  okEl.textContent=t;
+  okEl.style.display='block';
+  errEl.style.display='none';
+  infoEl.style.display='none';
+}
+function showInfo(t){
+  infoEl.textContent=t;
+  infoEl.style.display='block';
+  errEl.style.display='none';
+  okEl.style.display='none';
+}
+function setProgress(p){
+  progress.style.display='block';
+  bar.style.width=Math.max(0,Math.min(100,p))+'%';
+}
+function hideProgress(){
+  setTimeout(()=>progress.style.display='none',300);
+}
+
+function sigmoid(x){
+  if(x>=0){
+    const z=Math.exp(-x);
+    return 1/(1+z);
+  }
+  const z=Math.exp(x);
+  return z/(1+z);
+}
+
+function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+
+function resizeOverlay(){
+  const r=overlay.getBoundingClientRect();
+  const d=window.devicePixelRatio||1;
+  overlay.width=Math.max(1,Math.round(r.width*d));
+  overlay.height=Math.max(1,Math.round(r.height*d));
+  ctx.setTransform(d,0,0,d,0,0);
+}
+window.addEventListener('resize',resizeOverlay);
+
+async function fetchModelBuffer(){
+  let lastError=null;
+  for(let i=0;i<MODEL_CANDIDATES.length;i++){
+    const url=MODEL_CANDIDATES[i];
+    try{
+      showInfo(i===0?'正在尋找本地 YOLOv4-tiny 模型…':'正在從公開來源下載 YOLOv4-tiny 模型…');
+      setProgress(i===0?25:45);
+      const res=await fetch(url,{cache:'force-cache'});
+      if(!res.ok) throw new Error('HTTP '+res.status);
+
+      const contentType=(res.headers.get('content-type')||'').toLowerCase();
+      const buf=await res.arrayBuffer();
+      if(buf.byteLength<1000000 || contentType.includes('text/html')){
+        throw new Error('取得的內容不是有效 ONNX 模型');
+      }
+      setProgress(70);
+      return buf;
+    }catch(e){
+      lastError=e;
+    }
+  }
+  throw new Error(
+    '無法下載 YOLOv4-tiny ONNX 模型。請將 yolov4-tiny-416_float.onnx 放到 yolov4/models/ 資料夾。'
+    +(lastError?' 最後錯誤：'+lastError.message:'')
+  );
+}
+
+async function ensureSession(){
+  if(session) return;
+  if(!window.ort) throw new Error('ONNX Runtime Web 載入失敗，請確認網路連線。');
+
+  ort.env.wasm.wasmPaths='https://cdn.jsdelivr.net/npm/onnxruntime-web@1.22.0/dist/';
+  ort.env.wasm.numThreads=1;
+
+  setProgress(10);
+  const modelBuffer=await fetchModelBuffer();
+
+  const tryProviders=[];
+  if('gpu' in navigator) tryProviders.push(['webgpu','wasm']);
+  tryProviders.push(['wasm']);
+
+  let last=null;
+  for(const eps of tryProviders){
+    try{
+      showInfo('正在建立 YOLOv4-tiny 推論引擎…');
+      setProgress(82);
+      session=await ort.InferenceSession.create(modelBuffer,{
+        executionProviders:eps,
+        graphOptimizationLevel:'all'
+      });
+      activeBackend=eps[0]==='webgpu'?'WebGPU':'WASM';
+      backendEl.textContent=activeBackend;
+      setProgress(100);
+      hideProgress();
+      return;
+    }catch(e){
+      last=e;
+      session=null;
+    }
+  }
+  throw new Error('YOLOv4-tiny 模型初始化失敗：'+(last?.message||last));
+}
+
+function prepareInput(){
+  const vw=video.videoWidth;
+  const vh=video.videoHeight;
+  if(!vw||!vh) throw new Error('尚未取得 Webcam 影像尺寸。');
+
+  const scale=Math.min(MODEL_SIZE/vw,MODEL_SIZE/vh);
+  const dw=Math.round(vw*scale);
+  const dh=Math.round(vh*scale);
+  const padX=Math.floor((MODEL_SIZE-dw)/2);
+  const padY=Math.floor((MODEL_SIZE-dh)/2);
+
+  inputCtx.save();
+  inputCtx.setTransform(1,0,0,1,0,0);
+  inputCtx.fillStyle='rgb(114,114,114)';
+  inputCtx.fillRect(0,0,MODEL_SIZE,MODEL_SIZE);
+
+  if(mirrored){
+    inputCtx.translate(padX+dw,padY);
+    inputCtx.scale(-1,1);
+    inputCtx.drawImage(video,0,0,dw,dh);
+  }else{
+    inputCtx.drawImage(video,padX,padY,dw,dh);
+  }
+  inputCtx.restore();
+
+  const rgba=inputCtx.getImageData(0,0,MODEL_SIZE,MODEL_SIZE).data;
+  const hw=MODEL_SIZE*MODEL_SIZE;
+  const data=new Float32Array(hw*3);
+
+  for(let p=0,i=0;p<hw;p++,i+=4){
+    data[p]       = rgba[i]   /255;   // R
+    data[hw+p]    = rgba[i+1] /255;   // G
+    data[2*hw+p]  = rgba[i+2] /255;   // B
+  }
+
+  return {
+    tensor:new ort.Tensor('float32',data,[1,3,MODEL_SIZE,MODEL_SIZE]),
+    scale,padX,padY,vw,vh
+  };
+}
+
+function identifyHead(tensor){
+  const dims=tensor?.dims||[];
+  if(!dims.length) return null;
+
+  // NCHW [1,255,13,13] / [1,255,26,26]
+  if(dims.length===4 && dims[1]===255 && (dims[2]===13||dims[2]===26) && dims[2]===dims[3]){
+    return {tensor,layout:'nchw',grid:dims[2]};
+  }
+
+  // NHWC [1,13,13,255] / [1,26,26,255]
+  if(dims.length===4 && dims[3]===255 && (dims[1]===13||dims[1]===26) && dims[1]===dims[2]){
+    return {tensor,layout:'nhwc',grid:dims[1]};
+  }
+
+  // [1,3,13,13,85] or [1,3,26,26,85]
+  if(dims.length===5 && dims[1]===3 && dims[4]===85 && (dims[2]===13||dims[2]===26)){
+    return {tensor,layout:'naghw85',grid:dims[2]};
+  }
+
+  // [1,13,13,3,85] or [1,26,26,3,85]
+  if(dims.length===5 && dims[3]===3 && dims[4]===85 && (dims[1]===13||dims[1]===26)){
+    return {tensor,layout:'nhwa85',grid:dims[1]};
+  }
+
+  return null;
+}
+
+function headValue(head,a,y,x,k){
+  const d=head.tensor.data;
+  const g=head.grid;
+
+  if(head.layout==='nchw'){
+    const c=a*85+k;
+    return d[c*g*g + y*g + x];
+  }
+
+  if(head.layout==='nhwc'){
+    const c=a*85+k;
+    return d[(y*g+x)*255+c];
+  }
+
+  if(head.layout==='naghw85'){
+    return d[((((a*g)+y)*g+x)*85)+k];
+  }
+
+  if(head.layout==='nhwa85'){
+    return d[((((y*g)+x)*3+a)*85)+k];
+  }
+
+  return 0;
+}
+
+function decodeHead(head,meta){
+  const g=head.grid;
+  const anchors=MASKS[g];
+  if(!anchors) return [];
+
+  const threshold=Number(confSlider.value);
+  const out=[];
+
+  for(let y=0;y<g;y++){
+    for(let x=0;x<g;x++){
+      for(let a=0;a<3;a++){
+        const tx=headValue(head,a,y,x,0);
+        const ty=headValue(head,a,y,x,1);
+        const tw=headValue(head,a,y,x,2);
+        const th=headValue(head,a,y,x,3);
+        const obj=sigmoid(headValue(head,a,y,x,4));
+
+        // 先以 objectness 快速排除
+        if(obj < threshold*0.35) continue;
+
+        let bestClass=-1;
+        let bestClassProb=0;
+
+        for(let c=0;c<80;c++){
+          const p=sigmoid(headValue(head,a,y,x,5+c));
+          if(p>bestClassProb){
+            bestClassProb=p;
+            bestClass=c;
+          }
+        }
+
+        const score=obj*bestClassProb;
+        if(score<threshold) continue;
+
+        // YOLOv4 scale_x_y
+        const sx=sigmoid(tx)*SCALE_XY - 0.5*(SCALE_XY-1);
+        const sy=sigmoid(ty)*SCALE_XY - 0.5*(SCALE_XY-1);
+
+        const bx=(sx+x)/g*MODEL_SIZE;
+        const by=(sy+y)/g*MODEL_SIZE;
+
+        // 避免 exp 溢位
+        const bw=Math.exp(clamp(tw,-10,10))*anchors[a][0];
+        const bh=Math.exp(clamp(th,-10,10))*anchors[a][1];
+
+        let x1=bx-bw/2;
+        let y1=by-bh/2;
+        let x2=bx+bw/2;
+        let y2=by+bh/2;
+
+        // 移除 letterbox padding，映射回原 Webcam 座標
+        x1=(x1-meta.padX)/meta.scale;
+        y1=(y1-meta.padY)/meta.scale;
+        x2=(x2-meta.padX)/meta.scale;
+        y2=(y2-meta.padY)/meta.scale;
+
+        if(x2<=0||y2<=0||x1>=meta.vw||y1>=meta.vh) continue;
+
+        out.push({
+          x1:clamp(x1,0,meta.vw),
+          y1:clamp(y1,0,meta.vh),
+          x2:clamp(x2,0,meta.vw),
+          y2:clamp(y2,0,meta.vh),
+          score,
+          classId:bestClass,
+          label:COCO[bestClass]||`class_${bestClass}`
+        });
+      }
+    }
+  }
+
+  return out;
+}
+
+function iou(a,b){
+  const xx1=Math.max(a.x1,b.x1);
+  const yy1=Math.max(a.y1,b.y1);
+  const xx2=Math.min(a.x2,b.x2);
+  const yy2=Math.min(a.y2,b.y2);
+  const w=Math.max(0,xx2-xx1);
+  const h=Math.max(0,yy2-yy1);
+  const inter=w*h;
+  const areaA=Math.max(0,a.x2-a.x1)*Math.max(0,a.y2-a.y1);
+  const areaB=Math.max(0,b.x2-b.x1)*Math.max(0,b.y2-b.y1);
+  return inter/(areaA+areaB-inter+1e-9);
+}
+
+function classNMS(dets,threshold){
+  const byClass=new Map();
+  for(const d of dets){
+    if(!byClass.has(d.classId)) byClass.set(d.classId,[]);
+    byClass.get(d.classId).push(d);
+  }
+
+  const keep=[];
+
+  for(const arr of byClass.values()){
+    arr.sort((a,b)=>b.score-a.score);
+    while(arr.length){
+      const best=arr.shift();
+      keep.push(best);
+      if(keep.length>=MAX_DETECTIONS) break;
+
+      for(let i=arr.length-1;i>=0;i--){
+        if(iou(best,arr[i])>threshold) arr.splice(i,1);
+      }
+    }
+  }
+
+  keep.sort((a,b)=>b.score-a.score);
+  return keep.slice(0,MAX_DETECTIONS);
+}
+
+function decodeOutputs(outputs,meta){
+  const heads=[];
+
+  for(const name of Object.keys(outputs)){
+    const head=identifyHead(outputs[name]);
+    if(head) heads.push(head);
+  }
+
+  // 確保 13x13 與 26x26 兩個輸出都存在
+  const unique=new Map();
+  for(const h of heads) unique.set(h.grid,h);
+
+  if(!unique.has(13)||!unique.has(26)){
+    const shapes=Object.entries(outputs)
+      .map(([n,t])=>`${n}: [${(t.dims||[]).join(', ')}]`)
+      .join(' / ');
+    throw new Error('YOLOv4-tiny 模型輸出格式不符合預期。實際輸出：'+shapes);
+  }
+
+  let candidates=[];
+  candidates.push(...decodeHead(unique.get(13),meta));
+  candidates.push(...decodeHead(unique.get(26),meta));
+
+  candidates.sort((a,b)=>b.score-a.score);
+
+  // 先限制候選數避免瀏覽器 NMS 太慢
+  candidates=candidates.slice(0,1200);
+
+  return classNMS(candidates,Number(nmsSlider.value));
+}
+
+function getDisplayRect(){
+  const cw=overlay.clientWidth;
+  const ch=overlay.clientHeight;
+  const vw=video.videoWidth||1280;
+  const vh=video.videoHeight||720;
+
+  // video 使用 object-fit:cover
+  const s=Math.max(cw/vw,ch/vh);
+  const w=vw*s;
+  const h=vh*s;
+  return {s,x:(cw-w)/2,y:(ch-h)/2,w,h};
+}
+
+function drawDetections(dets){
+  const W=overlay.clientWidth;
+  const H=overlay.clientHeight;
+  ctx.clearRect(0,0,W,H);
+
+  if(!video.videoWidth) return;
+
+  const d=getDisplayRect();
+  ctx.font='700 14px system-ui';
+
+  for(const item of dets){
+    const x=d.x+item.x1*d.s;
+    const y=d.y+item.y1*d.s;
+    const w=(item.x2-item.x1)*d.s;
+    const h=(item.y2-item.y1)*d.s;
+
+    const color=COLORS[item.classId%COLORS.length];
+    ctx.lineWidth=4;
+    ctx.strokeStyle=color;
+    ctx.strokeRect(x,y,w,h);
+
+    const label=`${item.label} ${item.score.toFixed(2)}`;
+    const tw=ctx.measureText(label).width+16;
+    const ly=Math.max(0,y-27);
+
+    ctx.fillStyle=color;
+    ctx.fillRect(x,ly,tw,26);
+    ctx.fillStyle='#fff';
+    ctx.fillText(label,x+8,ly+18);
+  }
+
+  countEl.textContent=String(dets.length);
+  bestEl.textContent=dets.length?dets[0].score.toFixed(2):'0.00';
+
+  if(!dets.length){
+    detList.innerHTML='<span class="tiny">目前沒有高於 Confidence Threshold 的物件。</span>';
+  }else{
+    detList.innerHTML=dets.slice(0,10).map((d,i)=>`
+      <div class="det-row">
+        <b>${i+1}. ${d.label}</b>
+        <span>${d.score.toFixed(2)}</span>
+      </div>
+    `).join('');
+  }
+}
+
+async function inferFrame(){
+  if(!running||processing||switchingCamera||!session||video.readyState<2) return;
+
+  processing=true;
+  try{
+    const meta=prepareInput();
+    const inputName=session.inputNames[0];
+
+    const outputs=await session.run({
+      [inputName]:meta.tensor
+    });
+
+    const dets=decodeOutputs(outputs,meta);
+    drawDetections(dets);
+    inferCounter++;
+  }catch(e){
+    console.error(e);
+    showError('YOLOv4-tiny 推論失敗：'+(e.message||e));
+    running=false;
+  }finally{
+    processing=false;
+  }
+}
+
+function loop(now){
+  if(!running) return;
+
+  // 避免在效能較低的學生筆電上無限排隊推論。
+  if(!processing&&!switchingCamera&&now-lastInferAt>=80){
+    lastInferAt=now;
+    inferFrame();
+  }
+
+  if(now-fpsClock>=1000){
+    fpsEl.textContent=String(Math.round(inferCounter*1000/(now-fpsClock)));
+    inferCounter=0;
+    fpsClock=now;
+  }
+
+  rafId=requestAnimationFrame(loop);
+}
+
+async function refreshVideoDevices(){
+  try{
+    const devices=await navigator.mediaDevices.enumerateDevices();
+    videoDevices=devices.filter(d=>d.kind==='videoinput');
+
+    if(currentDeviceId){
+      const idx=videoDevices.findIndex(d=>d.deviceId===currentDeviceId);
+      if(idx>=0) currentDeviceIndex=idx;
+    }
+  }catch(e){
+    videoDevices=[];
+  }
+
+  switchCameraBtn.disabled=!running;
+}
+
+function stopCurrentCameraTracks(){
+  if(stream){
+    stream.getTracks().forEach(t=>t.stop());
+    stream=null;
+  }
+  video.srcObject=null;
+}
+
+function updateMirrorFromTrack(track,requestedFacing=null){
+  const settings=track&&track.getSettings?track.getSettings():{};
+  const actualFacing=settings.facingMode||requestedFacing||'';
+
+  if(actualFacing==='user'){
+    mirrored=true;
+  }else if(actualFacing==='environment'){
+    mirrored=false;
+  }else{
+    // USB Webcam / deviceId 切換預設不鏡像
+    mirrored=requestedFacing==='user';
+  }
+
+  video.style.transform=mirrored?'scaleX(-1)':'scaleX(1)';
+}
+
+async function openCamera({deviceId=null,facingMode=null,exactFacing=false}={}){
+  stopCurrentCameraTracks();
+
+  const videoConstraints={
+    width:{ideal:1280},
+    height:{ideal:720}
+  };
+
+  if(deviceId){
+    videoConstraints.deviceId={exact:deviceId};
+  }else if(facingMode){
+    videoConstraints.facingMode=exactFacing
+      ? {exact:facingMode}
+      : {ideal:facingMode};
+  }
+
+  stream=await navigator.mediaDevices.getUserMedia({
+    video:videoConstraints,
+    audio:false
+  });
+
+  video.srcObject=stream;
+  await video.play();
+  await new Promise(r=>setTimeout(r,120));
+
+  const track=stream.getVideoTracks()[0];
+  const settings=track&&track.getSettings?track.getSettings():{};
+
+  currentDeviceId=settings.deviceId||deviceId||null;
+
+  if(settings.facingMode){
+    preferredFacing=settings.facingMode;
+  }else if(facingMode){
+    preferredFacing=facingMode;
+  }
+
+  updateMirrorFromTrack(track,facingMode);
+
+  video.style.display='block';
+  msg.style.display='none';
+  resizeOverlay();
+
+  await refreshVideoDevices();
+
+  processing=false;
+  lastInferAt=0;
+  inferCounter=0;
+  fpsClock=performance.now();
+}
+
+async function switchCamera(){
+  if(switchingCamera||!running) return;
+
+  switchingCamera=true;
+  switchCameraBtn.disabled=true;
+  clearNotices();
+
+  const oldDeviceId=currentDeviceId;
+  const oldFacing=preferredFacing;
+
+  try{
+    const track=stream&&stream.getVideoTracks?stream.getVideoTracks()[0]:null;
+    const settings=track&&track.getSettings?track.getSettings():{};
+    const facing=settings.facingMode||'';
+
+    // 手機 / 平板：優先前後鏡頭切換
+    if(facing==='user'||facing==='environment'){
+      const targetFacing=facing==='user'?'environment':'user';
+
+      try{
+        currentDeviceId=null;
+        currentDeviceIndex=-1;
+
+        await openCamera({
+          facingMode:targetFacing,
+          exactFacing:true
+        });
+
+        showOk(
+          targetFacing==='environment'
+            ? '已切換至後鏡頭。YOLOv4-tiny 持續偵測中。'
+            : '已切換至前鏡頭。YOLOv4-tiny 持續偵測中。'
+        );
+        return;
+      }catch(e){
+        // 筆電內建 Webcam 有時也回報 user；
+        // 如果沒有 environment，改走實體攝影機清單。
+      }
+    }
+
+    await refreshVideoDevices();
+
+    // 筆電：內建 Webcam ↔ USB Webcam
+    if(videoDevices.length>1){
+      let idx=videoDevices.findIndex(d=>d.deviceId===oldDeviceId);
+      if(idx<0) idx=currentDeviceIndex>=0?currentDeviceIndex:0;
+
+      const nextIndex=(idx+1)%videoDevices.length;
+      const nextDevice=videoDevices[nextIndex];
+
+      currentDeviceIndex=nextIndex;
+      currentDeviceId=nextDevice.deviceId;
+
+      await openCamera({deviceId:nextDevice.deviceId});
+
+      const label=nextDevice.label||`攝影機 ${nextIndex+1}`;
+      showOk(`已切換鏡頭：${label}。YOLOv4-tiny 持續偵測中。`);
+      return;
+    }
+
+    // 最後再嘗試 facingMode
+    const targetFacing=oldFacing==='user'?'environment':'user';
+
+    currentDeviceId=null;
+    currentDeviceIndex=-1;
+
+    await openCamera({
+      facingMode:targetFacing,
+      exactFacing:true
+    });
+
+    showOk(
+      targetFacing==='environment'
+        ? '已切換至後鏡頭。YOLOv4-tiny 持續偵測中。'
+        : '已切換至前鏡頭。YOLOv4-tiny 持續偵測中。'
+    );
+
+  }catch(e){
+    const name=e.name||'Error';
+    let extra=e.message||'未知錯誤';
+
+    // 切換失敗盡量恢復原鏡頭
+    try{
+      if(oldDeviceId){
+        await openCamera({deviceId:oldDeviceId});
+      }else{
+        await openCamera({facingMode:oldFacing||'user'});
+      }
+    }catch(_){}
+
+    if(name==='NotAllowedError'){
+      extra='攝影機權限被拒絕，請在網址列的網站權限中允許相機。';
+    }else if(name==='NotFoundError'||name==='OverconstrainedError'){
+      extra='找不到其他可切換的攝影機。';
+    }else if(name==='NotReadableError'){
+      extra='攝影機可能正被 Teams、Zoom、Discord 等程式占用。';
+    }
+
+    showError('切換鏡頭失敗：'+extra);
+  }finally{
+    switchingCamera=false;
+    switchCameraBtn.disabled=!running;
+  }
+}
+
+async function startAll(){
+  clearNotices();
+  startBtn.disabled=true;
+
+  try{
+    if(!window.isSecureContext&&location.hostname!=='localhost'&&location.hostname!=='127.0.0.1'){
+      throw new Error('請使用 HTTPS 或 localhost 開啟。');
+    }
+
+    await ensureSession();
+
+    showInfo('模型已載入，正在啟動攝影機…');
+
+    currentDeviceId=null;
+    currentDeviceIndex=-1;
+    preferredFacing='user';
+
+    await openCamera({facingMode:'user'});
+
+    running=true;
+    processing=false;
+    stopBtn.disabled=false;
+    switchCameraBtn.disabled=false;
+
+    countEl.textContent='0';
+    bestEl.textContent='0.00';
+    fpsEl.textContent='0';
+    backendEl.textContent=activeBackend;
+    detList.textContent='等待第一張影像推論…';
+
+    inferCounter=0;
+    fpsClock=performance.now();
+    lastInferAt=0;
+
+    showOk('YOLOv4-tiny 已啟動。框線代表物件位置，上方標籤顯示類別與 Confidence。');
+
+    rafId=requestAnimationFrame(loop);
+
+  }catch(e){
+    stopCurrentCameraTracks();
+    video.style.display='none';
+    msg.style.display='block';
+
+    startBtn.disabled=false;
+    stopBtn.disabled=true;
+    switchCameraBtn.disabled=true;
+
+    hideProgress();
+
+    const name=e.name||'Error';
+    let extra=e.message||'未知錯誤';
+
+    if(name==='NotAllowedError'){
+      extra='攝影機權限被拒絕，請在網址列的網站權限中允許相機。';
+    }else if(name==='NotFoundError'){
+      extra='找不到攝影機。';
+    }else if(name==='NotReadableError'){
+      extra='攝影機可能正被 Teams、Zoom、Discord 等程式占用。';
+    }
+
+    showError('啟動失敗：'+extra);
+  }
+}
+
+function stopAll(){
+  running=false;
+  processing=false;
+  switchingCamera=false;
+
+  if(rafId) cancelAnimationFrame(rafId);
+
+  stopCurrentCameraTracks();
+
+  video.style.display='none';
+  msg.style.display='block';
+  msg.innerHTML='<b>已停止偵測</b>按「開始偵測」可重新啟動 YOLOv4-tiny。';
+
+  countEl.textContent='0';
+  bestEl.textContent='0.00';
+  fpsEl.textContent='0';
+  detList.textContent='尚未開始偵測。';
+
+  stopBtn.disabled=true;
+  startBtn.disabled=false;
+  switchCameraBtn.disabled=true;
+
+  ctx.clearRect(0,0,overlay.clientWidth,overlay.clientHeight);
+}
+
+startBtn.addEventListener('click',startAll);
+stopBtn.addEventListener('click',()=>{clearNotices();stopAll();});
+switchCameraBtn.addEventListener('click',switchCamera);
+
+resizeOverlay();
+</script>
+</body>
+</html>
