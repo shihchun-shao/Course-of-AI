@@ -410,7 +410,7 @@ footer{
     <div class="controls">
       <button id="startBtn" class="success">開始辨識</button>
       <button id="stopBtn" class="secondary" disabled>停止辨識</button>
-      <button id="mirrorBtn" disabled>切換鏡像：開</button>
+      <button id="switchCameraBtn" disabled>切換鏡頭</button>
     </div>
 
     <div class="grid2">
@@ -445,6 +445,7 @@ footer{
 
     <div id="msgBox" class="notice info">
       按下 <strong>「開始辨識」</strong> 後，系統會自動準備 AlexNet 模型並啟動 Webcam。
+      啟動後可使用 <strong>「切換鏡頭」</strong> 在筆電內建鏡頭、USB Webcam 或手機前後鏡頭之間切換。
       第一次啟動需要一些時間；之後再次使用會更快。
     </div>
   </section>
@@ -523,7 +524,7 @@ const ctx = overlay.getContext('2d');
 
 const startBtn = document.getElementById('startBtn');
 const stopBtn = document.getElementById('stopBtn');
-const mirrorBtn = document.getElementById('mirrorBtn');
+const switchCameraBtn = document.getElementById('switchCameraBtn');
 
 const statusValue = document.getElementById('statusValue');
 const engineValue = document.getElementById('engineValue');
@@ -549,6 +550,11 @@ let stream = null;
 let running = false;
 let processing = false;
 let mirror = true;
+let videoDevices = [];
+let currentDeviceId = null;
+let currentDeviceIndex = -1;
+let preferredFacing = 'user';
+let switchingCamera = false;
 let inputName = null;
 let inputWidth = 224;
 let inputHeight = 224;
@@ -596,15 +602,9 @@ thresholdRange.addEventListener('input', ()=>{
   thresholdLabel.textContent = Number(thresholdRange.value).toFixed(2);
 });
 
-mirrorBtn.addEventListener('click', ()=>{
-  mirror = !mirror;
-  mirrorBtn.textContent = '切換鏡像：' + (mirror ? '開' : '關');
-  video.style.transform = mirror ? 'scaleX(-1)' : 'scaleX(1)';
-  overlay.style.transform = mirror ? 'scaleX(-1)' : 'scaleX(1)';
-});
-
 startBtn.addEventListener('click', startSystem);
 stopBtn.addEventListener('click', stopSystem);
+switchCameraBtn.addEventListener('click', switchCamera);
 
 function setMessage(type, html){
   msgBox.className = 'notice ' + type;
@@ -900,7 +900,7 @@ async function classifyLoop(){
   drawOverlay();
   tickFPS();
 
-  if(!processing && video.readyState >= 2){
+  if(!switchingCamera && !processing && video.readyState >= 2){
     processing = true;
     try{
       const inputTensor = preprocessFrame();
@@ -932,6 +932,197 @@ async function classifyLoop(){
   rafId = requestAnimationFrame(classifyLoop);
 }
 
+
+async function refreshVideoDevices(){
+  try{
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    videoDevices = devices.filter(d => d.kind === 'videoinput');
+
+    if(currentDeviceId){
+      const idx = videoDevices.findIndex(d => d.deviceId === currentDeviceId);
+      if(idx >= 0) currentDeviceIndex = idx;
+    }
+  }catch(e){
+    videoDevices = [];
+  }
+
+  switchCameraBtn.disabled = !running;
+}
+
+function updateMirrorFromTrack(track, requestedFacing = null){
+  const settings = track && track.getSettings ? track.getSettings() : {};
+  const actualFacing = settings.facingMode || requestedFacing || '';
+
+  // 前鏡頭使用鏡像；後鏡頭與 USB Webcam 使用正常方向。
+  if(actualFacing === 'user'){
+    mirror = true;
+  }else if(actualFacing === 'environment'){
+    mirror = false;
+  }else{
+    // 使用 deviceId 切到外接 Webcam 時預設不鏡像。
+    mirror = requestedFacing === 'user';
+  }
+
+  video.style.transform = mirror ? 'scaleX(-1)' : 'scaleX(1)';
+
+  // Overlay 只顯示文字資訊，不跟著鏡像，避免文字左右顛倒。
+  overlay.style.transform = 'none';
+}
+
+async function openCamera({deviceId = null, facingMode = null, exactFacing = false} = {}){
+  // 手機切換前後鏡頭時，通常需要先停止目前的 Camera track。
+  stopTracks();
+
+  const videoConstraints = {
+    width:{ideal:1280},
+    height:{ideal:720}
+  };
+
+  if(deviceId){
+    videoConstraints.deviceId = {exact:deviceId};
+  }else if(facingMode){
+    videoConstraints.facingMode = exactFacing
+      ? {exact:facingMode}
+      : {ideal:facingMode};
+  }
+
+  stream = await navigator.mediaDevices.getUserMedia({
+    video:videoConstraints,
+    audio:false
+  });
+
+  video.srcObject = stream;
+  await video.play();
+  await new Promise(r => setTimeout(r,120));
+
+  const track = stream.getVideoTracks()[0];
+  const settings = track && track.getSettings ? track.getSettings() : {};
+
+  currentDeviceId = settings.deviceId || deviceId || null;
+
+  if(settings.facingMode){
+    preferredFacing = settings.facingMode;
+  }else if(facingMode){
+    preferredFacing = facingMode;
+  }
+
+  updateMirrorFromTrack(track, facingMode);
+  await refreshVideoDevices();
+
+  frameTimer = performance.now();
+  fpsEMA = 0;
+  processing = false;
+}
+
+async function switchCamera(){
+  if(switchingCamera || !running) return;
+
+  switchingCamera = true;
+  switchCameraBtn.disabled = true;
+
+  const oldDeviceId = currentDeviceId;
+  const oldFacing = preferredFacing;
+
+  try{
+    const track = stream && stream.getVideoTracks
+      ? stream.getVideoTracks()[0]
+      : null;
+
+    const settings = track && track.getSettings ? track.getSettings() : {};
+    const facing = settings.facingMode || '';
+
+    // 手機 / 平板：優先直接切換前後鏡頭。
+    if(facing === 'user' || facing === 'environment'){
+      const targetFacing = facing === 'user' ? 'environment' : 'user';
+
+      try{
+        currentDeviceId = null;
+        currentDeviceIndex = -1;
+
+        await openCamera({
+          facingMode:targetFacing,
+          exactFacing:true
+        });
+
+        setMessage(
+          'ok',
+          targetFacing === 'environment'
+            ? '已切換至後鏡頭，AlexNet 持續辨識中。'
+            : '已切換至前鏡頭，AlexNet 持續辨識中。'
+        );
+        return;
+      }catch(e){
+        // 某些筆電內建 Webcam 也可能回報 facingMode=user，
+        // 若沒有 environment，改用裝置清單切換 USB Webcam。
+      }
+    }
+
+    await refreshVideoDevices();
+
+    // 筆電 / 桌機：內建 Webcam、USB Webcam 依序切換。
+    if(videoDevices.length > 1){
+      let idx = videoDevices.findIndex(d => d.deviceId === oldDeviceId);
+      if(idx < 0) idx = currentDeviceIndex >= 0 ? currentDeviceIndex : 0;
+
+      const nextIndex = (idx + 1) % videoDevices.length;
+      const nextDevice = videoDevices[nextIndex];
+
+      currentDeviceIndex = nextIndex;
+      currentDeviceId = nextDevice.deviceId;
+
+      await openCamera({deviceId:nextDevice.deviceId});
+
+      const label = nextDevice.label || `攝影機 ${nextIndex + 1}`;
+      setMessage('ok', `已切換鏡頭：${label}。AlexNet 持續辨識中。`);
+      return;
+    }
+
+    // 若瀏覽器只列出一顆鏡頭，再嘗試 facingMode 前後切換。
+    const targetFacing = oldFacing === 'user' ? 'environment' : 'user';
+
+    currentDeviceId = null;
+    currentDeviceIndex = -1;
+
+    await openCamera({
+      facingMode:targetFacing,
+      exactFacing:true
+    });
+
+    setMessage(
+      'ok',
+      targetFacing === 'environment'
+        ? '已切換至後鏡頭，AlexNet 持續辨識中。'
+        : '已切換至前鏡頭，AlexNet 持續辨識中。'
+    );
+
+  }catch(err){
+    const name = err?.name || 'Error';
+    let message = err?.message || String(err);
+
+    // 切換失敗時，盡量恢復原本鏡頭。
+    try{
+      if(oldDeviceId){
+        await openCamera({deviceId:oldDeviceId});
+      }else{
+        await openCamera({facingMode:oldFacing || 'user'});
+      }
+    }catch(_){}
+
+    if(name === 'NotAllowedError'){
+      message = '攝影機權限被拒絕，請在網址列的網站權限中允許相機。';
+    }else if(name === 'NotFoundError' || name === 'OverconstrainedError'){
+      message = '找不到其他可切換的攝影機。';
+    }else if(name === 'NotReadableError'){
+      message = '攝影機可能正被 Teams、Zoom、Discord 等程式占用。';
+    }
+
+    setMessage('warn', `<strong>切換鏡頭失敗：</strong>${message}`);
+  }finally{
+    switchingCamera = false;
+    switchCameraBtn.disabled = !running;
+  }
+}
+
 async function startSystem(){
   startBtn.disabled = true;
   setMessage('info', '正在準備 AlexNet，請稍候…');
@@ -950,21 +1141,18 @@ async function startSystem(){
     const sourceText = result.modelSource.startsWith('.') ? '網路模型' : 'ONNX Model Zoo QDQ 模型';
     setMessage('ok', 'AlexNet 已準備完成，正在進行即時影像辨識。');
 
-    stream = await navigator.mediaDevices.getUserMedia({
-      video:{width:{ideal:1280}, height:{ideal:720}, facingMode:'user'},
-      audio:false
-    });
+    currentDeviceId = null;
+    currentDeviceIndex = -1;
+    preferredFacing = 'user';
 
-    video.srcObject = stream;
-    await video.play();
+    await openCamera({facingMode:'user'});
+
     showLoading('準備完成', '正在開始即時影像辨識…', 100);
     setTimeout(hideLoading, 350);
-    video.style.transform = mirror ? 'scaleX(-1)' : 'scaleX(1)';
-    overlay.style.transform = mirror ? 'scaleX(-1)' : 'scaleX(1)';
 
     running = true;
     stopBtn.disabled = false;
-    mirrorBtn.disabled = false;
+    switchCameraBtn.disabled = false;
     statusValue.textContent = '辨識中';
     startBtn.disabled = true;
     frameTimer = performance.now();
@@ -977,7 +1165,7 @@ async function startSystem(){
     statusValue.textContent = '啟動失敗';
     startBtn.disabled = false;
     stopBtn.disabled = true;
-    mirrorBtn.disabled = true;
+    switchCameraBtn.disabled = true;
 
     if(msg.includes('fetch') || msg.includes('Load model') || msg.includes('Failed to fetch') || msg.includes('model')){
       setMessage('warn',
@@ -1011,7 +1199,7 @@ function stopSystem(resetMessage=true){
   latencyValue.textContent = '0 ms';
   startBtn.disabled = false;
   stopBtn.disabled = true;
-  mirrorBtn.disabled = true;
+  switchCameraBtn.disabled = true;
   engineChip.textContent = '尚未啟動';
   if(resetMessage){
     setMessage('info', '系統已停止。按「開始辨識」可再次啟動 AlexNet 即時影像辨識。');
