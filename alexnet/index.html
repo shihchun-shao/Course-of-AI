@@ -511,6 +511,8 @@ footer{
 
 <script>
 const MODEL_MANIFEST_PATH = './models/alexnet.manifest.json';
+const MODEL_CACHE_NAME = 'alexnet-model-cache-v1';
+const MODEL_CACHE_PREFIX = 'alexnet-model-cache-';
 
 const LOCAL_LABELS_PATH = './models/imagenet_classes.txt';
 const REMOTE_LABELS_PATH = 'https://raw.githubusercontent.com/pytorch/hub/master/imagenet_classes.txt';
@@ -580,11 +582,33 @@ function hideLoading(){
   modelLoading.classList.remove('show');
 }
 
+
+async function cleanupOldModelCaches(){
+  if(!('caches' in window)) return;
+
+  try{
+    const names = await caches.keys();
+    const oldCaches = names.filter(
+      name => name.startsWith(MODEL_CACHE_PREFIX) && name !== MODEL_CACHE_NAME
+    );
+
+    await Promise.all(oldCaches.map(name => caches.delete(name)));
+
+    if(oldCaches.length){
+      console.log('已清除舊版 AlexNet 模型快取：', oldCaches);
+    }
+  }catch(err){
+    // 快取清理失敗不應阻止模型正常執行。
+    console.warn('清除舊版 AlexNet 快取失敗：', err);
+  }
+}
+
 async function fetchWithPersistentCache(url){
   // GitHub Pages 使用 HTTPS，可使用 Cache Storage。
-  // 第一次下載後，之後再次啟動通常可直接讀取快取。
+  // 第一次下載後會保存目前版本模型；之後再次啟動通常直接讀取快取。
+  // 舊版本快取會由 cleanupOldModelCaches() 自動清除，不會持續累積。
   if('caches' in window){
-    const cache = await caches.open('alexnet-model-cache-v1');
+    const cache = await caches.open(MODEL_CACHE_NAME);
     const cached = await cache.match(url);
     if(cached) return cached.clone();
 
@@ -1130,6 +1154,7 @@ async function startSystem(){
   statusValue.textContent = '初始化中';
 
   try{
+    await cleanupOldModelCaches();
     labels = await loadLabels();
 
     const result = await createSession();
