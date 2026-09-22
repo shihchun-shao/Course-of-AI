@@ -54,7 +54,7 @@ footer{border-top:1px solid var(--line);background:#fff;margin-top:12px}.footer-
 <main>
 <section class="card">
   <div class="stage" id="stage">
-    <div class="msg" id="msg"><b>尚未啟動攝影機</b>按「開始偵測」，允許瀏覽器使用攝影機。第一次啟動需要下載 RetinaFace 模型。</div>
+    <div class="msg" id="msg"><b>尚未啟動攝影機</b>按「開始偵測」，允許瀏覽器使用攝影機；啟動後可使用「切換鏡頭」。第一次啟動需要下載 RetinaFace 模型。</div>
     <video id="video" playsinline autoplay muted></video>
     <canvas id="overlay"></canvas>
   </div>
@@ -67,7 +67,7 @@ footer{border-top:1px solid var(--line);background:#fff;margin-top:12px}.footer-
   <div class="controls">
     <button id="start">開始偵測</button>
     <button id="stop" class="stop" disabled>停止偵測</button>
-    <button id="mirror" class="gray">切換鏡像</button>
+    <button id="switchCamera" class="gray" disabled>切換鏡頭</button>
   </div>
 
   <div class="setting">
@@ -152,7 +152,7 @@ const inputCtx = inputCanvas.getContext('2d', {willReadFrequently:true});
 const msg = document.getElementById('msg');
 const startBtn = document.getElementById('start');
 const stopBtn = document.getElementById('stop');
-const mirrorBtn = document.getElementById('mirror');
+const switchCameraBtn = document.getElementById('switchCamera');
 const confSlider = document.getElementById('conf');
 const nmsSlider = document.getElementById('nms');
 const confValue = document.getElementById('confValue');
@@ -178,6 +178,11 @@ let lastInferAt = 0;
 let inferCounter = 0;
 let fpsClock = performance.now();
 let activeBackend = '—';
+let videoDevices = [];
+let currentDeviceId = null;
+let currentDeviceIndex = -1;
+let preferredFacing = 'user';
+let switchingCamera = false;
 
 confSlider.addEventListener('input',()=>confValue.textContent=Number(confSlider.value).toFixed(2));
 nmsSlider.addEventListener('input',()=>nmsValue.textContent=Number(nmsSlider.value).toFixed(2));
@@ -406,7 +411,7 @@ async function ensureSession(){
 }
 
 async function inferFrame(){
-  if(!running||processing||!session||video.readyState<2) return;
+  if(!running||processing||switchingCamera||!session||video.readyState<2) return;
   processing=true;
   try{
     const meta=prepareInput();
@@ -433,6 +438,207 @@ function loop(now){
   rafId=requestAnimationFrame(loop);
 }
 
+
+async function refreshVideoDevices(){
+  try{
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    videoDevices = devices.filter(d => d.kind === 'videoinput');
+
+    if(currentDeviceId){
+      const idx = videoDevices.findIndex(d => d.deviceId === currentDeviceId);
+      if(idx >= 0) currentDeviceIndex = idx;
+    }
+  }catch(e){
+    videoDevices = [];
+  }
+
+  switchCameraBtn.disabled = !running;
+}
+
+function stopCurrentCameraTracks(){
+  if(stream){
+    stream.getTracks().forEach(t => t.stop());
+    stream = null;
+  }
+  video.srcObject = null;
+}
+
+function updateMirrorFromTrack(track, requestedFacing = null){
+  const settings = track && track.getSettings ? track.getSettings() : {};
+  const actualFacing = settings.facingMode || requestedFacing || '';
+
+  // 前鏡頭使用鏡像顯示；後鏡頭與 USB Webcam 使用正常方向。
+  if(actualFacing === 'user'){
+    mirrored = true;
+  }else if(actualFacing === 'environment'){
+    mirrored = false;
+  }else{
+    // 以 deviceId 切換到 USB / 外接 Webcam 時預設不鏡像。
+    mirrored = requestedFacing === 'user';
+  }
+
+  video.style.transform = mirrored ? 'scaleX(-1)' : 'scaleX(1)';
+}
+
+async function openCamera({deviceId = null, facingMode = null, exactFacing = false} = {}){
+  // 手機前後鏡頭切換時，通常需要先停止目前 Camera track。
+  stopCurrentCameraTracks();
+
+  const videoConstraints = {
+    width:{ideal:640},
+    height:{ideal:480}
+  };
+
+  if(deviceId){
+    videoConstraints.deviceId = {exact:deviceId};
+  }else if(facingMode){
+    videoConstraints.facingMode = exactFacing
+      ? {exact:facingMode}
+      : {ideal:facingMode};
+  }
+
+  stream = await navigator.mediaDevices.getUserMedia({
+    video:videoConstraints,
+    audio:false
+  });
+
+  video.srcObject = stream;
+  await video.play();
+  await new Promise(r => setTimeout(r,120));
+
+  const track = stream.getVideoTracks()[0];
+  const settings = track && track.getSettings ? track.getSettings() : {};
+
+  currentDeviceId = settings.deviceId || deviceId || null;
+  if(settings.facingMode){
+    preferredFacing = settings.facingMode;
+  }else if(facingMode){
+    preferredFacing = facingMode;
+  }
+
+  updateMirrorFromTrack(track, facingMode);
+
+  video.style.display = 'block';
+  msg.style.display = 'none';
+  resizeOverlay();
+
+  await refreshVideoDevices();
+
+  // 切換鏡頭後重新計算推論狀態。
+  processing = false;
+  lastInferAt = 0;
+  inferCounter = 0;
+  fpsClock = performance.now();
+}
+
+async function switchCamera(){
+  if(switchingCamera) return;
+
+  switchingCamera = true;
+  switchCameraBtn.disabled = true;
+  clearNotices();
+
+  const oldDeviceId = currentDeviceId;
+  const oldFacing = preferredFacing;
+
+  try{
+    const track = stream && stream.getVideoTracks
+      ? stream.getVideoTracks()[0]
+      : null;
+
+    const settings = track && track.getSettings ? track.getSettings() : {};
+    const facing = settings.facingMode || '';
+
+    // 手機 / 平板：若瀏覽器能判斷 user / environment，
+    // 優先直接在前後鏡頭之間切換。
+    if(facing === 'user' || facing === 'environment'){
+      const targetFacing = facing === 'user' ? 'environment' : 'user';
+
+      try{
+        currentDeviceId = null;
+        currentDeviceIndex = -1;
+        await openCamera({
+          facingMode:targetFacing,
+          exactFacing:true
+        });
+
+        showOk(
+          targetFacing === 'environment'
+            ? '已切換至後鏡頭。RetinaFace 持續偵測中。'
+            : '已切換至前鏡頭。RetinaFace 持續偵測中。'
+        );
+        return;
+      }catch(e){
+        // 有些筆電內建相機也會回報 facingMode=user，
+        // 但沒有 environment；此時改用實體攝影機列表切換。
+      }
+    }
+
+    await refreshVideoDevices();
+
+    // 筆電 / 桌機：內建 Webcam、USB Webcam 依序切換。
+    if(videoDevices.length > 1){
+      let idx = videoDevices.findIndex(d => d.deviceId === oldDeviceId);
+      if(idx < 0) idx = currentDeviceIndex >= 0 ? currentDeviceIndex : 0;
+
+      const nextIndex = (idx + 1) % videoDevices.length;
+      const nextDevice = videoDevices[nextIndex];
+
+      currentDeviceIndex = nextIndex;
+      currentDeviceId = nextDevice.deviceId;
+
+      await openCamera({deviceId:nextDevice.deviceId});
+
+      const label = nextDevice.label || `攝影機 ${nextIndex + 1}`;
+      showOk(`已切換鏡頭：${label}。RetinaFace 持續偵測中。`);
+      return;
+    }
+
+    // 列舉不到多顆鏡頭時，再嘗試前後 facingMode 切換。
+    const targetFacing = oldFacing === 'user' ? 'environment' : 'user';
+    currentDeviceId = null;
+    currentDeviceIndex = -1;
+
+    await openCamera({
+      facingMode:targetFacing,
+      exactFacing:true
+    });
+
+    showOk(
+      targetFacing === 'environment'
+        ? '已切換至後鏡頭。RetinaFace 持續偵測中。'
+        : '已切換至前鏡頭。RetinaFace 持續偵測中。'
+    );
+
+  }catch(e){
+    const name = e.name || 'Error';
+    let extra = e.message || '未知錯誤';
+
+    // 切換失敗時，盡量恢復原本鏡頭。
+    try{
+      if(oldDeviceId){
+        await openCamera({deviceId:oldDeviceId});
+      }else{
+        await openCamera({facingMode:oldFacing || 'user'});
+      }
+    }catch(_){}
+
+    if(name === 'NotAllowedError'){
+      extra = '攝影機權限被拒絕，請在網址列的網站權限中允許相機。';
+    }else if(name === 'NotFoundError' || name === 'OverconstrainedError'){
+      extra = '找不到其他可切換的攝影機。';
+    }else if(name === 'NotReadableError'){
+      extra = '攝影機可能正被 Teams、Zoom、Discord 等程式占用。';
+    }
+
+    showError('切換鏡頭失敗：' + extra);
+
+  }finally{
+    switchingCamera = false;
+    switchCameraBtn.disabled = !running;
+  }
+}
+
 async function startAll(){
   clearNotices();
   startBtn.disabled=true;
@@ -440,21 +646,19 @@ async function startAll(){
     if(!window.isSecureContext && location.hostname!=='localhost' && location.hostname!=='127.0.0.1') throw new Error('請使用 HTTPS 或 localhost 開啟。');
     await ensureSession();
     showInfo('模型已載入，正在啟動攝影機…');
-    stream=await navigator.mediaDevices.getUserMedia({video:{width:{ideal:640},height:{ideal:480},facingMode:'user'},audio:false});
-    video.srcObject=stream;
-    await video.play();
-    await new Promise(r=>setTimeout(r,120));
-    video.style.transform=mirrored?'scaleX(-1)':'scaleX(1)';
-    video.style.display='block';msg.style.display='none';resizeOverlay();
-    running=true;processing=false;stopBtn.disabled=false;
+    currentDeviceId=null;
+    currentDeviceIndex=-1;
+    preferredFacing='user';
+    await openCamera({facingMode:'user'});
+    running=true;processing=false;stopBtn.disabled=false;switchCameraBtn.disabled=false;
     countEl.textContent='0';bestEl.textContent='0.00';fpsEl.textContent='0';backendEl.textContent=activeBackend;
     inferCounter=0;fpsClock=performance.now();lastInferAt=0;
     showOk('RetinaFace 已啟動。紅框為人臉位置，綠點為 5 個人臉關鍵點。');
     rafId=requestAnimationFrame(loop);
   }catch(e){
-    if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}
+    stopCurrentCameraTracks();
     video.srcObject=null;video.style.display='none';msg.style.display='block';
-    startBtn.disabled=false;stopBtn.disabled=true;hideProgress();
+    startBtn.disabled=false;stopBtn.disabled=true;switchCameraBtn.disabled=true;hideProgress();
     const name=e.name||'Error';let extra=e.message||'未知錯誤';
     if(name==='NotAllowedError') extra='攝影機權限被拒絕，請在網址列的網站權限中允許相機。';
     if(name==='NotFoundError') extra='找不到攝影機。';
@@ -466,20 +670,17 @@ async function startAll(){
 function stopAll(){
   running=false;processing=false;
   if(rafId) cancelAnimationFrame(rafId);
-  if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}
-  video.srcObject=null;video.style.display='none';msg.style.display='block';
+  stopCurrentCameraTracks();
+  video.style.display='none';msg.style.display='block';
   msg.innerHTML='<b>已停止偵測</b>按「開始偵測」可重新啟動 RetinaFace。';
   countEl.textContent='0';bestEl.textContent='0.00';fpsEl.textContent='0';
-  stopBtn.disabled=true;startBtn.disabled=false;
+  stopBtn.disabled=true;startBtn.disabled=false;switchCameraBtn.disabled=true;
   ctx.clearRect(0,0,overlay.clientWidth,overlay.clientHeight);
 }
 
 startBtn.addEventListener('click',startAll);
 stopBtn.addEventListener('click',()=>{clearNotices();stopAll();});
-mirrorBtn.addEventListener('click',()=>{
-  mirrored=!mirrored;
-  video.style.transform=mirrored?'scaleX(-1)':'scaleX(1)';
-});
+switchCameraBtn.addEventListener('click',switchCamera);
 
 priors=generatePriors(MODEL_SIZE,MODEL_SIZE);
 resizeOverlay();
