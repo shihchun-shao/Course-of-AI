@@ -143,6 +143,8 @@ const MODEL_CANDIDATES = [
   './models/retinaface_mv1_0.25.onnx',
   'https://github.com/yakhyo/retinaface-pytorch/releases/download/v0.0.1/retinaface_mv1_0.25.onnx'
 ];
+const MODEL_CACHE_NAME = 'retinaface-model-cache-v1';
+const MODEL_CACHE_PREFIX = 'retinaface-model-cache-';
 
 const video = document.getElementById('video');
 const overlay = document.getElementById('overlay');
@@ -365,6 +367,52 @@ function drawDetections(dets){
   bestEl.textContent=dets.length?dets[0].score.toFixed(2):'0.00';
 }
 
+
+async function cleanupOldModelCaches(){
+  if(!('caches' in window)) return;
+
+  try{
+    const names = await caches.keys();
+    const oldCaches = names.filter(
+      name => name.startsWith(MODEL_CACHE_PREFIX) && name !== MODEL_CACHE_NAME
+    );
+
+    await Promise.all(oldCaches.map(name => caches.delete(name)));
+
+    if(oldCaches.length){
+      console.log('已清除舊版 RetinaFace 模型快取：', oldCaches);
+    }
+  }catch(err){
+    // 快取清理失敗不影響模型正常啟動。
+    console.warn('清除舊版 RetinaFace 快取失敗：', err);
+  }
+}
+
+async function fetchWithPersistentCache(url){
+  if('caches' in window){
+    const cache = await caches.open(MODEL_CACHE_NAME);
+    const cached = await cache.match(url);
+
+    if(cached){
+      return cached.clone();
+    }
+
+    const response = await fetch(url,{cache:'default'});
+
+    if(response.ok){
+      try{
+        await cache.put(url,response.clone());
+      }catch(err){
+        console.warn('RetinaFace 模型寫入快取失敗：', err);
+      }
+    }
+
+    return response;
+  }
+
+  return fetch(url,{cache:'default'});
+}
+
 async function fetchModelBuffer(){
   let lastError=null;
   for(let i=0;i<MODEL_CANDIDATES.length;i++){
@@ -372,7 +420,7 @@ async function fetchModelBuffer(){
     try{
       showInfo(i===0?'正在尋找本地 RetinaFace 模型…':'正在從公開模型來源下載 RetinaFace…');
       setProgress(i===0?25:45);
-      const res=await fetch(url,{cache:'force-cache'});
+      const res=await fetchWithPersistentCache(url);
       if(!res.ok) throw new Error('HTTP '+res.status);
       const contentType=(res.headers.get('content-type')||'').toLowerCase();
       const buf=await res.arrayBuffer();
@@ -644,6 +692,7 @@ async function startAll(){
   startBtn.disabled=true;
   try{
     if(!window.isSecureContext && location.hostname!=='localhost' && location.hostname!=='127.0.0.1') throw new Error('請使用 HTTPS 或 localhost 開啟。');
+    await cleanupOldModelCaches();
     await ensureSession();
     showInfo('模型已載入，正在啟動攝影機…');
     currentDeviceId=null;
