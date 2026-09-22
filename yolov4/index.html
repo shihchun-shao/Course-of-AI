@@ -239,6 +239,8 @@ const MODEL_CANDIDATES = [
   './models/yolov4-tiny-416_float.onnx',
   'https://huggingface.co/Thefalley/yolov4-tiny-416-int8-qop/resolve/main/yolov4-tiny-416_float.onnx?download=true'
 ];
+const MODEL_CACHE_NAME = 'yolov4-model-cache-v1';
+const MODEL_CACHE_PREFIX = 'yolov4-model-cache-';
 
 const COCO = [
 'person','bicycle','car','motorcycle','airplane','bus','train','truck','boat','traffic light',
@@ -365,6 +367,52 @@ function resizeOverlay(){
 }
 window.addEventListener('resize',resizeOverlay);
 
+
+async function cleanupOldModelCaches(){
+  if(!('caches' in window)) return;
+
+  try{
+    const names = await caches.keys();
+    const oldCaches = names.filter(
+      name => name.startsWith(MODEL_CACHE_PREFIX) && name !== MODEL_CACHE_NAME
+    );
+
+    await Promise.all(oldCaches.map(name => caches.delete(name)));
+
+    if(oldCaches.length){
+      console.log('已清除舊版 YOLOv4 模型快取：', oldCaches);
+    }
+  }catch(err){
+    // 快取清理失敗不影響模型正常啟動。
+    console.warn('清除舊版 YOLOv4 快取失敗：', err);
+  }
+}
+
+async function fetchWithPersistentCache(url){
+  if('caches' in window){
+    const cache = await caches.open(MODEL_CACHE_NAME);
+    const cached = await cache.match(url);
+
+    if(cached){
+      return cached.clone();
+    }
+
+    const response = await fetch(url,{cache:'default'});
+
+    if(response.ok){
+      try{
+        await cache.put(url,response.clone());
+      }catch(err){
+        console.warn('YOLOv4 模型寫入快取失敗：', err);
+      }
+    }
+
+    return response;
+  }
+
+  return fetch(url,{cache:'default'});
+}
+
 async function fetchModelBuffer(){
   let lastError=null;
   for(let i=0;i<MODEL_CANDIDATES.length;i++){
@@ -372,7 +420,7 @@ async function fetchModelBuffer(){
     try{
       showInfo(i===0?'正在尋找本地 YOLOv4-tiny 模型…':'正在從公開來源下載 YOLOv4-tiny 模型…');
       setProgress(i===0?25:45);
-      const res=await fetch(url,{cache:'force-cache'});
+      const res=await fetchWithPersistentCache(url);
       if(!res.ok) throw new Error('HTTP '+res.status);
 
       const contentType=(res.headers.get('content-type')||'').toLowerCase();
@@ -970,6 +1018,7 @@ async function startAll(){
       throw new Error('請使用 HTTPS 或 localhost 開啟。');
     }
 
+    await cleanupOldModelCaches();
     await ensureSession();
 
     showInfo('模型已載入，正在啟動攝影機…');
