@@ -48,7 +48,7 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:8px;text-
 <main>
 <section class="card">
   <div class="stage">
-    <div class="msg" id="msg"><b>尚未啟動攝影機</b>按「開始偵測」並允許瀏覽器使用攝影機。</div>
+    <div class="msg" id="msg"><b>尚未啟動攝影機</b>按「開始偵測」並允許瀏覽器使用攝影機；啟動後可使用「切換鏡頭」。</div>
     <video id="video" playsinline autoplay muted></video>
     <canvas id="canvas"></canvas>
   </div>
@@ -56,7 +56,7 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:8px;text-
   <div class="controls">
     <button id="start">開始偵測</button>
     <button id="stop" class="stop" disabled>停止偵測</button>
-    <button id="mirror" class="gray">切換鏡像</button>
+    <button id="switchCamera" class="gray" disabled>切換鏡頭</button>
   </div>
 
   <div class="setting">
@@ -124,7 +124,7 @@ const err=document.getElementById('err');
 const ok=document.getElementById('ok');
 const start=document.getElementById('start');
 const stop=document.getElementById('stop');
-const mirrorBtn=document.getElementById('mirror');
+const switchCameraBtn=document.getElementById('switchCamera');
 const threshold=document.getElementById('threshold');
 const thresholdValue=document.getElementById('thresholdValue');
 const thresholdStat=document.getElementById('thresholdStat');
@@ -134,6 +134,8 @@ const progress=document.getElementById('progress');
 const bar=document.getElementById('bar');
 
 let stream=null, running=false, mirrored=true, classifier=null;
+let videoDevices=[], currentDeviceIndex=-1, currentDeviceId=null;
+let preferredFacing='user', switchingCamera=false;
 let lastFrame=0, frameCounter=0, fpsClock=performance.now(), processing=false;
 
 function noticeError(t){err.style.display='block';err.textContent=t;ok.style.display='none'}
@@ -278,6 +280,148 @@ function loop(now){
   requestAnimationFrame(loop);
 }
 
+
+async function refreshVideoDevices(){
+  try{
+    const devices=await navigator.mediaDevices.enumerateDevices();
+    videoDevices=devices.filter(d=>d.kind==='videoinput');
+
+    if(currentDeviceId){
+      const idx=videoDevices.findIndex(d=>d.deviceId===currentDeviceId);
+      if(idx>=0) currentDeviceIndex=idx;
+    }
+
+    switchCameraBtn.disabled=!running;
+  }catch(e){
+    videoDevices=[];
+    switchCameraBtn.disabled=!running;
+  }
+}
+
+function stopCurrentCameraTracks(){
+  if(stream){
+    stream.getTracks().forEach(t=>t.stop());
+    stream=null;
+  }
+  video.srcObject=null;
+}
+
+function updateMirrorFromTrack(track, requestedFacing=null){
+  const settings=track && track.getSettings ? track.getSettings() : {};
+  const actualFacing=settings.facingMode || requestedFacing || '';
+
+  if(actualFacing==='user'){
+    mirrored=true;
+  }else if(actualFacing==='environment'){
+    mirrored=false;
+  }else{
+    mirrored = !currentDeviceId && preferredFacing==='user';
+  }
+
+  video.style.transform=mirrored?'scaleX(-1)':'scaleX(1)';
+}
+
+async function openCamera({deviceId=null,facingMode=null}={}){
+  stopCurrentCameraTracks();
+
+  const videoConstraints={
+    width:{ideal:640},
+    height:{ideal:480}
+  };
+
+  if(deviceId){
+    videoConstraints.deviceId={exact:deviceId};
+  }else if(facingMode){
+    videoConstraints.facingMode={ideal:facingMode};
+  }
+
+  stream=await navigator.mediaDevices.getUserMedia({
+    video:videoConstraints,
+    audio:false
+  });
+
+  video.srcObject=stream;
+  await video.play();
+  await new Promise(r=>setTimeout(r,150));
+
+  const track=stream.getVideoTracks()[0];
+  const settings=track && track.getSettings ? track.getSettings() : {};
+  currentDeviceId=settings.deviceId || deviceId || null;
+
+  updateMirrorFromTrack(track,facingMode);
+  await refreshVideoDevices();
+
+  msg.style.display='none';
+  video.style.display='block';
+  resizeCanvas();
+
+  lastFrame=-1;
+  frameCounter=0;
+  fpsClock=performance.now();
+}
+
+async function switchCamera(){
+  if(switchingCamera) return;
+  switchingCamera=true;
+  switchCameraBtn.disabled=true;
+  clearNotice();
+
+  try{
+    await refreshVideoDevices();
+
+    if(videoDevices.length>1){
+      let idx=videoDevices.findIndex(d=>d.deviceId===currentDeviceId);
+      if(idx<0) idx=currentDeviceIndex>=0?currentDeviceIndex:0;
+
+      const nextIndex=(idx+1)%videoDevices.length;
+      const nextDevice=videoDevices[nextIndex];
+
+      currentDeviceIndex=nextIndex;
+      currentDeviceId=nextDevice.deviceId;
+
+      await openCamera({deviceId:nextDevice.deviceId});
+
+      const label=nextDevice.label || `攝影機 ${nextIndex+1}`;
+      noticeOk(`已切換鏡頭：${label}`);
+    }else{
+      preferredFacing=preferredFacing==='user'?'environment':'user';
+      currentDeviceId=null;
+      currentDeviceIndex=-1;
+
+      await openCamera({facingMode:preferredFacing});
+
+      noticeOk(
+        preferredFacing==='environment'
+          ? '已切換至後鏡頭。'
+          : '已切換至前鏡頭。'
+      );
+    }
+  }catch(e){
+    const name=e.name||'Error';
+    let extra=e.message||'未知錯誤';
+
+    if(name==='NotAllowedError'){
+      extra='攝影機權限被拒絕，請在網址列的網站權限中允許相機。';
+    }else if(name==='NotFoundError' || name==='OverconstrainedError'){
+      try{
+        currentDeviceId=null;
+        preferredFacing='user';
+        await openCamera({facingMode:'user'});
+        noticeError('找不到指定鏡頭，已自動切回預設攝影機。');
+        return;
+      }catch(_){}
+      extra='找不到可切換的攝影機。';
+    }else if(name==='NotReadableError'){
+      extra='攝影機可能被 Teams、Zoom、Discord 等程式占用。';
+    }
+
+    noticeError('切換鏡頭失敗：'+extra+'（'+name+'）');
+  }finally{
+    switchingCamera=false;
+    switchCameraBtn.disabled=!running;
+  }
+}
+
 async function startAll(){
   clearNotice();
   start.disabled=true;
@@ -290,28 +434,20 @@ async function startAll(){
       await loadCascade();
     }
 
-    stream=await navigator.mediaDevices.getUserMedia({
-      video:{width:{ideal:640},height:{ideal:480},facingMode:'user'},
-      audio:false
-    });
+    currentDeviceId=null;
+    currentDeviceIndex=-1;
+    preferredFacing='user';
+    await openCamera({facingMode:preferredFacing});
 
-    video.srcObject=stream;
-    await video.play();
-    await new Promise(r=>setTimeout(r,150));
-
-    msg.style.display='none';
-    video.style.display='block';
-    resizeCanvas();
-
-    running=true; stop.disabled=false;
+    running=true; stop.disabled=false; switchCameraBtn.disabled=false;
     count.textContent='0'; fpsEl.textContent='0';
     frameCounter=0; fpsClock=performance.now(); lastFrame=-1;
     noticeOk('攝影機與 Haar-like 人臉偵測都已啟動。請把臉放在鏡頭前，再用閾值滑桿調整敏感度。');
     requestAnimationFrame(loop);
   }catch(e){
-    if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}
+    stopCurrentCameraTracks()
     video.srcObject=null; video.style.display='none'; msg.style.display='block';
-    stop.disabled=true; start.disabled=false;
+    stop.disabled=true; start.disabled=false; switchCameraBtn.disabled=true;
     const name=e.name||'Error';
     let extra=e.message||'未知錯誤';
     if(name==='NotAllowedError') extra='攝影機權限被拒絕，請在網址列的網站權限中允許相機。';
@@ -323,17 +459,17 @@ async function startAll(){
 
 function stopAll(){
   running=false;
-  if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}
-  video.srcObject=null; video.style.display='none'; msg.style.display='block';
+  stopCurrentCameraTracks();
+  video.style.display='none'; msg.style.display='block';
   msg.innerHTML='<b>已停止偵測</b>按「開始偵測」可重新啟動。';
   count.textContent='0'; fpsEl.textContent='0';
-  stop.disabled=true; start.disabled=false;
+  stop.disabled=true; start.disabled=false; switchCameraBtn.disabled=true;
   ctx.clearRect(0,0,canvas.clientWidth,canvas.clientHeight);
 }
 
 start.addEventListener('click',startAll);
 stop.addEventListener('click',()=>{clearNotice();stopAll()});
-mirrorBtn.addEventListener('click',()=>{mirrored=!mirrored;video.style.transform=mirrored?'scaleX(-1)':'scaleX(1)'});
+switchCameraBtn.addEventListener('click',switchCamera);
 </script>
 </body>
 </html>
