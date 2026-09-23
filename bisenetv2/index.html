@@ -261,7 +261,7 @@ footer{border-top:1px solid var(--line);background:#fff;margin-top:12px}
 'use strict';
 
 const MODEL_CANDIDATES = [
-  './models/bisenetv2_cocostuff_171.onnx'
+  './models/bisenetv2_cocostuff_171_320.onnx'
 ];
 
 const MODEL_CACHE_NAME = 'bisenetv2-cocostuff-model-cache-v1';
@@ -486,8 +486,8 @@ let timerId = 0;
 let activeBackend = '—';
 let inputName = null;
 
-let modelWidth = 640;
-let modelHeight = 640;
+let modelWidth = 320;
+let modelHeight = 320;
 let inputLayout = 'NCHW';
 
 let videoDevices = [];
