@@ -170,7 +170,7 @@ footer{border-top:1px solid var(--line);background:#fff;margin-top:12px}
     <input id="interval" type="range" min="150" max="1800" step="50" value="450">
     <div class="scale-label"><span>150 ms：更新較快</span><span>1800 ms：硬體負擔較低</span></div>
     <p class="tiny" style="margin:8px 0 0">
-      Webcam 持續播放；BiSeNet v2 依照此間隔執行推論。COCO-Stuff 有 171 類，因此建議一般電腦先從 450～800 ms 開始。
+      Webcam 持續播放；BiSeNet v2 依照此間隔執行推論。COCO-Stuff 有 171 類；本版使用 384×288 的 4:3 輸入比例，避免 Webcam 畫面被壓縮變形。一般電腦建議先從 450～800 ms 開始。
     </p>
   </div>
 
@@ -261,7 +261,7 @@ footer{border-top:1px solid var(--line);background:#fff;margin-top:12px}
 'use strict';
 
 const MODEL_CANDIDATES = [
-  './models/bisenetv2_cocostuff_171_320.onnx'
+  './models/bisenetv2_cocostuff_171_384x288.onnx'
 ];
 
 const MODEL_CACHE_NAME = 'bisenetv2-cocostuff-model-cache-v1';
@@ -486,8 +486,8 @@ let timerId = 0;
 let activeBackend = '—';
 let inputName = null;
 
-let modelWidth = 320;
-let modelHeight = 320;
+let modelWidth = 384;
+let modelHeight = 288;
 let inputLayout = 'NCHW';
 
 let videoDevices = [];
