@@ -8,7 +8,7 @@
 <style>
 :root{
   --bg:#f3f7fb;--card:#fff;--text:#0e1b3d;--muted:#66758d;--line:#cbd8e8;
-  --blue:#1769ff;--green:#008d73;--purple:#8b2cff;--orange:#ff5f00;--red:#ff2a2a;
+  --blue:#1769ff;--green:#008d73;--purple:#8b2cff;--orange:#ff5f00;--red:#ff2a2a;--cyan:#0097a7;
 }
 *{box-sizing:border-box}
 body{
@@ -55,7 +55,7 @@ body{
 .unit::before{content:"";position:absolute;left:0;right:0;top:0;height:5px;background:var(--accent)}
 .unit:hover{transform:translateY(-2px);box-shadow:0 12px 26px rgba(30,65,110,.08)}
 .u1{--accent:var(--blue)} .u2{--accent:var(--green)} .u3{--accent:var(--purple)}
-.u4{--accent:var(--orange)} .u5{--accent:var(--red)}
+.u4{--accent:var(--orange)} .u5{--accent:var(--red)} .u6{--accent:var(--cyan)}
 .unit-no{margin-top:2px;font-size:13px;font-weight:900;color:var(--accent)}
 .badge{
   display:inline-block;align-self:flex-start;margin-top:12px;padding:7px 17px;
@@ -148,7 +148,15 @@ body{
     <div class="unit-no">UNIT 05</div>
     <span class="badge">深度學習</span>
     <h2>YOLOV4－物件偵測</h2>
-    <p>從「這張圖片是什麼？」進一步到「有哪些物件？在哪裡？」理解 Bounding Box、Confidence 與 NMS。</p>
+    <p>從「這張圖片什麼？」進一步到「有哪些物件？在哪裡？」理解 Bounding Box、Confidence 與 NMS。</p>
+    <div class="enter">進入教材 →</div>
+  </a>
+
+  <a class="unit u6" href="./bisenetv2/">
+    <div class="unit-no">UNIT 06</div>
+    <span class="badge">深度學習</span>
+    <h2>BiSeNet v2－語意分割</h2>
+    <p>從 Bounding Box 延伸到 Pixel-level Classification，利用 COCO-Stuff 171 類觀察人物、物件與環境區域的語意分割結果。</p>
     <div class="enter">進入教材 →</div>
   </a>
 </section>
