@@ -119,8 +119,8 @@ footer{border-top:1px solid var(--line);background:#fff;margin-top:12px}
 
 <header>
  <div class="header-top">
-  <a class="back" href="../">← 回 AI 教學首頁</a>
-  <span class="badge">DEEP LEARNING</span>
+ <a class="back" href="../">← 回 AI 教學首頁</a>
+ <span class="badge">DEEP LEARNING</span>
  </div>
  <h1>Live 語意分割｜BiSeNet v2</h1>
  <p>利用 BiSeNet v2 + COCO-Stuff 171 類進行即時 Semantic Segmentation。</p>
@@ -131,47 +131,47 @@ footer{border-top:1px solid var(--line);background:#fff;margin-top:12px}
 <section class="card">
 
  <div class="stage">
-  <div class="msg" id="msg">
-   <b>尚未啟動攝影機</b>
-   按「開始分割」，允許瀏覽器使用攝影機；第一次啟動會先載入 BiSeNet v2 COCO-Stuff ONNX 模型。
-  </div>
+ <div class="msg" id="msg">
+  <b>尚未啟動攝影機</b>
+  按「開始分割」，允許瀏覽器使用攝影機；第一次啟動會先載入 BiSeNet v2 COCO-Stuff ONNX 模型。
+ </div>
 
-  <video id="video" playsinline autoplay muted></video>
-  <canvas id="overlay"></canvas>
+ <video id="video" playsinline autoplay muted></video>
+ <canvas id="overlay"></canvas>
  </div>
 
  <div class="legend">
-  <span><i class="mask-key"></i> Semantic Mask Overlay：不同顏色代表不同 Pixel 類別</span>
+ <span><i class="mask-key"></i> Semantic Mask Overlay：不同顏色代表不同 Pixel 類別</span>
  </div>
 
  <div class="controls">
-  <button id="start">開始分割</button>
-  <button id="stop" class="stop" disabled>停止分割</button>
-  <button id="switchCamera" class="gray" disabled>切換鏡頭</button>
+ <button id="start">開始分割</button>
+ <button id="stop" class="stop" disabled>停止分割</button>
+ <button id="switchCamera" class="gray" disabled>切換鏡頭</button>
  </div>
 
  <div class="setting">
-  <div class="setting-row">
-   <b>Mask Overlay 透明度</b>
-   <span class="value" id="alphaValue">45%</span>
-  </div>
-  <input id="alpha" type="range" min="0.10" max="0.85" step="0.05" value="0.45">
-  <div class="scale-label"><span>10%：較透明</span><span>85%：Mask 較明顯</span></div>
-  <p class="tiny" style="margin:8px 0 0">
-   Mask Overlay 是將語意分割結果以半透明方式疊加在原始 Webcam 畫面上。
-  </p>
+ <div class="setting-row">
+  <b>Mask Overlay 透明度</b>
+  <span class="value" id="alphaValue">45%</span>
+ </div>
+ <input id="alpha" type="range" min="0.10" max="0.85" step="0.05" value="0.45">
+ <div class="scale-label"><span>10%：較透明</span><span>85%：Mask 較明顯</span></div>
+ <p class="tiny" style="margin:8px 0 0">
+  Mask Overlay 是將語意分割結果以半透明方式疊加在原始 Webcam 畫面上。
+ </p>
  </div>
 
  <div class="setting">
-  <div class="setting-row">
-   <b>AI 更新間隔</b>
-   <span class="value" id="intervalValue">1000 ms</span>
-  </div>
-  <input id="interval" type="range" min="300" max="2500" step="100" value="1000">
-  <div class="scale-label"><span>300 ms：更新較快</span><span>2500 ms：硬體負擔較低</span></div>
-  <p class="tiny" style="margin:8px 0 0">
-   Webcam 持續播放；BiSeNet v2 依照此間隔執行推論。COCO-Stuff 有 171 類；本版使用真正的 640×480 模型輸入，與 Webcam 4:3 比例一致，。一般電腦建議先從 1000 ms 開始。
-  </p>
+ <div class="setting-row">
+  <b>AI 更新間隔</b>
+  <span class="value" id="intervalValue">1000 ms</span>
+ </div>
+ <input id="interval" type="range" min="300" max="2500" step="100" value="1000">
+ <div class="scale-label"><span>300 ms：更新較快</span><span>2500 ms：硬體負擔較低</span></div>
+ <p class="tiny" style="margin:8px 0 0">
+  Webcam 持續播放；BiSeNet v2 依照此間隔執行推論。COCO-Stuff 有 171 類；本版使用真正的 640×480 模型輸入，與 Webcam 4:3 比例一致，。一般電腦建議先從 1000 ms 開始。
+ </p>
  </div>
 
  <div id="progress" class="progress"><div id="bar"></div></div>
@@ -180,20 +180,20 @@ footer{border-top:1px solid var(--line);background:#fff;margin-top:12px}
  <div id="ok" class="ok"></div>
 
  <div class="grid">
-  <div class="metric"><small>主要語意類別</small><strong id="topClass">—</strong></div>
-  <div class="metric"><small>Pixel 占比</small><strong id="topShare">0%</strong></div>
-  <div class="metric"><small>推論 FPS</small><strong id="fps">0</strong></div>
-  <div class="metric"><small>執行後端</small><strong id="backend">—</strong></div>
+ <div class="metric"><small>主要語意類別</small><strong id="topClass">—</strong></div>
+ <div class="metric"><small>Pixel 占比</small><strong id="topShare">0%</strong></div>
+ <div class="metric"><small>推論 FPS</small><strong id="fps">0</strong></div>
+ <div class="metric"><small>執行後端</small><strong id="backend">—</strong></div>
  </div>
 
  <div class="seg-list">
-  <h2>目前主要語意區域</h2>
-  <div id="segList" class="tiny">尚未開始語意分割。</div>
+ <h2>目前主要語意區域</h2>
+ <div id="segList" class="tiny">尚未開始語意分割。</div>
  </div>
 
  <p class="tiny">
-  <span class="badge">BiSeNet v2</span>
-  本頁使用 COCO-Stuff 171-class BiSeNet v2 ONNX 模型與 ONNX Runtime Web，在使用者自己的瀏覽器中執行 Pixel-level Semantic Segmentation。
+ <span class="badge">BiSeNet v2</span>
+ 本頁使用 COCO-Stuff 171-class BiSeNet v2 ONNX 模型與 ONNX Runtime Web，在使用者自己的瀏覽器中執行 Pixel-level Semantic Segmentation。
  </p>
 
 </section>
@@ -213,32 +213,32 @@ footer{border-top:1px solid var(--line);background:#fff;margin-top:12px}
  <h2 style="margin-top:18px">AlexNet、YOLOv4 與 BiSeNet v2</h2>
 
  <table>
-  <tr><th>模型</th><th>核心任務</th><th>輸出</th></tr>
-  <tr><td>AlexNet</td><td>Image Classification</td><td>整張圖的類別</td></tr>
-  <tr><td>YOLOv4</td><td>Object Detection</td><td>Bounding Box + 類別</td></tr>
-  <tr><td>BiSeNet v2</td><td>Semantic Segmentation</td><td>每個 Pixel 的類別</td></tr>
+ <tr><th>模型</th><th>核心任務</th><th>輸出</th></tr>
+ <tr><td>AlexNet</td><td>Image Classification</td><td>整張圖的類別</td></tr>
+ <tr><td>YOLOv4</td><td>Object Detection</td><td>Bounding Box + 類別</td></tr>
+ <tr><td>BiSeNet v2</td><td>Semantic Segmentation</td><td>每個 Pixel 的類別</td></tr>
  </table>
 
  <h2 style="margin-top:18px">COCO-Stuff 適合教室的類別例子</h2>
 
  <p class="tiny">
-  person、chair、couch、dining table、laptop、mouse、keyboard、cell phone、book、bottle、
-  cabinet、carpet、ceiling、counter、cupboard、curtain、desk-stuff、door-stuff、
-  floor-other / tile / wood、light、paper、shelf、table、wall-*、window-* 等。
+ person、chair、couch、dining table、laptop、mouse、keyboard、cell phone、book、bottle、
+ cabinet、carpet、ceiling、counter、cupboard、curtain、desk-stuff、door-stuff、
+ floor-other / tile / wood、light、paper、shelf、table、wall-*、window-* 等。
  </p>
 
  <h2 style="margin-top:18px">為什麼不是 Cityscapes？</h2>
 
  <p class="tiny">
-  Cityscapes 主要針對道路與戶外駕駛場景；COCO-Stuff 涵蓋 80 個 Thing 類別與 91 個 Stuff 類別，
-  更適合辦公室、電腦教室與一般生活場景。
+ Cityscapes 主要針對道路與戶外駕駛場景；COCO-Stuff 涵蓋 80 個 Thing 類別與 91 個 Stuff 類別，
+ 更適合辦公室、電腦教室與一般生活場景。
  </p>
 
  <h2 style="margin-top:18px">使用提醒</h2>
 
  <p class="tiny">
-  Webcam 需要 <b>HTTPS 或 localhost</b>。第一次開啟需要下載 ONNX Runtime Web 與 BiSeNet v2 ONNX 模型。
-  Chrome / Edge 若支援 WebGPU，系統會優先嘗試 WebGPU；失敗時改用 WebAssembly。按下「停止分割」後，網頁會釋放 ONNX Runtime Session、停止 Webcam 並清空影像緩衝區，以降低模型繼續占用記憶體的情況。
+ Webcam 需要 <b>HTTPS 或 localhost</b>。第一次開啟需要下載 ONNX Runtime Web 與 BiSeNet v2 ONNX 模型。
+ Chrome / Edge 若支援 WebGPU，系統會優先嘗試 WebGPU；失敗時改用 WebAssembly。按下「停止分割」後，網頁會釋放 ONNX Runtime Session、停止 Webcam 並清空影像緩衝區，以降低模型繼續占用記憶體的情況。
  </p>
 
 </aside>
@@ -247,8 +247,8 @@ footer{border-top:1px solid var(--line);background:#fff;margin-top:12px}
 
 <footer>
  <div class="footer-inner">
-  AI 工程素養互動教學平台<br>
-  大安高工控制科邵時俊老師製作
+ AI 工程素養互動教學平台<br>
+ 大安高工控制科邵時俊老師製作
  </div>
 </footer>
 
@@ -547,32 +547,32 @@ function hideProgress(){
 async function cleanupOldModelCaches(){
  if(!('caches' in window)) return;
  try{
-  const keys = await caches.keys();
-  await Promise.all(
-   keys
-    .filter(k=>k.startsWith(MODEL_CACHE_PREFIX) && k!==MODEL_CACHE_NAME)
-    .map(k=>caches.delete(k))
-  );
+ const keys = await caches.keys();
+ await Promise.all(
+  keys
+  .filter(k=>k.startsWith(MODEL_CACHE_PREFIX) && k!==MODEL_CACHE_NAME)
+  .map(k=>caches.delete(k))
+ );
  }catch(e){}
 }
 
 async function getModelResponse(url){
  if(!('caches' in window)){
-  return fetch(url,{cache:'default'});
+ return fetch(url,{cache:'default'});
  }
 
  const cache = await caches.open(MODEL_CACHE_NAME);
  const cached = await cache.match(url);
 
  if(cached){
-  showInfo('已從瀏覽器快取載入 BiSeNet v2 COCO-Stuff 模型。');
-  return cached.clone();
+ showInfo('已從瀏覽器快取載入 BiSeNet v2 COCO-Stuff 模型。');
+ return cached.clone();
  }
 
  const response = await fetch(url,{cache:'default'});
 
  if(response.ok){
-  try{ await cache.put(url,response.clone()); }catch(e){}
+ try{ await cache.put(url,response.clone()); }catch(e){}
  }
 
  return response;
@@ -591,61 +591,61 @@ async function loadModel(){
  let lastError = null;
 
  for(const url of MODEL_CANDIDATES){
-  try{
-   showInfo('正在載入 BiSeNet v2 COCO-Stuff 171 類模型…');
-   const res = await getModelResponse(url);
+ try{
+  showInfo('正在載入 BiSeNet v2 COCO-Stuff 171 類模型…');
+  const res = await getModelResponse(url);
 
-   if(!res.ok){
-    throw new Error('HTTP '+res.status);
-   }
-
-   modelBuffer = await res.arrayBuffer();
-   loadedUrl = url;
-   break;
-  }catch(e){
-   lastError = e;
+  if(!res.ok){
+  throw new Error('HTTP '+res.status);
   }
+
+  modelBuffer = await res.arrayBuffer();
+  loadedUrl = url;
+  break;
+ }catch(e){
+  lastError = e;
+ }
  }
 
  if(!modelBuffer){
-  throw new Error(
-   '找不到 BiSeNet v2 COCO-Stuff ONNX 模型。請確認檔案存在於：'+
-   MODEL_CANDIDATES[0]+
-   (lastError ? '；'+(lastError.message||lastError) : '')
-  );
+ throw new Error(
+  '找不到 BiSeNet v2 COCO-Stuff ONNX 模型。請確認檔案存在於：'+
+  MODEL_CANDIDATES[0]+
+  (lastError ? '；'+(lastError.message||lastError) : '')
+ );
  }
 
  setProgress(45);
 
  const backends = [
-  {name:'WebGPU', providers:['webgpu']},
-  {name:'WASM', providers:['wasm']}
+ {name:'WebGPU', providers:['webgpu']},
+ {name:'WASM', providers:['wasm']}
  ];
 
  let createError = null;
 
  for(const b of backends){
-  try{
-   session = await ort.InferenceSession.create(
-    modelBuffer,
-    {
-     executionProviders:b.providers,
-     graphOptimizationLevel:'all'
-    }
-   );
-
-   activeBackend = b.name;
-   backendEl.textContent = b.name;
-   createError = null;
-   break;
-  }catch(e){
-   createError = e;
-   session = null;
+ try{
+  session = await ort.InferenceSession.create(
+  modelBuffer,
+  {
+   executionProviders:b.providers,
+   graphOptimizationLevel:'all'
   }
+  );
+
+  activeBackend = b.name;
+  backendEl.textContent = b.name;
+  createError = null;
+  break;
+ }catch(e){
+  createError = e;
+  session = null;
+ }
  }
 
  if(!session){
-  throw createError || new Error('ONNX Runtime Session 建立失敗。');
+ throw createError || new Error('ONNX Runtime Session 建立失敗。');
  }
 
  setProgress(80);
@@ -655,7 +655,7 @@ async function loadModel(){
  hideProgress();
 
  showOk(
-  'BiSeNet v2 COCO-Stuff 模型載入完成｜171 classes｜Backend：'+activeBackend
+ 'BiSeNet v2 COCO-Stuff 模型載入完成｜171 classes｜Backend：'+activeBackend
  );
 }
 
@@ -675,40 +675,40 @@ function inspectModel(){
  const dims = getDims(meta).map(toNumber);
 
  if(dims.length===4){
-  if(dims[1]===3){
-   inputLayout='NCHW';
-   modelHeight=dims[2] || modelHeight;
-   modelWidth=dims[3] || modelWidth;
-  }else if(dims[3]===3){
-   inputLayout='NHWC';
-   modelHeight=dims[1] || modelHeight;
-   modelWidth=dims[2] || modelWidth;
-  }
+ if(dims[1]===3){
+  inputLayout='NCHW';
+  modelHeight=dims[2] || modelHeight;
+  modelWidth=dims[3] || modelWidth;
+ }else if(dims[3]===3){
+  inputLayout='NHWC';
+  modelHeight=dims[1] || modelHeight;
+  modelWidth=dims[2] || modelWidth;
+ }
  }
 }
 
 async function refreshVideoDevices(){
  try{
-  const devices = await navigator.mediaDevices.enumerateDevices();
-  videoDevices = devices.filter(d=>d.kind==='videoinput');
+ const devices = await navigator.mediaDevices.enumerateDevices();
+ videoDevices = devices.filter(d=>d.kind==='videoinput');
 
-  if(currentDeviceId){
-   const idx = videoDevices.findIndex(d=>d.deviceId===currentDeviceId);
-   if(idx>=0) currentDeviceIndex=idx;
-  }
+ if(currentDeviceId){
+  const idx = videoDevices.findIndex(d=>d.deviceId===currentDeviceId);
+  if(idx>=0) currentDeviceIndex=idx;
+ }
 
-  switchCameraBtn.disabled = !running || videoDevices.length<2;
+ switchCameraBtn.disabled = !running || videoDevices.length<2;
 
  }catch(e){
-  videoDevices=[];
-  switchCameraBtn.disabled=true;
+ videoDevices=[];
+ switchCameraBtn.disabled=true;
  }
 }
 
 function stopCurrentCameraTracks(){
  if(stream){
-  stream.getTracks().forEach(t=>t.stop());
-  stream=null;
+ stream.getTracks().forEach(t=>t.stop());
+ stream=null;
  }
  video.srcObject=null;
 }
@@ -718,11 +718,11 @@ function updateMirrorFromTrack(track, requestedFacing=''){
  const actualFacing = settings.facingMode || requestedFacing || '';
 
  if(actualFacing==='user'){
-  mirrored=true;
+ mirrored=true;
  }else if(actualFacing==='environment'){
-  mirrored=false;
+ mirrored=false;
  }else{
-  mirrored = preferredFacing==='user';
+ mirrored = preferredFacing==='user';
  }
 
  video.style.transform = mirrored ? 'scaleX(-1)' : 'none';
@@ -732,17 +732,17 @@ async function startCamera(deviceId=null, facingMode=null){
  stopCurrentCameraTracks();
 
  const constraints={
-  audio:false,
-  video:{
-   width:{ideal:640},
-   height:{ideal:480}
-  }
+ audio:false,
+ video:{
+  width:{ideal:640},
+  height:{ideal:480}
+ }
  };
 
  if(deviceId){
-  constraints.video.deviceId={exact:deviceId};
+ constraints.video.deviceId={exact:deviceId};
  }else if(facingMode){
-  constraints.video.facingMode={ideal:facingMode};
+ constraints.video.facingMode={ideal:facingMode};
  }
 
  stream = await navigator.mediaDevices.getUserMedia(constraints);
@@ -763,7 +763,7 @@ async function startCamera(deviceId=null, facingMode=null){
  await refreshVideoDevices();
 
  if(currentDeviceId){
-  currentDeviceIndex=videoDevices.findIndex(d=>d.deviceId===currentDeviceId);
+ currentDeviceIndex=videoDevices.findIndex(d=>d.deviceId===currentDeviceId);
  }
 }
 
@@ -780,17 +780,17 @@ async function switchCamera(){
  if(!running || videoDevices.length<2) return;
 
  try{
-  currentDeviceIndex =
-   currentDeviceIndex>=0
-    ? (currentDeviceIndex+1)%videoDevices.length
-    : 0;
+ currentDeviceIndex =
+  currentDeviceIndex>=0
+  ? (currentDeviceIndex+1)%videoDevices.length
+  : 0;
 
-  const next = videoDevices[currentDeviceIndex];
-  await startCamera(next.deviceId,null);
-  showOk('已切換攝影機。');
+ const next = videoDevices[currentDeviceIndex];
+ await startCamera(next.deviceId,null);
+ showOk('已切換攝影機。');
 
  }catch(e){
-  showError('切換攝影機失敗：'+(e.message||e));
+ showError('切換攝影機失敗：'+(e.message||e));
  }
 }
 
@@ -804,21 +804,21 @@ function preprocessFrame(){
 
  // Webcam 與模型皆為 4:3；直接縮放到真正的 640×480 模型輸入。
  if(mirrored){
-  inputCtx.translate(modelWidth,0);
-  inputCtx.scale(-1,1);
+ inputCtx.translate(modelWidth,0);
+ inputCtx.scale(-1,1);
  }
 
  inputCtx.drawImage(
-  video,
-  0,0,
-  modelWidth,
-  modelHeight
+ video,
+ 0,0,
+ modelWidth,
+ modelHeight
  );
 
  inputCtx.restore();
 
  const rgba = inputCtx.getImageData(
-  0,0,modelWidth,modelHeight
+ 0,0,modelWidth,modelHeight
  ).data;
 
  const pixels=modelWidth*modelHeight;
@@ -828,34 +828,34 @@ function preprocessFrame(){
  const std=[0.2112,0.2148,0.2115];
 
  for(let i=0,p=0;i<pixels;i++,p+=4){
-  const r=(rgba[p]/255-mean[0])/std[0];
-  const g=(rgba[p+1]/255-mean[1])/std[1];
-  const b=(rgba[p+2]/255-mean[2])/std[2];
+ const r=(rgba[p]/255-mean[0])/std[0];
+ const g=(rgba[p+1]/255-mean[1])/std[1];
+ const b=(rgba[p+2]/255-mean[2])/std[2];
 
-  if(inputLayout==='NHWC'){
-   const j=i*3;
-   data[j]=r;
-   data[j+1]=g;
-   data[j+2]=b;
-  }else{
-   data[i]=r;
-   data[pixels+i]=g;
-   data[pixels*2+i]=b;
-  }
+ if(inputLayout==='NHWC'){
+  const j=i*3;
+  data[j]=r;
+  data[j+1]=g;
+  data[j+2]=b;
+ }else{
+  data[i]=r;
+  data[pixels+i]=g;
+  data[pixels*2+i]=b;
+ }
  }
 
  if(inputLayout==='NHWC'){
-  return new ort.Tensor(
-   'float32',
-   data,
-   [1,modelHeight,modelWidth,3]
-  );
- }
-
  return new ort.Tensor(
   'float32',
   data,
-  [1,3,modelHeight,modelWidth]
+  [1,modelHeight,modelWidth,3]
+ );
+ }
+
+ return new ort.Tensor(
+ 'float32',
+ data,
+ [1,3,modelHeight,modelWidth]
  );
 }
 
@@ -863,20 +863,20 @@ function chooseSegmentationOutput(results){
  let fallback=null;
 
  for(const name of session.outputNames){
-  const t=results[name];
-  if(!t) continue;
+ const t=results[name];
+ if(!t) continue;
 
-  fallback=fallback || t;
+ fallback=fallback || t;
 
-  const dims=(t.dims||[]).map(Number);
+ const dims=(t.dims||[]).map(Number);
 
-  if(dims.length===4 && (dims[1]===CLASS_COUNT || dims[3]===CLASS_COUNT)){
-   return t;
-  }
+ if(dims.length===4 && (dims[1]===CLASS_COUNT || dims[3]===CLASS_COUNT)){
+  return t;
+ }
 
-  if(dims.length===3){
-   return t;
-  }
+ if(dims.length===3){
+  return t;
+ }
  }
 
  return fallback;
@@ -888,101 +888,101 @@ function decodeSegmentation(tensor){
 
  // Case A: model already outputs a label map such as [1,H,W].
  if(dims.length===3){
-  let h,w;
+ let h,w;
 
-  if(dims[0]===1){
-   h=dims[1];
-   w=dims[2];
-  }else{
-   h=dims[0];
-   w=dims[1];
-  }
+ if(dims[0]===1){
+  h=dims[1];
+  w=dims[2];
+ }else{
+  h=dims[0];
+  w=dims[1];
+ }
 
-  const labels = new Uint16Array(h*w);
+ const labels = new Uint16Array(h*w);
 
-  for(let i=0;i<labels.length;i++){
-   labels[i]=Number(data[i]);
-  }
+ for(let i=0;i<labels.length;i++){
+  labels[i]=Number(data[i]);
+ }
 
-  return {labels,width:w,height:h,classCount:CLASS_COUNT};
+ return {labels,width:w,height:h,classCount:CLASS_COUNT};
  }
 
  // Case B: logits such as [1,171,H,W] or [1,H,W,171].
  if(dims.length!==4){
-  throw new Error(
-   '目前無法解析模型輸出 Shape：['+
-   dims.join(', ')+']'
-  );
+ throw new Error(
+  '目前無法解析模型輸出 Shape：['+
+  dims.join(', ')+']'
+ );
  }
 
  let classAxis=-1;
 
  if(dims[1]===CLASS_COUNT){
-  classAxis=1;
+ classAxis=1;
  }else if(dims[3]===CLASS_COUNT){
-  classAxis=3;
+ classAxis=3;
  }else{
-  throw new Error(
-   '模型輸出不是 171-class COCO-Stuff Segmentation：['+
-   dims.join(', ')+']'
-  );
+ throw new Error(
+  '模型輸出不是 171-class COCO-Stuff Segmentation：['+
+  dims.join(', ')+']'
+ );
  }
 
  let h,w;
  let labelsOut;
 
  if(classAxis===1){
-  h=dims[2];
-  w=dims[3];
-  labelsOut=new Uint16Array(h*w);
+ h=dims[2];
+ w=dims[3];
+ labelsOut=new Uint16Array(h*w);
 
-  const pixels=h*w;
+ const pixels=h*w;
 
-  for(let p=0;p<pixels;p++){
-   let bestClass=0;
-   let bestScore=-Infinity;
+ for(let p=0;p<pixels;p++){
+  let bestClass=0;
+  let bestScore=-Infinity;
 
-   for(let c=0;c<CLASS_COUNT;c++){
-    const score=Number(data[c*pixels+p]);
+  for(let c=0;c<CLASS_COUNT;c++){
+  const score=Number(data[c*pixels+p]);
 
-    if(score>bestScore){
-     bestScore=score;
-     bestClass=c;
-    }
-   }
-
-   labelsOut[p]=bestClass;
+  if(score>bestScore){
+   bestScore=score;
+   bestClass=c;
   }
+  }
+
+  labelsOut[p]=bestClass;
+ }
 
  }else{
-  h=dims[1];
-  w=dims[2];
-  labelsOut=new Uint16Array(h*w);
+ h=dims[1];
+ w=dims[2];
+ labelsOut=new Uint16Array(h*w);
 
-  for(let p=0;p<h*w;p++){
-   const base=p*CLASS_COUNT;
+ for(let p=0;p<h*w;p++){
+  const base=p*CLASS_COUNT;
 
-   let bestClass=0;
-   let bestScore=-Infinity;
+  let bestClass=0;
+  let bestScore=-Infinity;
 
-   for(let c=0;c<CLASS_COUNT;c++){
-    const score=Number(data[base+c]);
+  for(let c=0;c<CLASS_COUNT;c++){
+  const score=Number(data[base+c]);
 
-    if(score>bestScore){
-     bestScore=score;
-     bestClass=c;
-    }
-   }
-
-   labelsOut[p]=bestClass;
+  if(score>bestScore){
+   bestScore=score;
+   bestClass=c;
   }
+  }
+
+  labelsOut[p]=bestClass;
+ }
  }
 
  return {
-  labels:labelsOut,
-  width:w,
-  height:h,
-  classCount:CLASS_COUNT
+ labels:labelsOut,
+ width:w,
+ height:h,
+ classCount:CLASS_COUNT
  };
 }
 
@@ -998,29 +998,29 @@ function hslToRgb(h,s,l){
  let r,g,b;
 
  if(s===0){
-  r=g=b=l;
+ r=g=b=l;
  }else{
-  const hue2rgb=(p,q,t)=>{
-   if(t<0)t+=1;
-   if(t>1)t-=1;
-   if(t<1/6)return p+(q-p)*6*t;
-   if(t<1/2)return q;
-   if(t<2/3)return p+(q-p)*(2/3-t)*6;
-   return p;
-  };
+ const hue2rgb=(p,q,t)=>{
+  if(t<0)t+=1;
+  if(t>1)t-=1;
+  if(t<1/6)return p+(q-p)*6*t;
+  if(t<1/2)return q;
+  if(t<2/3)return p+(q-p)*(2/3-t)*6;
+  return p;
+ };
 
-  const q=l<.5?l*(1+s):l+s-l*s;
-  const p=2*l-q;
+ const q=l<.5?l*(1+s):l+s-l*s;
+ const p=2*l-q;
 
-  r=hue2rgb(p,q,h+1/3);
-  g=hue2rgb(p,q,h);
-  b=hue2rgb(p,q,h-1/3);
+ r=hue2rgb(p,q,h+1/3);
+ g=hue2rgb(p,q,h);
+ b=hue2rgb(p,q,h-1/3);
  }
 
  return [
-  Math.round(r*255),
-  Math.round(g*255),
-  Math.round(b*255)
+ Math.round(r*255),
+ Math.round(g*255),
+ Math.round(b*255)
  ];
 }
 
@@ -1036,19 +1036,19 @@ function renderMask(decoded){
  const counts=new Uint32Array(CLASS_COUNT);
 
  for(let i=0;i<decoded.labels.length;i++){
-  const c=decoded.labels[i];
+ const c=decoded.labels[i];
 
-  if(c<CLASS_COUNT){
-   counts[c]++;
-  }
+ if(c<CLASS_COUNT){
+  counts[c]++;
+ }
 
-  const color=colorForClass(c);
-  const p=i*4;
+ const color=colorForClass(c);
+ const p=i*4;
 
-  px[p]=color[0];
-  px[p+1]=color[1];
-  px[p+2]=color[2];
-  px[p+3]=255;
+ px[p]=color[0];
+ px[p+1]=color[1];
+ px[p+2]=color[2];
+ px[p+3]=255;
  }
 
  maskCtx.putImageData(image,0,0);
@@ -1056,24 +1056,24 @@ function renderMask(decoded){
  resizeOverlay();
 
  overlayCtx.clearRect(
-  0,0,overlay.width,overlay.height
+ 0,0,overlay.width,overlay.height
  );
 
  overlayCtx.save();
  overlayCtx.globalAlpha=Number(alphaSlider.value);
 
  overlayCtx.drawImage(
-  maskCanvas,
-  0,0,
-  overlay.width,
-  overlay.height
+ maskCanvas,
+ 0,0,
+ overlay.width,
+ overlay.height
  );
 
  overlayCtx.restore();
 
  updateSemanticList(
-  counts,
-  Math.max(1,decoded.labels.length)
+ counts,
+ Math.max(1,decoded.labels.length)
  );
 }
 
@@ -1081,56 +1081,56 @@ function updateSemanticList(counts,total){
  const rows=[];
 
  for(let i=0;i<counts.length;i++){
-  if(counts[i]===0) continue;
+ if(counts[i]===0) continue;
 
-  rows.push({
-   classIndex:i,
-   count:counts[i],
-   share:counts[i]/total
-  });
+ rows.push({
+  classIndex:i,
+  count:counts[i],
+  share:counts[i]/total
+ });
  }
 
  rows.sort((a,b)=>b.count-a.count);
 
  if(rows.length===0){
-  topClassEl.textContent='—';
-  topShareEl.textContent='0%';
-  segList.textContent='目前沒有可顯示的語意區域。';
-  return;
+ topClassEl.textContent='—';
+ topShareEl.textContent='0%';
+ segList.textContent='目前沒有可顯示的語意區域。';
+ return;
  }
 
  const top=rows[0];
 
  topClassEl.textContent =
-  COCO_STUFF_171[top.classIndex] || ('Class '+top.classIndex);
+ COCO_STUFF_171[top.classIndex] || ('Class '+top.classIndex);
 
  topShareEl.textContent =
-  (top.share*100).toFixed(1)+'%';
+ (top.share*100).toFixed(1)+'%';
 
  segList.innerHTML='';
 
  for(const item of rows.slice(0,10)){
-  const row=document.createElement('div');
-  row.className='seg-row';
+ const row=document.createElement('div');
+ row.className='seg-row';
 
-  const swatch=document.createElement('i');
-  swatch.className='swatch';
+ const swatch=document.createElement('i');
+ swatch.className='swatch';
 
-  const color=colorForClass(item.classIndex);
+ const color=colorForClass(item.classIndex);
 
-  swatch.style.background =
-   `rgb(${color[0]},${color[1]},${color[2]})`;
+ swatch.style.background =
+  `rgb(${color[0]},${color[1]},${color[2]})`;
 
-  const name=document.createElement('b');
-  name.textContent =
-   COCO_STUFF_171[item.classIndex] || ('Class '+item.classIndex);
+ const name=document.createElement('b');
+ name.textContent =
+  COCO_STUFF_171[item.classIndex] || ('Class '+item.classIndex);
 
-  const share=document.createElement('span');
-  share.textContent =
-   (item.share*100).toFixed(1)+'%';
+ const share=document.createElement('span');
+ share.textContent =
+  (item.share*100).toFixed(1)+'%';
 
-  row.append(swatch,name,share);
-  segList.appendChild(row);
+ row.append(swatch,name,share);
+ segList.appendChild(row);
  }
 }
 
@@ -1140,49 +1140,49 @@ async function inferOnce(){
  processing=true;
 
  try{
-  const tensor=preprocessFrame();
+ const tensor=preprocessFrame();
 
-  const feeds={};
-  feeds[inputName]=tensor;
+ const feeds={};
+ feeds[inputName]=tensor;
 
-  const results =
-   await session.run(feeds);
+ const results =
+  await session.run(feeds);
 
-  const output =
-   chooseSegmentationOutput(results);
+ const output =
+  chooseSegmentationOutput(results);
 
-  if(!output){
-   throw new Error('找不到 BiSeNet v2 輸出 Tensor。');
-  }
+ if(!output){
+  throw new Error('找不到 BiSeNet v2 輸出 Tensor。');
+ }
 
-  const decoded =
-   decodeSegmentation(output);
+ const decoded =
+  decodeSegmentation(output);
 
-  renderMask(decoded);
+ renderMask(decoded);
 
-  inferCounter++;
+ inferCounter++;
 
-  const now=performance.now();
+ const now=performance.now();
 
-  if(now-fpsClock>=1000){
-   fpsEl.textContent =
-    (
-     inferCounter*1000/
-     (now-fpsClock)
-    ).toFixed(1);
+ if(now-fpsClock>=1000){
+  fpsEl.textContent =
+  (
+   inferCounter*1000/
+   (now-fpsClock)
+  ).toFixed(1);
 
-   inferCounter=0;
-   fpsClock=now;
-  }
+  inferCounter=0;
+  fpsClock=now;
+ }
 
  }catch(e){
-  showError(
-   'BiSeNet v2 推論失敗：'+
-   (e.message||e)
-  );
+ showError(
+  'BiSeNet v2 推論失敗：'+
+  (e.message||e)
+ );
 
  }finally{
-  processing=false;
+ processing=false;
  }
 }
 
@@ -1190,14 +1190,14 @@ function scheduleNextInference(){
  if(!running) return;
 
  timerId=setTimeout(
-  async()=>{
-   await inferOnce();
+ async()=>{
+  await inferOnce();
 
-   if(running){
-    scheduleNextInference();
-   }
-  },
-  Number(intervalSlider.value)
+  if(running){
+  scheduleNextInference();
+  }
+ },
+ Number(intervalSlider.value)
  );
 }
 
@@ -1208,37 +1208,37 @@ async function startSystem(){
  startBtn.disabled=true;
 
  try{
-  await loadModel();
+ await loadModel();
 
-  preferredFacing='user';
+ preferredFacing='user';
 
-  await startCamera(
-   null,
-   preferredFacing
-  );
+ await startCamera(
+  null,
+  preferredFacing
+ );
 
-  running=true;
+ running=true;
 
-  stopBtn.disabled=false;
-  switchCameraBtn.disabled =
-   videoDevices.length<2;
+ stopBtn.disabled=false;
+ switchCameraBtn.disabled =
+  videoDevices.length<2;
 
-  fpsClock=performance.now();
-  inferCounter=0;
+ fpsClock=performance.now();
+ inferCounter=0;
 
-  scheduleNextInference();
+ scheduleNextInference();
 
-  showOk(
-   'BiSeNet v2 COCO-Stuff 171 類語意分割已啟動。'
-  );
+ showOk(
+  'BiSeNet v2 COCO-Stuff 171 類語意分割已啟動。'
+ );
 
  }catch(e){
-  startBtn.disabled=false;
+ startBtn.disabled=false;
 
-  showError(
-   '啟動失敗：'+
-   (e.message||e)
-  );
+ showError(
+  '啟動失敗：'+
+  (e.message||e)
+ );
  }
 }
 
@@ -1246,7 +1246,7 @@ async function waitForInferenceToFinish(timeoutMs=10000){
  const start=performance.now();
 
  while(processing && performance.now()-start<timeoutMs){
-  await new Promise(resolve=>setTimeout(resolve,50));
+ await new Promise(resolve=>setTimeout(resolve,50));
  }
 }
 
@@ -1260,11 +1260,11 @@ async function releaseModelResources(){
  backendEl.textContent='—';
 
  if(oldSession && typeof oldSession.release==='function'){
-  try{
-   await oldSession.release();
-  }catch(e){
-   console.warn('ONNX Runtime Session release failed:',e);
-  }
+ try{
+  await oldSession.release();
+ }catch(e){
+  console.warn('ONNX Runtime Session release failed:',e);
+ }
  }
 
  // 清掉 Canvas backing stores，避免高解析度影像緩衝區持續佔 RAM。
@@ -1275,9 +1275,9 @@ async function releaseModelResources(){
  maskCanvas.height=1;
 
  overlayCtx.clearRect(
-  0,0,
-  overlay.width,
-  overlay.height
+ 0,0,
+ overlay.width,
+ overlay.height
  );
 
  overlay.width=1;
@@ -1287,14 +1287,14 @@ async function releaseModelResources(){
 
 async function stopSystem(){
  if(!running && !session){
-  return;
+ return;
  }
 
  running=false;
 
  if(timerId){
-  clearTimeout(timerId);
-  timerId=0;
+ clearTimeout(timerId);
+ timerId=0;
  }
 
  stopCurrentCameraTracks();
@@ -1311,7 +1311,7 @@ async function stopSystem(){
  fpsEl.textContent='0';
 
  showInfo(
-  '正在停止 Webcam 並釋放 BiSeNet v2 模型記憶體…'
+ '正在停止 Webcam 並釋放 BiSeNet v2 模型記憶體…'
  );
 
  // 若剛好還有一次 inference 正在執行，先等待它結束，
@@ -1327,7 +1327,7 @@ async function stopSystem(){
  startBtn.disabled=false;
 
  showInfo(
-  '已停止語意分割，Webcam 與 ONNX Runtime Session 已釋放。再次開始時會重新載入模型。'
+ '已停止語意分割，Webcam 與 ONNX Runtime Session 已釋放。再次開始時會重新載入模型。'
  );
 }
 
@@ -1349,7 +1349,7 @@ switchCameraBtn.addEventListener(
 window.addEventListener(
  'pagehide',
  ()=>{
-  void stopSystem();
+ void stopSystem();
  }
 );
 </script>
