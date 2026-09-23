@@ -1,0 +1,1296 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="BiSeNet v2 COCO-Stuff 171 類即時語意分割｜AI 工程素養互動教學平台">
+<title>深度學習 / BiSeNet v2－語意分割</title>
+
+<style>
+:root{
+  --bg:#f4f7fb;--card:#fff;--text:#172033;--muted:#667085;
+  --blue:#2563eb;--blue2:#1d4ed8;--red:#dc2626;--green:#15803d;
+  --purple:#7c3aed;--line:#d9e1ec;--soft:#eef4ff;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+  background:var(--bg);color:var(--text)
+}
+header{padding:22px 6vw;background:#fff;border-bottom:1px solid var(--line)}
+.header-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px}
+.back{color:var(--blue2);text-decoration:none;font-weight:800;font-size:14px}
+h1{margin:0 0 7px;font-size:clamp(28px,4vw,42px)}
+header p{margin:0;color:var(--muted);line-height:1.7}
+main{
+  max-width:1240px;margin:24px auto;padding:0 18px;
+  display:grid;grid-template-columns:1.35fr .85fr;gap:20px
+}
+.card{
+  background:#fff;border:1px solid var(--line);border-radius:18px;
+  padding:18px;box-shadow:0 8px 28px #0000000a
+}
+.stage{
+  position:relative;background:#0b1020;border-radius:14px;overflow:hidden;
+  aspect-ratio:16/10;display:flex;align-items:center;justify-content:center
+}
+video{
+  width:100%;height:100%;object-fit:cover;display:none;background:#0b1020
+}
+canvas#overlay{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;background:transparent}
+.msg{color:#cbd5e1;text-align:center;padding:26px;line-height:1.7;max-width:620px}
+.msg b{display:block;color:#fff;font-size:21px;margin-bottom:7px}
+.controls{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+button{
+  border:0;border-radius:10px;padding:11px 16px;font-weight:800;
+  cursor:pointer;background:var(--blue);color:#fff
+}
+button.stop{background:var(--red)}
+button.gray{background:#e8eef8;color:#1f3b67}
+button:disabled{opacity:.45;cursor:not-allowed}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}
+.metric{border:1px solid var(--line);border-radius:14px;padding:13px;min-width:0}
+.metric small{color:var(--muted);font-size:12px}
+.metric strong{
+  display:block;font-size:23px;margin-top:4px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap
+}
+.setting{border:1px solid var(--line);border-radius:14px;padding:14px;margin-top:14px}
+.setting-row{display:flex;justify-content:space-between;gap:12px;align-items:center}
+.setting-row b{font-size:15px}
+.value{font-weight:900;color:var(--blue)}
+input[type=range]{width:100%;margin:12px 0 4px}
+.scale-label{display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}
+.alert,.ok,.info{margin-top:12px;padding:13px;border-radius:12px;line-height:1.6;display:none}
+.alert{background:#fff4f4;border:1px solid #fecaca;color:#991b1b}
+.ok{background:#f0fdf4;border:1px solid #bbf7d0;color:#166534}
+.info{background:#eff6ff;border:1px solid #bfdbfe;color:#1e40af}
+.progress{
+  height:8px;background:#e8eef8;border-radius:999px;overflow:hidden;
+  margin-top:12px;display:none
+}
+.progress>div{height:100%;width:0;background:var(--blue);transition:width .25s}
+h2{font-size:18px;margin:2px 0 12px}
+.step{padding:11px 12px;border:1px solid var(--line);border-radius:12px;margin-bottom:9px}
+.step b{display:block;margin-bottom:4px}
+.step span{font-size:14px;color:var(--muted);line-height:1.6}
+code{background:#eef2f7;padding:2px 5px;border-radius:5px}
+.tiny{font-size:13px;color:var(--muted);line-height:1.7}
+.badge{
+  display:inline-block;background:#ede9fe;color:#6d28d9;border-radius:999px;
+  padding:4px 8px;font-size:12px;font-weight:800
+}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:8px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--muted)}
+.seg-list{
+  margin-top:14px;border:1px solid var(--line);border-radius:14px;
+  padding:14px;background:#fbfdff
+}
+.seg-list h2{margin-bottom:8px}
+.seg-row{
+  display:grid;grid-template-columns:auto 1fr auto;gap:9px;align-items:center;
+  padding:7px 0;border-bottom:1px dashed var(--line);font-size:13px
+}
+.seg-row:last-child{border-bottom:0}
+.swatch{
+  width:13px;height:13px;border-radius:3px;border:1px solid #fff;
+  box-shadow:0 0 0 1px #cbd5e1
+}
+.seg-row b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.seg-row span{color:var(--muted);font-weight:800}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:12px;font-size:12px;color:var(--muted)}
+.mask-key{
+  width:18px;height:12px;border-radius:3px;
+  background:linear-gradient(90deg,#3b82f6,#22c55e,#f59e0b,#a855f7)
+}
+footer{border-top:1px solid var(--line);background:#fff;margin-top:12px}
+.footer-inner{
+  max-width:1240px;margin:auto;padding:22px 18px;color:var(--muted);
+  font-size:13px;line-height:1.8;text-align:center
+}
+@media(max-width:920px){main{grid-template-columns:1fr}.grid{grid-template-columns:1fr 1fr}}
+@media(max-width:520px){.grid{grid-template-columns:1fr 1fr}.metric strong{font-size:20px}}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="header-top">
+    <a class="back" href="../">← 回 AI 教學首頁</a>
+    <span class="badge">DEEP LEARNING</span>
+  </div>
+  <h1>Live 語意分割｜BiSeNet v2</h1>
+  <p>利用 BiSeNet v2 + COCO-Stuff 171 類進行即時 Semantic Segmentation，讓辦公室、電腦教室與一般生活場景也能觀察 Pixel-level 分類結果。</p>
+</header>
+
+<main>
+
+<section class="card">
+
+  <div class="stage">
+    <div class="msg" id="msg">
+      <b>尚未啟動攝影機</b>
+      按「開始分割」，允許瀏覽器使用攝影機；第一次啟動會先載入 BiSeNet v2 COCO-Stuff ONNX 模型。
+    </div>
+
+    <video id="video" playsinline autoplay muted></video>
+    <canvas id="overlay"></canvas>
+  </div>
+
+  <div class="legend">
+    <span><i class="mask-key"></i> Semantic Mask Overlay：不同顏色代表不同 Pixel 類別</span>
+  </div>
+
+  <div class="controls">
+    <button id="start">開始分割</button>
+    <button id="stop" class="stop" disabled>停止分割</button>
+    <button id="switchCamera" class="gray" disabled>切換鏡頭</button>
+  </div>
+
+  <div class="setting">
+    <div class="setting-row">
+      <b>Mask Overlay 透明度</b>
+      <span class="value" id="alphaValue">45%</span>
+    </div>
+    <input id="alpha" type="range" min="0.10" max="0.85" step="0.05" value="0.45">
+    <div class="scale-label"><span>10%：較透明</span><span>85%：Mask 較明顯</span></div>
+    <p class="tiny" style="margin:8px 0 0">
+      Mask Overlay 是將語意分割結果以半透明方式疊加在原始 Webcam 畫面上。
+    </p>
+  </div>
+
+  <div class="setting">
+    <div class="setting-row">
+      <b>AI 更新間隔</b>
+      <span class="value" id="intervalValue">450 ms</span>
+    </div>
+    <input id="interval" type="range" min="150" max="1800" step="50" value="450">
+    <div class="scale-label"><span>150 ms：更新較快</span><span>1800 ms：硬體負擔較低</span></div>
+    <p class="tiny" style="margin:8px 0 0">
+      Webcam 持續播放；BiSeNet v2 依照此間隔執行推論。COCO-Stuff 有 171 類，因此建議一般電腦先從 450～800 ms 開始。
+    </p>
+  </div>
+
+  <div id="progress" class="progress"><div id="bar"></div></div>
+  <div id="info" class="info"></div>
+  <div id="err" class="alert"></div>
+  <div id="ok" class="ok"></div>
+
+  <div class="grid">
+    <div class="metric"><small>主要語意類別</small><strong id="topClass">—</strong></div>
+    <div class="metric"><small>Pixel 占比</small><strong id="topShare">0%</strong></div>
+    <div class="metric"><small>推論 FPS</small><strong id="fps">0</strong></div>
+    <div class="metric"><small>執行後端</small><strong id="backend">—</strong></div>
+  </div>
+
+  <div class="seg-list">
+    <h2>目前主要語意區域</h2>
+    <div id="segList" class="tiny">尚未開始語意分割。</div>
+  </div>
+
+  <p class="tiny">
+    <span class="badge">BiSeNet v2</span>
+    本頁使用 COCO-Stuff 171-class BiSeNet v2 ONNX 模型與 ONNX Runtime Web，在使用者自己的瀏覽器中執行 Pixel-level Semantic Segmentation。
+  </p>
+
+</section>
+
+<aside class="card">
+
+  <h2>BiSeNet v2 如何進行語意分割？</h2>
+
+  <div class="step"><b>① Input Image</b><span>取得 Webcam 畫面並縮放成模型需要的 Input Size。</span></div>
+  <div class="step"><b>② Detail Branch</b><span>保留空間細節，例如物件邊界、輪廓與局部影像結構。</span></div>
+  <div class="step"><b>③ Semantic Branch</b><span>擷取高階語意資訊，判斷畫面中的人物、家具、牆面、地板、物品與背景類別。</span></div>
+  <div class="step"><b>④ Bilateral Guided Aggregation</b><span>融合 Detail Branch 與 Semantic Branch，兼顧邊界與語意。</span></div>
+  <div class="step"><b>⑤ Pixel Classification</b><span>對影像中的每一個 Pixel 從 171 個類別中進行判斷。</span></div>
+  <div class="step"><b>⑥ Segmentation Mask</b><span>相同類別的 Pixel 使用相同顏色，形成完整的 Semantic Mask。</span></div>
+  <div class="step"><b>⑦ Mask Overlay</b><span>將彩色 Semantic Mask 半透明疊回原始畫面，方便觀察 AI 判斷區域。</span></div>
+
+  <h2 style="margin-top:18px">AlexNet、YOLOv4 與 BiSeNet v2</h2>
+
+  <table>
+    <tr><th>模型</th><th>核心任務</th><th>輸出</th></tr>
+    <tr><td>AlexNet</td><td>Image Classification</td><td>整張圖的類別</td></tr>
+    <tr><td>YOLOv4</td><td>Object Detection</td><td>Bounding Box + 類別</td></tr>
+    <tr><td>BiSeNet v2</td><td>Semantic Segmentation</td><td>每個 Pixel 的類別</td></tr>
+  </table>
+
+  <h2 style="margin-top:18px">COCO-Stuff 適合教室的類別例子</h2>
+
+  <p class="tiny">
+    person、chair、couch、dining table、laptop、mouse、keyboard、cell phone、book、bottle、
+    cabinet、carpet、ceiling、counter、cupboard、curtain、desk-stuff、door-stuff、
+    floor-other / tile / wood、light、paper、shelf、table、wall-*、window-* 等。
+  </p>
+
+  <h2 style="margin-top:18px">為什麼不是 Cityscapes？</h2>
+
+  <p class="tiny">
+    Cityscapes 主要針對道路與戶外駕駛場景；COCO-Stuff 涵蓋 80 個 Thing 類別與 91 個 Stuff 類別，
+    更適合辦公室、電腦教室與一般生活場景。
+  </p>
+
+  <h2 style="margin-top:18px">使用提醒</h2>
+
+  <p class="tiny">
+    Webcam 需要 <b>HTTPS 或 localhost</b>。第一次開啟需要下載 ONNX Runtime Web 與 BiSeNet v2 ONNX 模型。
+    Chrome / Edge 若支援 WebGPU，系統會優先嘗試 WebGPU；失敗時改用 WebAssembly。
+  </p>
+
+</aside>
+
+</main>
+
+<footer>
+  <div class="footer-inner">
+    AI 工程素養互動教學平台<br>
+    大安高工控制科邵時俊老師製作
+  </div>
+</footer>
+
+<canvas id="inputCanvas" style="display:none"></canvas>
+<canvas id="maskCanvas" style="display:none"></canvas>
+
+<script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.22.0/dist/ort.webgpu.min.js"></script>
+
+<script>
+'use strict';
+
+const MODEL_CANDIDATES = [
+  './models/bisenetv2_cocostuff_171.onnx'
+];
+
+const MODEL_CACHE_NAME = 'bisenetv2-cocostuff-model-cache-v1';
+const MODEL_CACHE_PREFIX = 'bisenetv2-cocostuff-model-cache-';
+
+const COCO_STUFF_171 = [
+  "person",
+  "bicycle",
+  "car",
+  "motorcycle",
+  "airplane",
+  "bus",
+  "train",
+  "truck",
+  "boat",
+  "traffic light",
+  "fire hydrant",
+  "stop sign",
+  "parking meter",
+  "bench",
+  "bird",
+  "cat",
+  "dog",
+  "horse",
+  "sheep",
+  "cow",
+  "elephant",
+  "bear",
+  "zebra",
+  "giraffe",
+  "backpack",
+  "umbrella",
+  "handbag",
+  "tie",
+  "suitcase",
+  "frisbee",
+  "skis",
+  "snowboard",
+  "sports ball",
+  "kite",
+  "baseball bat",
+  "baseball glove",
+  "skateboard",
+  "surfboard",
+  "tennis racket",
+  "bottle",
+  "wine glass",
+  "cup",
+  "fork",
+  "knife",
+  "spoon",
+  "bowl",
+  "banana",
+  "apple",
+  "sandwich",
+  "orange",
+  "broccoli",
+  "carrot",
+  "hot dog",
+  "pizza",
+  "donut",
+  "cake",
+  "chair",
+  "couch",
+  "potted plant",
+  "bed",
+  "dining table",
+  "toilet",
+  "tv",
+  "laptop",
+  "mouse",
+  "remote",
+  "keyboard",
+  "cell phone",
+  "microwave",
+  "oven",
+  "toaster",
+  "sink",
+  "refrigerator",
+  "book",
+  "clock",
+  "vase",
+  "scissors",
+  "teddy bear",
+  "hair drier",
+  "toothbrush",
+  "banner",
+  "blanket",
+  "branch",
+  "bridge",
+  "building-other",
+  "bush",
+  "cabinet",
+  "cage",
+  "cardboard",
+  "carpet",
+  "ceiling-other",
+  "ceiling-tile",
+  "cloth",
+  "clothes",
+  "clouds",
+  "counter",
+  "cupboard",
+  "curtain",
+  "desk-stuff",
+  "dirt",
+  "door-stuff",
+  "fence",
+  "floor-marble",
+  "floor-other",
+  "floor-stone",
+  "floor-tile",
+  "floor-wood",
+  "flower",
+  "fog",
+  "food-other",
+  "fruit",
+  "furniture-other",
+  "grass",
+  "gravel",
+  "ground-other",
+  "hill",
+  "house",
+  "leaves",
+  "light",
+  "mat",
+  "metal",
+  "mirror-stuff",
+  "moss",
+  "mountain",
+  "mud",
+  "napkin",
+  "net",
+  "paper",
+  "pavement",
+  "pillow",
+  "plant-other",
+  "plastic",
+  "platform",
+  "playingfield",
+  "railing",
+  "railroad",
+  "river",
+  "road",
+  "rock",
+  "roof",
+  "rug",
+  "salad",
+  "sand",
+  "sea",
+  "shelf",
+  "sky-other",
+  "skyscraper",
+  "snow",
+  "solid-other",
+  "stairs",
+  "stone",
+  "straw",
+  "structural-other",
+  "table",
+  "tent",
+  "textile-other",
+  "towel",
+  "tree",
+  "vegetable",
+  "wall-brick",
+  "wall-concrete",
+  "wall-other",
+  "wall-panel",
+  "wall-stone",
+  "wall-tile",
+  "wall-wood",
+  "water-other",
+  "waterdrops",
+  "window-blind",
+  "window-other",
+  "wood"
+];
+
+const CLASS_COUNT = COCO_STUFF_171.length;
+
+const video = document.getElementById('video');
+const overlay = document.getElementById('overlay');
+const overlayCtx = overlay.getContext('2d');
+
+const inputCanvas = document.getElementById('inputCanvas');
+const inputCtx = inputCanvas.getContext('2d',{willReadFrequently:true});
+
+const maskCanvas = document.getElementById('maskCanvas');
+const maskCtx = maskCanvas.getContext('2d');
+
+const msg = document.getElementById('msg');
+const startBtn = document.getElementById('start');
+const stopBtn = document.getElementById('stop');
+const switchCameraBtn = document.getElementById('switchCamera');
+
+const alphaSlider = document.getElementById('alpha');
+const alphaValue = document.getElementById('alphaValue');
+
+const intervalSlider = document.getElementById('interval');
+const intervalValue = document.getElementById('intervalValue');
+
+const topClassEl = document.getElementById('topClass');
+const topShareEl = document.getElementById('topShare');
+const fpsEl = document.getElementById('fps');
+const backendEl = document.getElementById('backend');
+const segList = document.getElementById('segList');
+
+const errEl = document.getElementById('err');
+const okEl = document.getElementById('ok');
+const infoEl = document.getElementById('info');
+
+const progress = document.getElementById('progress');
+const bar = document.getElementById('bar');
+
+let stream = null;
+let session = null;
+let running = false;
+let processing = false;
+let timerId = 0;
+
+let activeBackend = '—';
+let inputName = null;
+
+let modelWidth = 640;
+let modelHeight = 640;
+let inputLayout = 'NCHW';
+
+let videoDevices = [];
+let currentDeviceId = null;
+let currentDeviceIndex = -1;
+let preferredFacing = 'user';
+let mirrored = true;
+
+let inferCounter = 0;
+let fpsClock = performance.now();
+
+alphaSlider.addEventListener('input',()=>{
+  alphaValue.textContent = Math.round(Number(alphaSlider.value)*100)+'%';
+});
+
+intervalSlider.addEventListener('input',()=>{
+  intervalValue.textContent = intervalSlider.value+' ms';
+});
+
+function clearNotices(){
+  errEl.style.display='none';
+  okEl.style.display='none';
+  infoEl.style.display='none';
+}
+
+function showError(t){
+  errEl.textContent=t;
+  errEl.style.display='block';
+  okEl.style.display='none';
+  infoEl.style.display='none';
+}
+
+function showOk(t){
+  okEl.textContent=t;
+  okEl.style.display='block';
+  errEl.style.display='none';
+  infoEl.style.display='none';
+}
+
+function showInfo(t){
+  infoEl.textContent=t;
+  infoEl.style.display='block';
+  errEl.style.display='none';
+  okEl.style.display='none';
+}
+
+function setProgress(p){
+  progress.style.display='block';
+  bar.style.width=Math.max(0,Math.min(100,p))+'%';
+}
+
+function hideProgress(){
+  setTimeout(()=>progress.style.display='none',300);
+}
+
+async function cleanupOldModelCaches(){
+  if(!('caches' in window)) return;
+  try{
+    const keys = await caches.keys();
+    await Promise.all(
+      keys
+        .filter(k=>k.startsWith(MODEL_CACHE_PREFIX) && k!==MODEL_CACHE_NAME)
+        .map(k=>caches.delete(k))
+    );
+  }catch(e){}
+}
+
+async function getModelResponse(url){
+  if(!('caches' in window)){
+    return fetch(url,{cache:'default'});
+  }
+
+  const cache = await caches.open(MODEL_CACHE_NAME);
+  const cached = await cache.match(url);
+
+  if(cached){
+    showInfo('已從瀏覽器快取載入 BiSeNet v2 COCO-Stuff 模型。');
+    return cached.clone();
+  }
+
+  const response = await fetch(url,{cache:'default'});
+
+  if(response.ok){
+    try{ await cache.put(url,response.clone()); }catch(e){}
+  }
+
+  return response;
+}
+
+async function loadModel(){
+  if(session) return;
+
+  clearNotices();
+  setProgress(10);
+
+  await cleanupOldModelCaches();
+
+  let modelBuffer = null;
+  let loadedUrl = null;
+  let lastError = null;
+
+  for(const url of MODEL_CANDIDATES){
+    try{
+      showInfo('正在載入 BiSeNet v2 COCO-Stuff 171 類模型…');
+      const res = await getModelResponse(url);
+
+      if(!res.ok){
+        throw new Error('HTTP '+res.status);
+      }
+
+      modelBuffer = await res.arrayBuffer();
+      loadedUrl = url;
+      break;
+    }catch(e){
+      lastError = e;
+    }
+  }
+
+  if(!modelBuffer){
+    throw new Error(
+      '找不到 BiSeNet v2 COCO-Stuff ONNX 模型。請確認檔案存在於：'+
+      MODEL_CANDIDATES[0]+
+      (lastError ? '；'+(lastError.message||lastError) : '')
+    );
+  }
+
+  setProgress(45);
+
+  const backends = [
+    {name:'WebGPU', providers:['webgpu']},
+    {name:'WASM', providers:['wasm']}
+  ];
+
+  let createError = null;
+
+  for(const b of backends){
+    try{
+      session = await ort.InferenceSession.create(
+        modelBuffer,
+        {
+          executionProviders:b.providers,
+          graphOptimizationLevel:'all'
+        }
+      );
+
+      activeBackend = b.name;
+      backendEl.textContent = b.name;
+      createError = null;
+      break;
+    }catch(e){
+      createError = e;
+      session = null;
+    }
+  }
+
+  if(!session){
+    throw createError || new Error('ONNX Runtime Session 建立失敗。');
+  }
+
+  setProgress(80);
+  inspectModel();
+
+  setProgress(100);
+  hideProgress();
+
+  showOk(
+    'BiSeNet v2 COCO-Stuff 模型載入完成｜171 classes｜Backend：'+activeBackend
+  );
+}
+
+function getDims(meta){
+  if(!meta) return [];
+  return meta.dimensions || meta.dims || [];
+}
+
+function toNumber(v){
+  return (typeof v==='number' && Number.isFinite(v)) ? v : null;
+}
+
+function inspectModel(){
+  inputName = session.inputNames[0];
+
+  const meta = session.inputMetadata ? session.inputMetadata[inputName] : null;
+  const dims = getDims(meta).map(toNumber);
+
+  if(dims.length===4){
+    if(dims[1]===3){
+      inputLayout='NCHW';
+      modelHeight=dims[2] || modelHeight;
+      modelWidth=dims[3] || modelWidth;
+    }else if(dims[3]===3){
+      inputLayout='NHWC';
+      modelHeight=dims[1] || modelHeight;
+      modelWidth=dims[2] || modelWidth;
+    }
+  }
+}
+
+async function refreshVideoDevices(){
+  try{
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    videoDevices = devices.filter(d=>d.kind==='videoinput');
+
+    if(currentDeviceId){
+      const idx = videoDevices.findIndex(d=>d.deviceId===currentDeviceId);
+      if(idx>=0) currentDeviceIndex=idx;
+    }
+
+    switchCameraBtn.disabled = !running || videoDevices.length<2;
+
+  }catch(e){
+    videoDevices=[];
+    switchCameraBtn.disabled=true;
+  }
+}
+
+function stopCurrentCameraTracks(){
+  if(stream){
+    stream.getTracks().forEach(t=>t.stop());
+    stream=null;
+  }
+  video.srcObject=null;
+}
+
+function updateMirrorFromTrack(track, requestedFacing=''){
+  const settings = track && track.getSettings ? track.getSettings() : {};
+  const actualFacing = settings.facingMode || requestedFacing || '';
+
+  if(actualFacing==='user'){
+    mirrored=true;
+  }else if(actualFacing==='environment'){
+    mirrored=false;
+  }else{
+    mirrored = preferredFacing==='user';
+  }
+
+  video.style.transform = mirrored ? 'scaleX(-1)' : 'none';
+}
+
+async function startCamera(deviceId=null, facingMode=null){
+  stopCurrentCameraTracks();
+
+  const constraints={
+    audio:false,
+    video:{
+      width:{ideal:640},
+      height:{ideal:480}
+    }
+  };
+
+  if(deviceId){
+    constraints.video.deviceId={exact:deviceId};
+  }else if(facingMode){
+    constraints.video.facingMode={ideal:facingMode};
+  }
+
+  stream = await navigator.mediaDevices.getUserMedia(constraints);
+
+  video.srcObject=stream;
+  video.style.display='block';
+  await video.play();
+
+  const track = stream.getVideoTracks()[0];
+  const settings = track.getSettings ? track.getSettings() : {};
+
+  currentDeviceId = settings.deviceId || deviceId || null;
+  updateMirrorFromTrack(track,facingMode);
+
+  msg.style.display='none';
+  resizeOverlay();
+
+  await refreshVideoDevices();
+
+  if(currentDeviceId){
+    currentDeviceIndex=videoDevices.findIndex(d=>d.deviceId===currentDeviceId);
+  }
+}
+
+function resizeOverlay(){
+  if(!video.videoWidth || !video.videoHeight) return;
+  overlay.width=video.videoWidth;
+  overlay.height=video.videoHeight;
+}
+
+window.addEventListener('resize',resizeOverlay);
+video.addEventListener('loadedmetadata',resizeOverlay);
+
+async function switchCamera(){
+  if(!running || videoDevices.length<2) return;
+
+  try{
+    currentDeviceIndex =
+      currentDeviceIndex>=0
+        ? (currentDeviceIndex+1)%videoDevices.length
+        : 0;
+
+    const next = videoDevices[currentDeviceIndex];
+    await startCamera(next.deviceId,null);
+    showOk('已切換攝影機。');
+
+  }catch(e){
+    showError('切換攝影機失敗：'+(e.message||e));
+  }
+}
+
+function preprocessFrame(){
+  inputCanvas.width=modelWidth;
+  inputCanvas.height=modelHeight;
+
+  inputCtx.save();
+  inputCtx.setTransform(1,0,0,1,0,0);
+  inputCtx.clearRect(0,0,modelWidth,modelHeight);
+
+  if(mirrored){
+    inputCtx.translate(modelWidth,0);
+    inputCtx.scale(-1,1);
+  }
+
+  inputCtx.drawImage(video,0,0,modelWidth,modelHeight);
+  inputCtx.restore();
+
+  const rgba = inputCtx.getImageData(
+    0,0,modelWidth,modelHeight
+  ).data;
+
+  const pixels=modelWidth*modelHeight;
+  const data=new Float32Array(pixels*3);
+
+  // CoinCheung/BiSeNet demo normalization.
+  // RGB, then (value/255 - mean) / std
+  const mean=[0.3257,0.3690,0.3223];
+  const std=[0.2112,0.2148,0.2115];
+
+  for(let i=0,p=0;i<pixels;i++,p+=4){
+    const r=(rgba[p]/255-mean[0])/std[0];
+    const g=(rgba[p+1]/255-mean[1])/std[1];
+    const b=(rgba[p+2]/255-mean[2])/std[2];
+
+    if(inputLayout==='NHWC'){
+      const j=i*3;
+      data[j]=r;
+      data[j+1]=g;
+      data[j+2]=b;
+    }else{
+      data[i]=r;
+      data[pixels+i]=g;
+      data[pixels*2+i]=b;
+    }
+  }
+
+  if(inputLayout==='NHWC'){
+    return new ort.Tensor(
+      'float32',
+      data,
+      [1,modelHeight,modelWidth,3]
+    );
+  }
+
+  return new ort.Tensor(
+    'float32',
+    data,
+    [1,3,modelHeight,modelWidth]
+  );
+}
+
+function chooseSegmentationOutput(results){
+  let fallback=null;
+
+  for(const name of session.outputNames){
+    const t=results[name];
+    if(!t) continue;
+
+    fallback=fallback || t;
+
+    const dims=(t.dims||[]).map(Number);
+
+    if(dims.length===4 && (dims[1]===CLASS_COUNT || dims[3]===CLASS_COUNT)){
+      return t;
+    }
+
+    if(dims.length===3){
+      return t;
+    }
+  }
+
+  return fallback;
+}
+
+function decodeSegmentation(tensor){
+  const dims=(tensor.dims||[]).map(Number);
+  const data=tensor.data;
+
+  // Case A: model already outputs a label map such as [1,H,W].
+  if(dims.length===3){
+    let h,w;
+
+    if(dims[0]===1){
+      h=dims[1];
+      w=dims[2];
+    }else{
+      h=dims[0];
+      w=dims[1];
+    }
+
+    const labels = new Uint16Array(h*w);
+
+    for(let i=0;i<labels.length;i++){
+      labels[i]=Number(data[i]);
+    }
+
+    return {labels,width:w,height:h,classCount:CLASS_COUNT};
+  }
+
+  // Case B: logits such as [1,171,H,W] or [1,H,W,171].
+  if(dims.length!==4){
+    throw new Error(
+      '目前無法解析模型輸出 Shape：['+
+      dims.join(', ')+']'
+    );
+  }
+
+  let classAxis=-1;
+
+  if(dims[1]===CLASS_COUNT){
+    classAxis=1;
+  }else if(dims[3]===CLASS_COUNT){
+    classAxis=3;
+  }else{
+    throw new Error(
+      '模型輸出不是 171-class COCO-Stuff Segmentation：['+
+      dims.join(', ')+']'
+    );
+  }
+
+  let h,w;
+  let labelsOut;
+
+  if(classAxis===1){
+    h=dims[2];
+    w=dims[3];
+    labelsOut=new Uint16Array(h*w);
+
+    const pixels=h*w;
+
+    for(let p=0;p<pixels;p++){
+      let bestClass=0;
+      let bestScore=-Infinity;
+
+      for(let c=0;c<CLASS_COUNT;c++){
+        const score=Number(data[c*pixels+p]);
+
+        if(score>bestScore){
+          bestScore=score;
+          bestClass=c;
+        }
+      }
+
+      labelsOut[p]=bestClass;
+    }
+
+  }else{
+    h=dims[1];
+    w=dims[2];
+    labelsOut=new Uint16Array(h*w);
+
+    for(let p=0;p<h*w;p++){
+      const base=p*CLASS_COUNT;
+
+      let bestClass=0;
+      let bestScore=-Infinity;
+
+      for(let c=0;c<CLASS_COUNT;c++){
+        const score=Number(data[base+c]);
+
+        if(score>bestScore){
+          bestScore=score;
+          bestClass=c;
+        }
+      }
+
+      labelsOut[p]=bestClass;
+    }
+  }
+
+  return {
+    labels:labelsOut,
+    width:w,
+    height:h,
+    classCount:CLASS_COUNT
+  };
+}
+
+function colorForClass(index){
+  // Deterministic high-contrast palette for 171 labels.
+  const hue=(index*137.508)%360;
+  const sat=62+(index%3)*7;
+  const light=45+(index%4)*5;
+  return hslToRgb(hue/360,sat/100,light/100);
+}
+
+function hslToRgb(h,s,l){
+  let r,g,b;
+
+  if(s===0){
+    r=g=b=l;
+  }else{
+    const hue2rgb=(p,q,t)=>{
+      if(t<0)t+=1;
+      if(t>1)t-=1;
+      if(t<1/6)return p+(q-p)*6*t;
+      if(t<1/2)return q;
+      if(t<2/3)return p+(q-p)*(2/3-t)*6;
+      return p;
+    };
+
+    const q=l<.5?l*(1+s):l+s-l*s;
+    const p=2*l-q;
+
+    r=hue2rgb(p,q,h+1/3);
+    g=hue2rgb(p,q,h);
+    b=hue2rgb(p,q,h-1/3);
+  }
+
+  return [
+    Math.round(r*255),
+    Math.round(g*255),
+    Math.round(b*255)
+  ];
+}
+
+function renderMask(decoded){
+  const w=decoded.width;
+  const h=decoded.height;
+
+  maskCanvas.width=w;
+  maskCanvas.height=h;
+
+  const image = maskCtx.createImageData(w,h);
+  const px=image.data;
+
+  const counts=new Uint32Array(CLASS_COUNT);
+
+  for(let i=0;i<decoded.labels.length;i++){
+    const c=decoded.labels[i];
+
+    if(c<CLASS_COUNT){
+      counts[c]++;
+    }
+
+    const color=colorForClass(c);
+    const p=i*4;
+
+    px[p]=color[0];
+    px[p+1]=color[1];
+    px[p+2]=color[2];
+    px[p+3]=255;
+  }
+
+  maskCtx.putImageData(image,0,0);
+
+  resizeOverlay();
+
+  overlayCtx.clearRect(
+    0,0,overlay.width,overlay.height
+  );
+
+  overlayCtx.save();
+
+  overlayCtx.globalAlpha =
+    Number(alphaSlider.value);
+
+  overlayCtx.drawImage(
+    maskCanvas,
+    0,0,
+    overlay.width,
+    overlay.height
+  );
+
+  overlayCtx.restore();
+
+  updateSemanticList(
+    counts,
+    decoded.labels.length
+  );
+}
+
+function updateSemanticList(counts,total){
+  const rows=[];
+
+  for(let i=0;i<counts.length;i++){
+    if(counts[i]===0) continue;
+
+    rows.push({
+      classIndex:i,
+      count:counts[i],
+      share:counts[i]/total
+    });
+  }
+
+  rows.sort((a,b)=>b.count-a.count);
+
+  if(rows.length===0){
+    topClassEl.textContent='—';
+    topShareEl.textContent='0%';
+    segList.textContent='目前沒有可顯示的語意區域。';
+    return;
+  }
+
+  const top=rows[0];
+
+  topClassEl.textContent =
+    COCO_STUFF_171[top.classIndex] || ('Class '+top.classIndex);
+
+  topShareEl.textContent =
+    (top.share*100).toFixed(1)+'%';
+
+  segList.innerHTML='';
+
+  for(const item of rows.slice(0,10)){
+    const row=document.createElement('div');
+    row.className='seg-row';
+
+    const swatch=document.createElement('i');
+    swatch.className='swatch';
+
+    const color=colorForClass(item.classIndex);
+
+    swatch.style.background =
+      `rgb(${color[0]},${color[1]},${color[2]})`;
+
+    const name=document.createElement('b');
+    name.textContent =
+      COCO_STUFF_171[item.classIndex] || ('Class '+item.classIndex);
+
+    const share=document.createElement('span');
+    share.textContent =
+      (item.share*100).toFixed(1)+'%';
+
+    row.append(swatch,name,share);
+    segList.appendChild(row);
+  }
+}
+
+async function inferOnce(){
+  if(!running || processing || !session || video.readyState<2) return;
+
+  processing=true;
+
+  try{
+    const tensor=preprocessFrame();
+
+    const feeds={};
+    feeds[inputName]=tensor;
+
+    const results =
+      await session.run(feeds);
+
+    const output =
+      chooseSegmentationOutput(results);
+
+    if(!output){
+      throw new Error('找不到 BiSeNet v2 輸出 Tensor。');
+    }
+
+    const decoded =
+      decodeSegmentation(output);
+
+    renderMask(decoded);
+
+    inferCounter++;
+
+    const now=performance.now();
+
+    if(now-fpsClock>=1000){
+      fpsEl.textContent =
+        (
+          inferCounter*1000/
+          (now-fpsClock)
+        ).toFixed(1);
+
+      inferCounter=0;
+      fpsClock=now;
+    }
+
+  }catch(e){
+    showError(
+      'BiSeNet v2 推論失敗：'+
+      (e.message||e)
+    );
+
+  }finally{
+    processing=false;
+  }
+}
+
+function scheduleNextInference(){
+  if(!running) return;
+
+  timerId=setTimeout(
+    async()=>{
+      await inferOnce();
+
+      if(running){
+        scheduleNextInference();
+      }
+    },
+    Number(intervalSlider.value)
+  );
+}
+
+async function startSystem(){
+  if(running) return;
+
+  clearNotices();
+  startBtn.disabled=true;
+
+  try{
+    await loadModel();
+
+    preferredFacing='user';
+
+    await startCamera(
+      null,
+      preferredFacing
+    );
+
+    running=true;
+
+    stopBtn.disabled=false;
+    switchCameraBtn.disabled =
+      videoDevices.length<2;
+
+    fpsClock=performance.now();
+    inferCounter=0;
+
+    scheduleNextInference();
+
+    showOk(
+      'BiSeNet v2 COCO-Stuff 171 類語意分割已啟動。'
+    );
+
+  }catch(e){
+    startBtn.disabled=false;
+
+    showError(
+      '啟動失敗：'+
+      (e.message||e)
+    );
+  }
+}
+
+function stopSystem(){
+  running=false;
+  processing=false;
+
+  if(timerId){
+    clearTimeout(timerId);
+    timerId=0;
+  }
+
+  stopCurrentCameraTracks();
+
+  video.style.display='none';
+
+  overlayCtx.clearRect(
+    0,0,
+    overlay.width,
+    overlay.height
+  );
+
+  msg.style.display='block';
+
+  stopBtn.disabled=true;
+  switchCameraBtn.disabled=true;
+  startBtn.disabled=false;
+
+  fpsEl.textContent='0';
+
+  showInfo(
+    '語意分割已停止。BiSeNet v2 模型仍保留在瀏覽器記憶體中，再次開始時不需要重新建立模型。'
+  );
+}
+
+startBtn.addEventListener(
+  'click',
+  startSystem
+);
+
+stopBtn.addEventListener(
+  'click',
+  stopSystem
+);
+
+switchCameraBtn.addEventListener(
+  'click',
+  switchCamera
+);
+
+window.addEventListener(
+  'pagehide',
+  stopSystem
+);
+</script>
+
+</body>
+</html>
