@@ -123,7 +123,7 @@ footer{border-top:1px solid var(--line);background:#fff;margin-top:12px}
     <span class="badge">DEEP LEARNING</span>
   </div>
   <h1>Live 語意分割｜BiSeNet v2</h1>
-  <p>利用 BiSeNet v2 + COCO-Stuff 171 類進行即時 Semantic Segmentation，讓辦公室、電腦教室與一般生活場景也能觀察 Pixel-level 分類結果。</p>
+  <p>利用 BiSeNet v2 + COCO-Stuff 171 類進行即時 Semantic Segmentation。品質優先模式保留 Webcam 640×480 的 4:3 比例，以 Letterbox 方式送入模型，避免畫面變形。</p>
 </header>
 
 <main>
@@ -165,10 +165,10 @@ footer{border-top:1px solid var(--line);background:#fff;margin-top:12px}
   <div class="setting">
     <div class="setting-row">
       <b>AI 更新間隔</b>
-      <span class="value" id="intervalValue">450 ms</span>
+      <span class="value" id="intervalValue">1000 ms</span>
     </div>
-    <input id="interval" type="range" min="150" max="1800" step="50" value="450">
-    <div class="scale-label"><span>150 ms：更新較快</span><span>1800 ms：硬體負擔較低</span></div>
+    <input id="interval" type="range" min="300" max="2500" step="100" value="1000">
+    <div class="scale-label"><span>300 ms：更新較快</span><span>2500 ms：硬體負擔較低</span></div>
     <p class="tiny" style="margin:8px 0 0">
       Webcam 持續播放；BiSeNet v2 依照此間隔執行推論。COCO-Stuff 有 171 類；本版使用 384×288 的 4:3 輸入比例，避免 Webcam 畫面被壓縮變形。一般電腦建議先從 450～800 ms 開始。
     </p>
@@ -238,7 +238,7 @@ footer{border-top:1px solid var(--line);background:#fff;margin-top:12px}
 
   <p class="tiny">
     Webcam 需要 <b>HTTPS 或 localhost</b>。第一次開啟需要下載 ONNX Runtime Web 與 BiSeNet v2 ONNX 模型。
-    Chrome / Edge 若支援 WebGPU，系統會優先嘗試 WebGPU；失敗時改用 WebAssembly。
+    Chrome / Edge 若支援 WebGPU，系統會優先嘗試 WebGPU；失敗時改用 WebAssembly。按下「停止分割」後，網頁會釋放 ONNX Runtime Session、停止 Webcam 並清空影像緩衝區，以降低模型繼續占用記憶體的情況。
   </p>
 
 </aside>
@@ -261,7 +261,7 @@ footer{border-top:1px solid var(--line);background:#fff;margin-top:12px}
 'use strict';
 
 const MODEL_CANDIDATES = [
-  './models/bisenetv2_cocostuff_171_384x288.onnx'
+  './models/bisenetv2_cocostuff_171_640quality.onnx'
 ];
 
 const MODEL_CACHE_NAME = 'bisenetv2-cocostuff-model-cache-v1';
@@ -486,8 +486,8 @@ let timerId = 0;
 let activeBackend = '—';
 let inputName = null;
 
-let modelWidth = 384;
-let modelHeight = 288;
+let modelWidth = 640;
+let modelHeight = 640;
 let inputLayout = 'NCHW';
 
 let videoDevices = [];
@@ -498,6 +498,15 @@ let mirrored = true;
 
 let inferCounter = 0;
 let fpsClock = performance.now();
+
+let lastLetterbox = {
+  x:0,
+  y:0,
+  width:640,
+  height:480,
+  sourceWidth:640,
+  sourceHeight:480
+};
 
 alphaSlider.addEventListener('input',()=>{
   alphaValue.textContent = Math.round(Number(alphaSlider.value)*100)+'%';
@@ -797,16 +806,79 @@ function preprocessFrame(){
   inputCanvas.width=modelWidth;
   inputCanvas.height=modelHeight;
 
+  const srcW=video.videoWidth || 640;
+  const srcH=video.videoHeight || 480;
+
+  // 保留原始比例，不把 4:3 Webcam 拉成正方形。
+  const scale=Math.min(
+    modelWidth/srcW,
+    modelHeight/srcH
+  );
+
+  const drawW=Math.max(
+    1,
+    Math.round(srcW*scale)
+  );
+
+  const drawH=Math.max(
+    1,
+    Math.round(srcH*scale)
+  );
+
+  const offsetX=Math.floor(
+    (modelWidth-drawW)/2
+  );
+
+  const offsetY=Math.floor(
+    (modelHeight-drawH)/2
+  );
+
+  lastLetterbox={
+    x:offsetX,
+    y:offsetY,
+    width:drawW,
+    height:drawH,
+    sourceWidth:srcW,
+    sourceHeight:srcH
+  };
+
   inputCtx.save();
   inputCtx.setTransform(1,0,0,1,0,0);
-  inputCtx.clearRect(0,0,modelWidth,modelHeight);
+
+  // 使用 COCO-Stuff normalization 的 mean 色填補，
+  // 經 Normalize 後約等於 0，比純黑 padding 更自然。
+  inputCtx.fillStyle='rgb(83,94,82)';
+  inputCtx.fillRect(
+    0,0,
+    modelWidth,
+    modelHeight
+  );
 
   if(mirrored){
-    inputCtx.translate(modelWidth,0);
+    inputCtx.translate(
+      modelWidth,
+      0
+    );
     inputCtx.scale(-1,1);
+
+    inputCtx.drawImage(
+      video,
+      modelWidth-offsetX-drawW,
+      offsetY,
+      drawW,
+      drawH
+    );
+
+  }else{
+    inputCtx.drawImage(
+      video,
+      offsetX,
+      offsetY,
+      drawW,
+      drawH
+    );
   }
 
-  inputCtx.drawImage(video,0,0,modelWidth,modelHeight);
   inputCtx.restore();
 
   const rgba = inputCtx.getImageData(
@@ -816,8 +888,6 @@ function preprocessFrame(){
   const pixels=modelWidth*modelHeight;
   const data=new Float32Array(pixels*3);
 
-  // CoinCheung/BiSeNet demo normalization.
-  // RGB, then (value/255 - mean) / std
   const mean=[0.3257,0.3690,0.3223];
   const std=[0.2112,0.2148,0.2115];
 
@@ -1030,13 +1100,33 @@ function renderMask(decoded){
 
   const counts=new Uint32Array(CLASS_COUNT);
 
+  // 將模型輸入的 letterbox 座標換算到輸出 Mask 座標。
+  const sx=w/modelWidth;
+  const sy=h/modelHeight;
+
+  const cropX=Math.max(
+    0,
+    Math.round(lastLetterbox.x*sx)
+  );
+
+  const cropY=Math.max(
+    0,
+    Math.round(lastLetterbox.y*sy)
+  );
+
+  const cropW=Math.min(
+    w-cropX,
+    Math.round(lastLetterbox.width*sx)
+  );
+
+  const cropH=Math.min(
+    h-cropY,
+    Math.round(lastLetterbox.height*sy)
+  );
+
+  // 顏色化整張模型輸出。
   for(let i=0;i<decoded.labels.length;i++){
     const c=decoded.labels[i];
-
-    if(c<CLASS_COUNT){
-      counts[c]++;
-    }
-
     const color=colorForClass(c);
     const p=i*4;
 
@@ -1048,10 +1138,25 @@ function renderMask(decoded){
 
   maskCtx.putImageData(image,0,0);
 
+  // 只統計實際 Webcam 影像區，不把 padding 算進 Pixel 占比。
+  for(let yy=cropY;yy<cropY+cropH;yy++){
+    const row=yy*w;
+
+    for(let xx=cropX;xx<cropX+cropW;xx++){
+      const c=decoded.labels[row+xx];
+
+      if(c<CLASS_COUNT){
+        counts[c]++;
+      }
+    }
+  }
+
   resizeOverlay();
 
   overlayCtx.clearRect(
-    0,0,overlay.width,overlay.height
+    0,0,
+    overlay.width,
+    overlay.height
   );
 
   overlayCtx.save();
@@ -1059,9 +1164,16 @@ function renderMask(decoded){
   overlayCtx.globalAlpha =
     Number(alphaSlider.value);
 
+  // 把模型 640×640 中的有效 4:3 區域裁出，
+  // 再完整覆蓋回 Webcam 640×480。
   overlayCtx.drawImage(
     maskCanvas,
-    0,0,
+    cropX,
+    cropY,
+    cropW,
+    cropH,
+    0,
+    0,
     overlay.width,
     overlay.height
   );
@@ -1070,7 +1182,7 @@ function renderMask(decoded){
 
   updateSemanticList(
     counts,
-    decoded.labels.length
+    Math.max(1,cropW*cropH)
   );
 }
 
@@ -1239,9 +1351,63 @@ async function startSystem(){
   }
 }
 
-function stopSystem(){
+async function waitForInferenceToFinish(timeoutMs=10000){
+  const start=performance.now();
+
+  while(processing && performance.now()-start<timeoutMs){
+    await new Promise(resolve=>setTimeout(resolve,50));
+  }
+}
+
+async function releaseModelResources(){
+  const oldSession=session;
+
+  // 先切斷 JavaScript 對 Session 的參照。
+  session=null;
+  inputName=null;
+  activeBackend='—';
+  backendEl.textContent='—';
+
+  if(oldSession && typeof oldSession.release==='function'){
+    try{
+      await oldSession.release();
+    }catch(e){
+      console.warn('ONNX Runtime Session release failed:',e);
+    }
+  }
+
+  // 清掉 Canvas backing stores，避免高解析度影像緩衝區持續佔 RAM。
+  inputCanvas.width=1;
+  inputCanvas.height=1;
+
+  maskCanvas.width=1;
+  maskCanvas.height=1;
+
+  overlayCtx.clearRect(
+    0,0,
+    overlay.width,
+    overlay.height
+  );
+
+  overlay.width=1;
+  overlay.height=1;
+
+  lastLetterbox={
+    x:0,
+    y:0,
+    width:640,
+    height:480,
+    sourceWidth:640,
+    sourceHeight:480
+  };
+}
+
+async function stopSystem(){
+  if(!running && !session){
+    return;
+  }
+
   running=false;
-  processing=false;
 
   if(timerId){
     clearTimeout(timerId);
@@ -1250,24 +1416,35 @@ function stopSystem(){
 
   stopCurrentCameraTracks();
 
+  video.pause();
+  video.removeAttribute('src');
+  video.load();
   video.style.display='none';
-
-  overlayCtx.clearRect(
-    0,0,
-    overlay.width,
-    overlay.height
-  );
-
-  msg.style.display='block';
 
   stopBtn.disabled=true;
   switchCameraBtn.disabled=true;
-  startBtn.disabled=false;
+  startBtn.disabled=true;
 
   fpsEl.textContent='0';
 
   showInfo(
-    '語意分割已停止。BiSeNet v2 模型仍保留在瀏覽器記憶體中，再次開始時不需要重新建立模型。'
+    '正在停止 Webcam 並釋放 BiSeNet v2 模型記憶體…'
+  );
+
+  // 若剛好還有一次 inference 正在執行，先等待它結束，
+  // 再 release Session，避免正在 run() 時直接銷毀底層資源。
+  await waitForInferenceToFinish();
+
+  processing=false;
+
+  await releaseModelResources();
+
+  msg.style.display='block';
+
+  startBtn.disabled=false;
+
+  showInfo(
+    '已停止語意分割，Webcam 與 ONNX Runtime Session 已釋放。再次開始時會重新載入模型。'
   );
 }
 
@@ -1288,7 +1465,9 @@ switchCameraBtn.addEventListener(
 
 window.addEventListener(
   'pagehide',
-  stopSystem
+  ()=>{
+    void stopSystem();
+  }
 );
 </script>
 
