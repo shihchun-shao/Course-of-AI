@@ -1,0 +1,232 @@
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>UNIT 06｜KLT 特徵點追蹤</title>
+<style>
+:root{--bg:#f4f7fb;--text:#172033;--muted:#667085;--blue:#2563eb;--red:#dc2626;--green:#15803d;--line:#d9e1ec}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,"Noto Sans TC","Microsoft JhengHei",sans-serif;background:var(--bg);color:var(--text)}
+header{padding:22px 6vw;background:#fff;border-bottom:1px solid var(--line)}h1{margin:8px 0 6px;font-size:clamp(28px,4vw,42px)}header p{margin:0;color:var(--muted);line-height:1.6}.back{color:#1d4ed8;text-decoration:none;font-weight:800;font-size:14px}.badge{background:#ede9fe;color:#6d28d9;border-radius:999px;padding:4px 8px;font-size:12px;font-weight:800;margin-left:10px}
+main{max-width:1240px;margin:24px auto;padding:0 18px;display:grid;grid-template-columns:1.35fr .85fr;gap:20px}.card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:0 8px 28px #0000000a}
+.stage{position:relative;background:#0b1020;border-radius:14px;overflow:hidden;aspect-ratio:4/3;touch-action:none}.stage canvas{width:100%;height:100%;display:block;touch-action:none}.msg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;color:#cbd5e1;padding:30px;pointer-events:none;line-height:1.7}.msg b{color:#fff;font-size:20px}
+.controls{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}button{border:0;border-radius:10px;padding:11px 16px;font-weight:800;cursor:pointer;background:var(--blue);color:#fff}button.green{background:var(--green)}button.red{background:var(--red)}button.gray{background:#e8eef8;color:#1f3b67}button:disabled{opacity:.45;cursor:not-allowed}
+.legend{display:flex;gap:15px;flex-wrap:wrap;margin-top:12px;font-size:12px;color:var(--muted)}.dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:#22c55e;margin-right:5px}.box{display:inline-block;width:15px;height:11px;border:2px solid #60a5fa;margin-right:5px}.line{display:inline-block;width:18px;height:3px;background:#ef4444;margin:0 5px 3px 0}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}.metric{border:1px solid var(--line);border-radius:14px;padding:13px}.metric small{color:var(--muted);font-size:12px}.metric strong{display:block;font-size:22px;margin-top:4px}
+.note{font-size:13px;color:var(--muted);line-height:1.7}.info,.err{display:none;margin-top:12px;padding:12px;border-radius:12px;line-height:1.5}.info{background:#eff6ff;border:1px solid #bfdbfe;color:#1e40af}.err{background:#fff4f4;border:1px solid #fecaca;color:#991b1b}
+h2{font-size:18px;margin:2px 0 12px}.step{border:1px solid var(--line);border-radius:12px;padding:11px 12px;margin-bottom:9px}.step b{display:block;margin-bottom:4px}.step span{font-size:14px;color:var(--muted);line-height:1.6}
+footer{background:#fff;border-top:1px solid var(--line);margin-top:12px;text-align:center;color:var(--muted);font-size:13px;line-height:1.8;padding:22px}
+@media(max-width:920px){main{grid-template-columns:1fr}.grid{grid-template-columns:1fr 1fr}}
+</style></head><body>
+<header><a class="back" href="../">← 回 AI 教學首頁</a><span class="badge">COMPUTER VISION</span><h1>UNIT 06｜KLT 特徵點追蹤</h1><p>框選一個物件後，用 Shi-Tomasi 找特徵點，再以 Lucas-Kanade Optical Flow 持續追蹤。</p></header>
+<main><section class="card">
+<div class="stage"><canvas id="view" width="640" height="480"></canvas><div class="msg" id="msg"><div><b>尚未啟動攝影機</b><br>開始攝影機後，按「選擇追蹤物件」，在畫面上拖曳矩形。</div></div></div>
+<div class="legend"><span><i class="dot"></i>綠點：KLT 特徵點</span><span><i class="box"></i>藍框：追蹤物件</span><span><i class="line"></i>紅線：移動軌跡</span><span style="font-weight:900;color:#d97706">×</span><span>黃色 ×：追蹤起點</span></div>
+<div class="controls"><button id="start">開始攝影機</button><button id="select" class="green" disabled>選擇追蹤物件</button><button id="stop" class="red" disabled>停止追蹤</button><button id="switchCamera" class="gray" disabled>切換鏡頭</button></div>
+<div id="info" class="info"></div><div id="err" class="err"></div>
+<div class="grid"><div class="metric"><small>有效特徵點</small><strong id="count">0</strong></div><div class="metric"><small>相鄰畫面的移動距離（pixel）</small><strong id="move">0</strong></div><div class="metric"><small>累積移動距離（pixel）</small><strong id="totalMove">0</strong></div><div class="metric"><small>追蹤 FPS</small><strong id="fps">0</strong></div></div>
+<p class="note">Webcam 以 640×480 顯示；KLT 內部只用 320×240 灰階影像運算，不需要 GPU，也不需要下載 AI 模型。手機可使用「切換鏡頭」在前後鏡頭之間切換。</p>
+</section><aside class="card">
+<h2>KLT 教學流程</h2>
+<div class="step"><b>① Select ROI</b><span>框選要追蹤的物件。</span></div>
+<div class="step"><b>② Shi-Tomasi Features</b><span>在 ROI 中找亮度變化明顯、容易追蹤的角點。</span></div>
+<div class="step"><b>③ Lucas-Kanade</b><span>利用相鄰影格估計每個特徵點的水平與垂直位移。</span></div>
+<div class="step"><b>④ Outlier Filtering</b><span>移除與主要運動方向差異太大的錯誤特徵點。</span></div>
+<div class="step"><b>⑤ Update Bounding Box</b><span>利用特徵點的共同位移更新追蹤框。</span></div>
+<h2 style="margin-top:18px">核心概念</h2><p class="note"><b>Ix·u + Iy·v + It = 0</b><br>u、v 是特徵點在 x、y 方向的移動量。高中階段可以先理解成：「觀察一小塊鄰近 Pixel，找出最合理的共同移動方向」。</p>
+<h2 style="margin-top:18px">測試建議</h2><p class="note">先用書本、紙盒、鍵盤、電路板、印有文字或 Logo 的物件測試。單色、反光或沒有紋理的物件較不適合 KLT。</p>
+</aside></main><footer>AI 工程素養互動教學平台<br>大安高工控制科邵時俊老師製作</footer>
+<video id="video" playsinline autoplay muted style="display:none"></video><canvas id="proc" width="320" height="240" style="display:none"></canvas>
+<script>
+'use strict';
+const DW=640,DH=480,PW=320,PH=240,SX=PW/DW,SY=PH/DH;
+const video=document.getElementById('video'),view=document.getElementById('view'),g=view.getContext('2d'),proc=document.getElementById('proc'),pg=proc.getContext('2d',{willReadFrequently:true});
+const startBtn=document.getElementById('start'),selectBtn=document.getElementById('select'),stopBtn=document.getElementById('stop'),switchBtn=document.getElementById('switchCamera'),msg=document.getElementById('msg'),info=document.getElementById('info'),err=document.getElementById('err'),countEl=document.getElementById('count'),moveEl=document.getElementById('move'),totalMoveEl=document.getElementById('totalMove'),fpsEl=document.getElementById('fps');
+let stream=null,videoDevices=[],currentDeviceIndex=-1,currentDeviceId=null,preferredFacing='user',cvReady=false,cameraReady=false,tracking=false,selecting=false,dragging=false,mirror=true,a=null,b=null,box=null,trail=[],startPoint=null,totalDistance=0,pts=[],prevGray=null,prevPts=null,lastRun=0,fpsN=0,fpsT=performance.now();
+function say(t){info.textContent=t;info.style.display='block';err.style.display='none'}function fail(t){err.textContent=t;err.style.display='block';info.style.display='none'}
+function median(x){x=[...x].sort((a,b)=>a-b);let m=Math.floor(x.length/2);return x.length%2?x[m]:(x[m-1]+x[m])/2}
+function pos(e){let r=view.getBoundingClientRect();return{x:(e.clientX-r.left)*DW/r.width,y:(e.clientY-r.top)*DH/r.height}}
+function cleanup(){if(prevGray){prevGray.delete();prevGray=null}if(prevPts){prevPts.delete();prevPts=null}}
+function stopTracking(){tracking=false;selecting=false;dragging=false;cleanup();box=null;trail=[];startPoint=null;totalDistance=0;pts=[];countEl.textContent='0';moveEl.textContent='0';totalMoveEl.textContent='0';fpsEl.textContent='0';stopBtn.disabled=true}
+function gray(){pg.save();pg.setTransform(1,0,0,1,0,0);pg.clearRect(0,0,PW,PH);if(mirror){pg.translate(PW,0);pg.scale(-1,1)}pg.drawImage(video,0,0,PW,PH);pg.restore();let rgba=cv.imread(proc),out=new cv.Mat();cv.cvtColor(rgba,out,cv.COLOR_RGBA2GRAY);rgba.delete();return out}
+function pointsToArray(m){let r=[],d=m.data32F;for(let i=0;i<d.length;i+=2)r.push({x:d[i],y:d[i+1]});return r}
+function arrayToPoints(p){let d=[];p.forEach(q=>d.push(q.x,q.y));return cv.matFromArray(p.length,1,cv.CV_32FC2,d)}
+function initTrack(r){
+  stopTracking();let gr=gray(),mask=cv.Mat.zeros(PH,PW,cv.CV_8UC1),p=new cv.Mat();
+  let x=Math.max(0,Math.round(r.x*SX)),y=Math.max(0,Math.round(r.y*SY)),w=Math.round(r.w*SX),h=Math.round(r.h*SY);
+  cv.rectangle(mask,new cv.Point(x,y),new cv.Point(Math.min(PW-1,x+w),Math.min(PH-1,y+h)),new cv.Scalar(255),-1);
+  cv.goodFeaturesToTrack(gr,p,100,0.01,6,mask,3,false,0.04);mask.delete();
+  if(p.rows<6){gr.delete();p.delete();fail('可追蹤特徵點太少，請改選有文字、邊角或紋理的物件。');return}
+  prevGray=gr;prevPts=p;pts=pointsToArray(p);box={x,y,w,h};startPoint={x:x+w/2,y:y+h/2};trail=[{x:startPoint.x,y:startPoint.y}];totalDistance=0;tracking=true;countEl.textContent=p.rows;moveEl.textContent='0';totalMoveEl.textContent='0';stopBtn.disabled=false;say('KLT 追蹤已開始，黃色 × 為起點。請移動物件。')
+}
+function step(now){
+  if(!tracking||now-lastRun<80||video.readyState<2)return;lastRun=now;
+  let gr=gray(),next=new cv.Mat(),status=new cv.Mat(),er=new cv.Mat();
+  cv.calcOpticalFlowPyrLK(prevGray,gr,prevPts,next,status,er,new cv.Size(21,21),3,new cv.TermCriteria(cv.TermCriteria_EPS|cv.TermCriteria_COUNT,20,.03),0,1e-4);
+  let old=prevPts.data32F,neu=next.data32F,st=status.data,e=er.data32F,c=[];
+  for(let i=0;i<prevPts.rows;i++){if(st[i]!==1||e[i]>35)continue;let ox=old[2*i],oy=old[2*i+1],nx=neu[2*i],ny=neu[2*i+1];if(nx<1||ny<1||nx>=PW-1||ny>=PH-1)continue;c.push({old:{x:ox,y:oy},now:{x:nx,y:ny},dx:nx-ox,dy:ny-oy})}
+  if(c.length<5){gr.delete();next.delete();status.delete();er.delete();stopTracking();fail('有效特徵點不足，追蹤已停止。請重新框選。');return}
+  let mdx=median(c.map(q=>q.dx)),mdy=median(c.map(q=>q.dy)),f=c.filter(q=>Math.hypot(q.dx-mdx,q.dy-mdy)<8);if(f.length<5)f=c;
+  mdx=median(f.map(q=>q.dx));mdy=median(f.map(q=>q.dy));
+  box.x+=mdx;box.y+=mdy;trail.push({x:box.x+box.w/2,y:box.y+box.h/2});
+  const frameDistance=Math.hypot(mdx,mdy)/SX;totalDistance+=frameDistance;
+  pts=f.map(q=>q.now);moveEl.textContent=frameDistance.toFixed(1);totalMoveEl.textContent=totalDistance.toFixed(1);countEl.textContent=pts.length;
+  cleanup();prevGray=gr.clone();prevPts=arrayToPoints(pts);gr.delete();next.delete();status.delete();er.delete();
+  fpsN++;let dt=now-fpsT;if(dt>=1000){fpsEl.textContent=(fpsN*1000/dt).toFixed(1);fpsN=0;fpsT=now}
+}
+function draw(now){
+  requestAnimationFrame(draw);g.clearRect(0,0,DW,DH);
+  if(cameraReady&&video.readyState>=2){g.save();if(mirror){g.translate(DW,0);g.scale(-1,1)}g.drawImage(video,0,0,DW,DH);g.restore()}else{g.fillStyle='#0b1020';g.fillRect(0,0,DW,DH)}
+  if(trail.length>1){g.strokeStyle='#ef4444';g.lineWidth=3;g.beginPath();trail.forEach((p,i)=>i?g.lineTo(p.x/SX,p.y/SY):g.moveTo(p.x/SX,p.y/SY));g.stroke()}
+  if(box){g.strokeStyle='#60a5fa';g.lineWidth=4;g.strokeRect(box.x/SX,box.y/SY,box.w/SX,box.h/SY)}
+  if(startPoint){const x=startPoint.x/SX,y=startPoint.y/SY,s=10;g.save();g.strokeStyle='#f59e0b';g.lineWidth=4;g.beginPath();g.moveTo(x-s,y-s);g.lineTo(x+s,y+s);g.moveTo(x+s,y-s);g.lineTo(x-s,y+s);g.stroke();g.restore()}
+  if(pts.length){g.fillStyle='#22c55e';pts.forEach(p=>{g.beginPath();g.arc(p.x/SX,p.y/SY,3.5,0,Math.PI*2);g.fill()})}
+  if(selecting&&dragging&&a&&b){let x=Math.min(a.x,b.x),y=Math.min(a.y,b.y),w=Math.abs(a.x-b.x),h=Math.abs(a.y-b.y);g.fillStyle='rgba(37,99,235,.18)';g.fillRect(x,y,w,h);g.strokeStyle='#3b82f6';g.lineWidth=3;g.setLineDash([10,6]);g.strokeRect(x,y,w,h);g.setLineDash([])}
+  step(now)
+}requestAnimationFrame(draw);
+view.addEventListener('pointerdown',e=>{if(!selecting)return;e.preventDefault();view.setPointerCapture(e.pointerId);dragging=true;a=pos(e);b=a});
+view.addEventListener('pointermove',e=>{if(selecting&&dragging){e.preventDefault();b=pos(e)}});
+view.addEventListener('pointerup',e=>{if(!selecting||!dragging)return;e.preventDefault();b=pos(e);dragging=false;selecting=false;let x=Math.min(a.x,b.x),y=Math.min(a.y,b.y),w=Math.abs(a.x-b.x),h=Math.abs(a.y-b.y);if(w<35||h<35){fail('選取範圍太小，請重新選擇。');return}initTrack({x,y,w,h})});
+function stopCameraTracks(){
+  if(stream){
+    stream.getTracks().forEach(t=>t.stop());
+    stream=null;
+  }
+  video.srcObject=null;
+}
+
+async function refreshVideoDevices(){
+  try{
+    const devices=await navigator.mediaDevices.enumerateDevices();
+    videoDevices=devices.filter(d=>d.kind==='videoinput');
+
+    if(currentDeviceId){
+      const idx=videoDevices.findIndex(d=>d.deviceId===currentDeviceId);
+      if(idx>=0) currentDeviceIndex=idx;
+    }
+
+    // 手機即使只列出一個裝置，也保留按鈕以嘗試 facingMode 前/後鏡頭切換。
+    switchBtn.disabled=!cameraReady;
+  }catch(e){
+    videoDevices=[];
+    switchBtn.disabled=!cameraReady;
+  }
+}
+
+async function startCamera(deviceId=null,facingMode=null){
+  stopCameraTracks();
+
+  const videoConstraint={
+    width:{ideal:640},
+    height:{ideal:480}
+  };
+
+  if(deviceId){
+    videoConstraint.deviceId={exact:deviceId};
+  }else{
+    videoConstraint.facingMode={ideal:facingMode||preferredFacing};
+  }
+
+  stream=await navigator.mediaDevices.getUserMedia({
+    audio:false,
+    video:videoConstraint
+  });
+
+  video.srcObject=stream;
+  await video.play();
+
+  const track=stream.getVideoTracks()[0];
+  const settings=track.getSettings?track.getSettings():{};
+
+  currentDeviceId=settings.deviceId||deviceId||null;
+
+  const actualFacing=settings.facingMode||facingMode||preferredFacing||'';
+  mirror=actualFacing==='user';
+
+  cameraReady=true;
+  msg.style.display='none';
+  startBtn.disabled=true;
+  selectBtn.disabled=!cvReady;
+  switchBtn.disabled=false;
+
+  await refreshVideoDevices();
+
+  if(currentDeviceId){
+    const idx=videoDevices.findIndex(d=>d.deviceId===currentDeviceId);
+    if(idx>=0) currentDeviceIndex=idx;
+  }
+}
+
+async function switchCamera(){
+  if(!cameraReady) return;
+
+  stopTracking();
+  selectBtn.disabled=true;
+  switchBtn.disabled=true;
+  say('正在切換攝影機…');
+
+  try{
+    await refreshVideoDevices();
+
+    if(videoDevices.length>1){
+      let nextIndex=currentDeviceIndex>=0
+        ? (currentDeviceIndex+1)%videoDevices.length
+        : 0;
+
+      // 如果列舉順序剛好回到目前鏡頭，再往下一個。
+      if(videoDevices[nextIndex] && videoDevices[nextIndex].deviceId===currentDeviceId){
+        nextIndex=(nextIndex+1)%videoDevices.length;
+      }
+
+      const next=videoDevices[nextIndex];
+      currentDeviceIndex=nextIndex;
+      await startCamera(next.deviceId,null);
+    }else{
+      // 部分手機瀏覽器無法完整列出鏡頭，改用 facingMode 切換前/後鏡頭。
+      preferredFacing=preferredFacing==='user'?'environment':'user';
+      currentDeviceId=null;
+      currentDeviceIndex=-1;
+      await startCamera(null,preferredFacing);
+    }
+
+    selectBtn.disabled=!cvReady;
+    switchBtn.disabled=false;
+    say('鏡頭已切換。請重新選擇要追蹤的物件。');
+  }catch(e){
+    // 若裝置 ID 切換失敗，再嘗試前/後鏡頭 facingMode。
+    try{
+      preferredFacing=preferredFacing==='user'?'environment':'user';
+      currentDeviceId=null;
+      currentDeviceIndex=-1;
+      await startCamera(null,preferredFacing);
+      selectBtn.disabled=!cvReady;
+      switchBtn.disabled=false;
+      say('鏡頭已切換。請重新選擇要追蹤的物件。');
+    }catch(e2){
+      switchBtn.disabled=false;
+      selectBtn.disabled=!cvReady;
+      fail('切換攝影機失敗：'+(e2.message||e2));
+    }
+  }
+}
+
+startBtn.onclick=async()=>{
+  try{
+    preferredFacing='user';
+    await startCamera(null,preferredFacing);
+    say('攝影機已啟動。按「選擇追蹤物件」。');
+  }catch(e){
+    fail('無法啟動攝影機：'+(e.message||e));
+  }
+};
+
+switchBtn.onclick=switchCamera;
+selectBtn.onclick=()=>{if(!cameraReady||!cvReady)return;stopTracking();selecting=true;say('請在畫面上拖曳矩形，框住要追蹤的物件。')};
+stopBtn.onclick=()=>{stopTracking();say('追蹤已停止，可重新選擇物件。')};
+
+window.addEventListener('pagehide',()=>{
+  stopTracking();
+  stopCameraTracks();
+});
+function cvReadyNow(){if(cvReady)return;cvReady=true;selectBtn.disabled=!cameraReady;if(cameraReady)say('OpenCV.js 已載入，可以開始框選物件。')}
+window.onOpenCvScriptLoaded=()=>{if(window.cv&&typeof window.cv.then==='function'){window.cv.then(m=>{window.cv=m;cvReadyNow()}).catch(e=>fail('OpenCV.js 載入失敗：'+e));return}if(window.cv&&window.cv.Mat){cvReadyNow();return}if(window.cv)window.cv.onRuntimeInitialized=cvReadyNow};
+</script>
+<script async src="https://docs.opencv.org/4.x/opencv.js" onload="onOpenCvScriptLoaded()"></script>
+</body></html>
