@@ -1,0 +1,1571 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="SegFormer-B1 + ADE20K 150 類即時語意分割｜AI 工程素養互動教學平台">
+<title>深度學習 / SegFormer-B1－語意分割</title>
+
+<style>
+:root{
+  --bg:#f4f7fb;--card:#fff;--text:#172033;--muted:#667085;
+  --blue:#2563eb;--blue2:#1d4ed8;--red:#dc2626;--green:#15803d;
+  --purple:#7c3aed;--line:#d9e1ec;--soft:#eef4ff;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+  background:var(--bg);color:var(--text)
+}
+header{padding:22px 6vw;background:#fff;border-bottom:1px solid var(--line)}
+.header-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px}
+.back{color:var(--blue2);text-decoration:none;font-weight:800;font-size:14px}
+h1{margin:0 0 7px;font-size:clamp(28px,4vw,42px)}
+header p{margin:0;color:var(--muted);line-height:1.7}
+
+main{
+  max-width:1240px;margin:24px auto;padding:0 18px;
+  display:grid;grid-template-columns:1.35fr .85fr;gap:20px
+}
+.card{
+  background:#fff;border:1px solid var(--line);border-radius:18px;
+  padding:18px;box-shadow:0 8px 28px #0000000a
+}
+.stage{
+  position:relative;background:#0b1020;border-radius:14px;overflow:hidden;
+  aspect-ratio:16/10;display:flex;align-items:center;justify-content:center
+}
+video{
+  width:100%;height:100%;object-fit:cover;display:none;background:#0b1020
+}
+canvas#overlay{
+  position:absolute;inset:0;width:100%;height:100%;pointer-events:none;background:transparent
+}
+.msg{
+  color:#cbd5e1;text-align:center;padding:26px;line-height:1.7;max-width:620px
+}
+.msg b{display:block;color:#fff;font-size:21px;margin-bottom:7px}
+
+.controls{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+button{
+  border:0;border-radius:10px;padding:11px 16px;font-weight:800;
+  cursor:pointer;background:var(--blue);color:#fff
+}
+button.stop{background:var(--red)}
+button.gray{background:#e8eef8;color:#1f3b67}
+button:disabled{opacity:.45;cursor:not-allowed}
+
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}
+.metric{border:1px solid var(--line);border-radius:14px;padding:13px;min-width:0}
+.metric small{color:var(--muted);font-size:12px}
+.metric strong{
+  display:block;font-size:23px;margin-top:4px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap
+}
+
+.setting{border:1px solid var(--line);border-radius:14px;padding:14px;margin-top:14px}
+.setting-row{display:flex;justify-content:space-between;gap:12px;align-items:center}
+.setting-row b{font-size:15px}
+.value{font-weight:900;color:var(--blue)}
+input[type=range]{width:100%;margin:12px 0 4px}
+.scale-label{display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}
+
+.alert,.ok,.info{
+  margin-top:12px;padding:13px;border-radius:12px;line-height:1.6;display:none
+}
+.alert{background:#fff4f4;border:1px solid #fecaca;color:#991b1b}
+.ok{background:#f0fdf4;border:1px solid #bbf7d0;color:#166534}
+.info{background:#eff6ff;border:1px solid #bfdbfe;color:#1e40af}
+
+.progress{
+  height:8px;background:#e8eef8;border-radius:999px;overflow:hidden;
+  margin-top:12px;display:none
+}
+.progress>div{height:100%;width:0;background:var(--blue);transition:width .2s}
+
+h2{font-size:18px;margin:2px 0 12px}
+.step{padding:11px 12px;border:1px solid var(--line);border-radius:12px;margin-bottom:9px}
+.step b{display:block;margin-bottom:4px}
+.step span{font-size:14px;color:var(--muted);line-height:1.6}
+
+code{background:#eef2f7;padding:2px 5px;border-radius:5px}
+.tiny{font-size:13px;color:var(--muted);line-height:1.7}
+.badge{
+  display:inline-block;background:#ede9fe;color:#6d28d9;border-radius:999px;
+  padding:4px 8px;font-size:12px;font-weight:800
+}
+
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:8px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--muted)}
+
+.seg-list{
+  margin-top:14px;border:1px solid var(--line);border-radius:14px;
+  padding:14px;background:#fbfdff
+}
+.seg-list h2{margin-bottom:8px}
+.seg-row{
+  display:grid;grid-template-columns:auto 1fr auto;gap:9px;align-items:center;
+  padding:7px 0;border-bottom:1px dashed var(--line);font-size:13px
+}
+.seg-row:last-child{border-bottom:0}
+.swatch{
+  width:13px;height:13px;border-radius:3px;border:1px solid #fff;
+  box-shadow:0 0 0 1px #cbd5e1
+}
+.seg-row b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.seg-row span{color:var(--muted);font-weight:800}
+
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:12px;font-size:12px;color:var(--muted)}
+.mask-key{
+  width:18px;height:12px;border-radius:3px;
+  background:linear-gradient(90deg,#3b82f6,#22c55e,#f59e0b,#a855f7)
+}
+
+footer{border-top:1px solid var(--line);background:#fff;margin-top:12px}
+.footer-inner{
+  max-width:1240px;margin:auto;padding:22px 18px;color:var(--muted);
+  font-size:13px;line-height:1.8;text-align:center
+}
+
+@media(max-width:920px){
+  main{grid-template-columns:1fr}
+  .grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:520px){
+  .grid{grid-template-columns:1fr 1fr}
+  .metric strong{font-size:20px}
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="header-top">
+    <a class="back" href="../">← 回 AI 教學首頁</a>
+    <span class="badge">DEEP LEARNING</span>
+  </div>
+  <h1>Live 語意分割｜SegFormer-B1</h1>
+  <p>利用 SegFormer-B1 + ADE20K 150 類進行即時 Semantic Segmentation，觀察辦公室、電腦教室與一般環境中的 Pixel-level 分類結果。</p>
+</header>
+
+<main>
+
+<section class="card">
+
+  <div class="stage">
+    <div class="msg" id="msg">
+      <b>尚未啟動攝影機</b>
+      按「開始分割」，允許瀏覽器使用攝影機；第一次使用會下載 SegFormer-B1 模型。
+    </div>
+
+    <video id="video" playsinline autoplay muted></video>
+    <canvas id="overlay"></canvas>
+  </div>
+
+  <div class="legend">
+    <span><i class="mask-key"></i> Semantic Mask Overlay：不同顏色代表不同語意類別</span>
+  </div>
+
+  <div class="controls">
+    <button id="start">開始分割</button>
+    <button id="stop" class="stop" disabled>停止分割</button>
+    <button id="switchCamera" class="gray" disabled>切換鏡頭</button>
+  </div>
+
+  <div class="setting">
+    <div class="setting-row">
+      <b>Mask Overlay 透明度</b>
+      <span class="value" id="alphaValue">45%</span>
+    </div>
+    <input id="alpha" type="range" min="0.10" max="0.85" step="0.05" value="0.45">
+    <div class="scale-label"><span>10%：較透明</span><span>85%：Mask 較明顯</span></div>
+  </div>
+
+  <div class="setting">
+    <div class="setting-row">
+      <b>AI 更新間隔</b>
+      <span class="value" id="intervalValue">1200 ms</span>
+    </div>
+    <input id="interval" type="range" min="500" max="3000" step="100" value="1200">
+    <div class="scale-label"><span>500 ms：更新較快</span><span>3000 ms：硬體負擔較低</span></div>
+    <p class="tiny" style="margin:8px 0 0">
+      Webcam 持續播放；SegFormer 在背景 Worker 中執行，不建立舊影格佇列，只處理最新畫面。
+    </p>
+  </div>
+
+  <div id="progress" class="progress"><div id="bar"></div></div>
+  <div id="info" class="info"></div>
+  <div id="err" class="alert"></div>
+  <div id="ok" class="ok"></div>
+
+  <div class="grid">
+    <div class="metric"><small>主要語意類別</small><strong id="topClass">—</strong></div>
+    <div class="metric"><small>Pixel 占比</small><strong id="topShare">0%</strong></div>
+    <div class="metric"><small>推論時間</small><strong id="latency">—</strong></div>
+    <div class="metric"><small>執行後端</small><strong id="backend">—</strong></div>
+  </div>
+
+  <div class="seg-list">
+    <h2>目前主要語意區域</h2>
+    <div id="segList" class="tiny">尚未開始語意分割。</div>
+  </div>
+
+  <p class="tiny">
+    <span class="badge">SegFormer-B1</span>
+    本頁使用 ADE20K 150-class SegFormer-B1 FP32 模型。模型在背景 Web Worker 執行，停止後會釋放 Pipeline 並終止 Worker。
+  </p>
+
+</section>
+
+<aside class="card">
+
+  <h2>SegFormer 如何進行語意分割？</h2>
+
+  <div class="step">
+    <b>① Input Image</b>
+    <span>取得 Webcam 畫面，由模型的 Image Processor 自動進行 Resize、Normalize 與 Tensor 建立。</span>
+  </div>
+
+  <div class="step">
+    <b>② MiT Encoder</b>
+    <span>利用 Mix Transformer 建立多尺度階層式特徵，同時保留局部細節與較大範圍的語意資訊。</span>
+  </div>
+
+  <div class="step">
+    <b>③ Multi-scale Features</b>
+    <span>不同解析尺度的 Transformer Features 同時描述物件細節、形狀與場景關係。</span>
+  </div>
+
+  <div class="step">
+    <b>④ Lightweight MLP Decoder</b>
+    <span>SegFormer 不使用複雜 Decoder，而以輕量 MLP 融合不同尺度的 Features。</span>
+  </div>
+
+  <div class="step">
+    <b>⑤ Pixel Classification</b>
+    <span>對影像中的每一個 Pixel 從 ADE20K 的 150 個語意類別中進行判斷。</span>
+  </div>
+
+  <div class="step">
+    <b>⑥ Semantic Mask</b>
+    <span>相同語意類別的 Pixel 使用相同顏色，形成完整的 Segmentation Mask。</span>
+  </div>
+
+  <div class="step">
+    <b>⑦ Mask Overlay</b>
+    <span>將彩色 Semantic Mask 半透明疊回原始 Webcam 畫面。</span>
+  </div>
+
+  <h2 style="margin-top:18px">AlexNet、YOLOv4 與 SegFormer</h2>
+
+  <table>
+    <tr><th>模型</th><th>核心任務</th><th>輸出</th></tr>
+    <tr><td>AlexNet</td><td>Image Classification</td><td>整張圖的類別</td></tr>
+    <tr><td>YOLOv4</td><td>Object Detection</td><td>Bounding Box + 類別</td></tr>
+    <tr><td>SegFormer</td><td>Semantic Segmentation</td><td>每個 Pixel 的類別</td></tr>
+  </table>
+
+  <h2 style="margin-top:18px">ADE20K 適合室內場景的類別例子</h2>
+
+  <p class="tiny">
+    wall、floor、ceiling、windowpane、door、table、chair、cabinet、desk、computer、
+    screen、bookcase、shelf、lamp、person、building、road、tree 等，共 150 類。
+  </p>
+
+  <h2 style="margin-top:18px">BiSeNet v2 與 SegFormer</h2>
+
+  <table>
+    <tr><th>模型</th><th>特色</th></tr>
+    <tr><td>BiSeNet v2</td><td>CNN-based，重視輕量與即時性</td></tr>
+    <tr><td>SegFormer</td><td>Transformer-based，強調多尺度語意理解</td></tr>
+  </table>
+
+  <h2 style="margin-top:18px">使用提醒</h2>
+
+  <p class="tiny">
+    Webcam 需要 <b>HTTPS 或 localhost</b>。第一次使用需要從 Hugging Face 下載 FP32 SegFormer-B1 模型，
+    之後瀏覽器通常會保留下載快取。按下「停止分割」會釋放模型執行資源，但瀏覽器快取檔案仍會保留。
+  </p>
+
+</aside>
+
+</main>
+
+<footer>
+  <div class="footer-inner">
+    AI 工程素養互動教學平台<br>
+    大安高工控制科邵時俊老師製作
+  </div>
+</footer>
+
+<canvas id="captureCanvas" width="640" height="480" style="display:none"></canvas>
+
+<script>
+'use strict';
+
+const MODEL_ID='Xenova/segformer-b1-finetuned-ade-512-512';
+
+const video=document.getElementById('video');
+const overlay=document.getElementById('overlay');
+const overlayCtx=overlay.getContext('2d');
+
+const captureCanvas=document.getElementById('captureCanvas');
+const captureCtx=captureCanvas.getContext('2d',{willReadFrequently:true});
+
+const msg=document.getElementById('msg');
+
+const startBtn=document.getElementById('start');
+const stopBtn=document.getElementById('stop');
+const switchCameraBtn=document.getElementById('switchCamera');
+
+const alphaSlider=document.getElementById('alpha');
+const alphaValue=document.getElementById('alphaValue');
+
+const intervalSlider=document.getElementById('interval');
+const intervalValue=document.getElementById('intervalValue');
+
+const topClassEl=document.getElementById('topClass');
+const topShareEl=document.getElementById('topShare');
+const latencyEl=document.getElementById('latency');
+const backendEl=document.getElementById('backend');
+const segList=document.getElementById('segList');
+
+const progress=document.getElementById('progress');
+const bar=document.getElementById('bar');
+
+const infoEl=document.getElementById('info');
+const errEl=document.getElementById('err');
+const okEl=document.getElementById('ok');
+
+let worker=null;
+let stream=null;
+
+let running=false;
+let processing=false;
+let modelReady=false;
+let timerId=0;
+
+let videoDevices=[];
+let currentDeviceId=null;
+let currentDeviceIndex=-1;
+let preferredFacing='user';
+let mirrored=true;
+
+let lastOverlay=null;
+
+alphaSlider.addEventListener('input',()=>{
+  alphaValue.textContent=
+    Math.round(Number(alphaSlider.value)*100)+'%';
+
+  if(lastOverlay){
+    drawOverlay(lastOverlay);
+  }
+});
+
+intervalSlider.addEventListener('input',()=>{
+  intervalValue.textContent=
+    intervalSlider.value+' ms';
+});
+
+function clearNotices(){
+  infoEl.style.display='none';
+  errEl.style.display='none';
+  okEl.style.display='none';
+}
+
+function showInfo(t){
+  infoEl.textContent=t;
+  infoEl.style.display='block';
+  errEl.style.display='none';
+  okEl.style.display='none';
+}
+
+function showError(t){
+  errEl.textContent=t;
+  errEl.style.display='block';
+  infoEl.style.display='none';
+  okEl.style.display='none';
+}
+
+function showOk(t){
+  okEl.textContent=t;
+  okEl.style.display='block';
+  infoEl.style.display='none';
+  errEl.style.display='none';
+}
+
+function setProgress(p){
+  progress.style.display='block';
+  bar.style.width=
+    Math.max(0,Math.min(100,p))+'%';
+}
+
+function hideProgress(){
+  setTimeout(()=>{
+    progress.style.display='none';
+  },250);
+}
+
+function colorForLabel(label){
+  let hash=0;
+
+  for(let i=0;i<label.length;i++){
+    hash=
+      ((hash<<5)-hash)+
+      label.charCodeAt(i);
+
+    hash|=0;
+  }
+
+  const hue=
+    Math.abs(hash)%360;
+
+  return hslToRgb(
+    hue/360,
+    .70,
+    .52
+  );
+}
+
+function hslToRgb(h,s,l){
+  let r,g,b;
+
+  if(s===0){
+    r=g=b=l;
+
+  }else{
+    const hue2rgb=(p,q,t)=>{
+      if(t<0)t+=1;
+      if(t>1)t-=1;
+      if(t<1/6)return p+(q-p)*6*t;
+      if(t<1/2)return q;
+      if(t<2/3)return p+(q-p)*(2/3-t)*6;
+      return p;
+    };
+
+    const q=
+      l<.5
+        ? l*(1+s)
+        : l+s-l*s;
+
+    const p=2*l-q;
+
+    r=hue2rgb(p,q,h+1/3);
+    g=hue2rgb(p,q,h);
+    b=hue2rgb(p,q,h-1/3);
+  }
+
+  return [
+    Math.round(r*255),
+    Math.round(g*255),
+    Math.round(b*255)
+  ];
+}
+
+function buildWorker(){
+  if(worker) return;
+
+  const workerCode=`
+    import {
+      pipeline,
+      RawImage,
+      env
+    } from 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.8.1';
+
+    const MODEL_ID='${MODEL_ID}';
+
+    env.allowLocalModels=false;
+    env.useBrowserCache=true;
+
+    let segmenter=null;
+    let backend='—';
+    let busy=false;
+
+    function colorForLabel(label){
+      let hash=0;
+
+      for(let i=0;i<label.length;i++){
+        hash=
+          ((hash<<5)-hash)+
+          label.charCodeAt(i);
+
+        hash|=0;
+      }
+
+      const hue=
+        Math.abs(hash)%360;
+
+      return hslToRgb(
+        hue/360,
+        .70,
+        .52
+      );
+    }
+
+    function hslToRgb(h,s,l){
+      let r,g,b;
+
+      if(s===0){
+        r=g=b=l;
+
+      }else{
+        const hue2rgb=(p,q,t)=>{
+          if(t<0)t+=1;
+          if(t>1)t-=1;
+          if(t<1/6)return p+(q-p)*6*t;
+          if(t<1/2)return q;
+          if(t<2/3)return p+(q-p)*(2/3-t)*6;
+          return p;
+        };
+
+        const q=
+          l<.5
+            ? l*(1+s)
+            : l+s-l*s;
+
+        const p=2*l-q;
+
+        r=hue2rgb(p,q,h+1/3);
+        g=hue2rgb(p,q,h);
+        b=hue2rgb(p,q,h-1/3);
+      }
+
+      return [
+        Math.round(r*255),
+        Math.round(g*255),
+        Math.round(b*255)
+      ];
+    }
+
+    async function createPipeline(){
+
+      const progress_callback=(info)=>{
+        let progress=null;
+
+        if(
+          typeof info.progress==='number' &&
+          Number.isFinite(info.progress)
+        ){
+          progress=info.progress;
+        }
+
+        self.postMessage({
+          type:'load-progress',
+          status:info.status || '',
+          file:info.file || '',
+          progress
+        });
+      };
+
+      try{
+        self.postMessage({
+          type:'status',
+          text:'正在以 WebGPU 載入 SegFormer-B1 FP32…'
+        });
+
+        segmenter=
+          await pipeline(
+            'image-segmentation',
+            MODEL_ID,
+            {
+              device:'webgpu',
+              dtype:'fp32',
+              progress_callback
+            }
+          );
+
+        backend='WebGPU';
+
+      }catch(webgpuError){
+
+        if(segmenter){
+          try{
+            await segmenter.dispose();
+          }catch(e){}
+
+          segmenter=null;
+        }
+
+        self.postMessage({
+          type:'status',
+          text:'WebGPU 無法使用，改用 WASM FP32…'
+        });
+
+        segmenter=
+          await pipeline(
+            'image-segmentation',
+            MODEL_ID,
+            {
+              device:'wasm',
+              dtype:'fp32',
+              progress_callback
+            }
+          );
+
+        backend='WASM';
+      }
+
+      self.postMessage({
+        type:'ready',
+        backend
+      });
+    }
+
+    async function runSegmentation(msg){
+
+      if(
+        !segmenter ||
+        busy
+      ){
+        return;
+      }
+
+      busy=true;
+
+      try{
+        const pixels=
+          new Uint8ClampedArray(
+            msg.buffer
+          );
+
+        const image=
+          new RawImage(
+            pixels,
+            msg.width,
+            msg.height,
+            4
+          );
+
+        const t0=performance.now();
+
+        const result=
+          await segmenter(image);
+
+        const latency=
+          performance.now()-t0;
+
+        let outW=msg.width;
+        let outH=msg.height;
+
+        if(
+          result.length &&
+          result[0].mask
+        ){
+          outW=
+            result[0].mask.width;
+
+          outH=
+            result[0].mask.height;
+        }
+
+        const total=
+          outW*outH;
+
+        const rgba=
+          new Uint8ClampedArray(
+            total*4
+          );
+
+        const segments=[];
+
+        for(const item of result){
+
+          if(!item.mask) continue;
+
+          const label=
+            item.label || 'unknown';
+
+          const mask=item.mask;
+          const data=mask.data;
+
+          const color=
+            colorForLabel(label);
+
+          let count=0;
+
+          const n=
+            Math.min(
+              total,
+              data.length
+            );
+
+          for(let i=0;i<n;i++){
+
+            if(data[i]===0) continue;
+
+            count++;
+
+            const p=i*4;
+
+            rgba[p]=color[0];
+            rgba[p+1]=color[1];
+            rgba[p+2]=color[2];
+            rgba[p+3]=255;
+          }
+
+          if(count>0){
+            segments.push({
+              label,
+              count,
+              share:
+                count/total,
+              color
+            });
+          }
+        }
+
+        segments.sort(
+          (a,b)=>b.count-a.count
+        );
+
+        self.postMessage(
+          {
+            type:'result',
+            width:outW,
+            height:outH,
+            buffer:rgba.buffer,
+            segments,
+            latency,
+            backend
+          },
+          [rgba.buffer]
+        );
+
+      }catch(error){
+
+        self.postMessage({
+          type:'error',
+          text:
+            error?.message ||
+            String(error)
+        });
+
+      }finally{
+        busy=false;
+      }
+    }
+
+    self.onmessage=async(event)=>{
+
+      const msg=event.data;
+
+      if(msg.type==='init'){
+
+        try{
+          await createPipeline();
+
+        }catch(error){
+          self.postMessage({
+            type:'error',
+            text:
+              error?.message ||
+              String(error)
+          });
+        }
+      }
+
+      if(msg.type==='infer'){
+        await runSegmentation(msg);
+      }
+
+      if(msg.type==='dispose'){
+
+        try{
+          if(segmenter){
+            await segmenter.dispose();
+            segmenter=null;
+          }
+        }catch(e){}
+
+        self.postMessage({
+          type:'disposed'
+        });
+
+        self.close();
+      }
+    };
+  `;
+
+  const blob=
+    new Blob(
+      [workerCode],
+      {type:'text/javascript'}
+    );
+
+  const url=
+    URL.createObjectURL(blob);
+
+  worker=
+    new Worker(
+      url,
+      {type:'module'}
+    );
+
+  URL.revokeObjectURL(url);
+
+  worker.onmessage=
+    handleWorkerMessage;
+
+  worker.onerror=(e)=>{
+    showError(
+      'SegFormer Worker 發生錯誤：'+
+      (e.message || '未知錯誤')
+    );
+
+    processing=false;
+  };
+
+  worker.postMessage({
+    type:'init'
+  });
+}
+
+function handleWorkerMessage(event){
+
+  const data=event.data;
+
+  if(data.type==='status'){
+    showInfo(data.text);
+  }
+
+  if(data.type==='load-progress'){
+
+    if(
+      typeof data.progress==='number'
+    ){
+      setProgress(data.progress);
+    }
+
+    if(data.file){
+      showInfo(
+        '正在載入模型：'+
+        data.file
+      );
+    }
+  }
+
+  if(data.type==='ready'){
+
+    modelReady=true;
+
+    backendEl.textContent=
+      data.backend;
+
+    setProgress(100);
+    hideProgress();
+
+    showOk(
+      'SegFormer-B1 FP32 模型載入完成｜ADE20K 150 classes｜'+
+      data.backend
+    );
+
+    if(running){
+      scheduleNextInference(100);
+    }
+  }
+
+  if(data.type==='result'){
+
+    processing=false;
+
+    backendEl.textContent=
+      data.backend;
+
+    latencyEl.textContent=
+      Math.round(
+        data.latency
+      )+' ms';
+
+    lastOverlay={
+      width:data.width,
+      height:data.height,
+      pixels:
+        new Uint8ClampedArray(
+          data.buffer
+        )
+    };
+
+    drawOverlay(
+      lastOverlay
+    );
+
+    updateSegments(
+      data.segments
+    );
+
+    if(running){
+      scheduleNextInference();
+    }
+  }
+
+  if(data.type==='error'){
+
+    processing=false;
+
+    showError(
+      'SegFormer 推論失敗：'+
+      data.text
+    );
+
+    if(running){
+      scheduleNextInference(
+        1500
+      );
+    }
+  }
+
+  if(data.type==='disposed'){
+
+    modelReady=false;
+    processing=false;
+    backendEl.textContent='—';
+
+    if(worker){
+      worker.terminate();
+      worker=null;
+    }
+  }
+}
+
+function drawOverlay(result){
+
+  if(!result) return;
+
+  overlay.width=
+    result.width;
+
+  overlay.height=
+    result.height;
+
+  const img=
+    new ImageData(
+      new Uint8ClampedArray(
+        result.pixels
+      ),
+      result.width,
+      result.height
+    );
+
+  const temp=
+    document.createElement(
+      'canvas'
+    );
+
+  temp.width=result.width;
+  temp.height=result.height;
+
+  const tctx=
+    temp.getContext('2d');
+
+  tctx.putImageData(
+    img,0,0
+  );
+
+  overlayCtx.clearRect(
+    0,0,
+    overlay.width,
+    overlay.height
+  );
+
+  overlayCtx.save();
+
+  overlayCtx.globalAlpha=
+    Number(
+      alphaSlider.value
+    );
+
+  overlayCtx.drawImage(
+    temp,
+    0,0,
+    overlay.width,
+    overlay.height
+  );
+
+  overlayCtx.restore();
+}
+
+function updateSegments(segments){
+
+  if(
+    !segments ||
+    !segments.length
+  ){
+    topClassEl.textContent='—';
+    topShareEl.textContent='0%';
+    segList.textContent=
+      '目前沒有可顯示的語意區域。';
+
+    return;
+  }
+
+  const top=segments[0];
+
+  topClassEl.textContent=
+    top.label;
+
+  topShareEl.textContent=
+    (top.share*100)
+      .toFixed(1)+'%';
+
+  segList.innerHTML='';
+
+  for(
+    const item of
+    segments.slice(0,10)
+  ){
+
+    const row=
+      document.createElement(
+        'div'
+      );
+
+    row.className=
+      'seg-row';
+
+    const swatch=
+      document.createElement(
+        'i'
+      );
+
+    swatch.className=
+      'swatch';
+
+    swatch.style.background=
+      `rgb(${item.color[0]},${item.color[1]},${item.color[2]})`;
+
+    const name=
+      document.createElement(
+        'b'
+      );
+
+    name.textContent=
+      item.label;
+
+    const share=
+      document.createElement(
+        'span'
+      );
+
+    share.textContent=
+      (item.share*100)
+        .toFixed(1)+'%';
+
+    row.append(
+      swatch,
+      name,
+      share
+    );
+
+    segList.appendChild(
+      row
+    );
+  }
+}
+
+async function refreshVideoDevices(){
+
+  try{
+
+    const devices=
+      await navigator.mediaDevices
+        .enumerateDevices();
+
+    videoDevices=
+      devices.filter(
+        d=>d.kind==='videoinput'
+      );
+
+    if(currentDeviceId){
+
+      const idx=
+        videoDevices.findIndex(
+          d=>
+            d.deviceId===
+            currentDeviceId
+        );
+
+      if(idx>=0){
+        currentDeviceIndex=idx;
+      }
+    }
+
+    switchCameraBtn.disabled=
+      !running ||
+      videoDevices.length<2;
+
+  }catch(e){
+
+    videoDevices=[];
+    switchCameraBtn.disabled=true;
+  }
+}
+
+function stopCameraTracks(){
+
+  if(stream){
+
+    stream
+      .getTracks()
+      .forEach(
+        t=>t.stop()
+      );
+
+    stream=null;
+  }
+
+  video.srcObject=null;
+}
+
+function updateMirrorFromTrack(
+  track,
+  requestedFacing=''
+){
+
+  const settings=
+    track?.getSettings
+      ? track.getSettings()
+      : {};
+
+  const actualFacing=
+    settings.facingMode ||
+    requestedFacing ||
+    '';
+
+  if(actualFacing==='user'){
+    mirrored=true;
+
+  }else if(
+    actualFacing===
+    'environment'
+  ){
+    mirrored=false;
+
+  }else{
+    mirrored=
+      preferredFacing==='user';
+  }
+
+  const transform=
+    mirrored
+      ? 'scaleX(-1)'
+      : 'none';
+
+  video.style.transform=
+    transform;
+
+  overlay.style.transform=
+    transform;
+}
+
+async function startCamera(
+  deviceId=null,
+  facingMode=null
+){
+
+  stopCameraTracks();
+
+  const constraints={
+    audio:false,
+    video:{
+      width:{ideal:640},
+      height:{ideal:480}
+    }
+  };
+
+  if(deviceId){
+
+    constraints.video.deviceId=
+      {exact:deviceId};
+
+  }else if(facingMode){
+
+    constraints.video.facingMode=
+      {ideal:facingMode};
+  }
+
+  stream=
+    await navigator.mediaDevices
+      .getUserMedia(
+        constraints
+      );
+
+  video.srcObject=stream;
+  video.style.display='block';
+
+  await video.play();
+
+  const track=
+    stream
+      .getVideoTracks()[0];
+
+  const settings=
+    track?.getSettings
+      ? track.getSettings()
+      : {};
+
+  currentDeviceId=
+    settings.deviceId ||
+    deviceId ||
+    null;
+
+  updateMirrorFromTrack(
+    track,
+    facingMode
+  );
+
+  msg.style.display='none';
+
+  await refreshVideoDevices();
+
+  if(currentDeviceId){
+
+    currentDeviceIndex=
+      videoDevices.findIndex(
+        d=>
+          d.deviceId===
+          currentDeviceId
+      );
+  }
+}
+
+async function switchCamera(){
+
+  if(
+    !running ||
+    videoDevices.length<2
+  ){
+    return;
+  }
+
+  try{
+
+    currentDeviceIndex=
+      currentDeviceIndex>=0
+        ? (
+            currentDeviceIndex+1
+          )%
+          videoDevices.length
+        : 0;
+
+    const next=
+      videoDevices[
+        currentDeviceIndex
+      ];
+
+    await startCamera(
+      next.deviceId,
+      null
+    );
+
+    showOk(
+      '已切換攝影機。'
+    );
+
+  }catch(e){
+
+    showError(
+      '切換攝影機失敗：'+
+      (e.message||e)
+    );
+  }
+}
+
+function scheduleNextInference(
+  customDelay=null
+){
+
+  if(!running) return;
+
+  if(timerId){
+    clearTimeout(timerId);
+  }
+
+  const delay=
+    customDelay ??
+    Number(
+      intervalSlider.value
+    );
+
+  timerId=
+    setTimeout(
+      captureAndInfer,
+      delay
+    );
+}
+
+function captureAndInfer(){
+
+  if(
+    !running ||
+    processing ||
+    !modelReady ||
+    !worker ||
+    video.readyState<2
+  ){
+    scheduleNextInference(
+      200
+    );
+
+    return;
+  }
+
+  processing=true;
+
+  captureCanvas.width=640;
+  captureCanvas.height=480;
+
+  captureCtx.setTransform(
+    1,0,0,1,0,0
+  );
+
+  captureCtx.clearRect(
+    0,0,
+    640,480
+  );
+
+  captureCtx.drawImage(
+    video,
+    0,0,
+    640,480
+  );
+
+  const image=
+    captureCtx.getImageData(
+      0,0,
+      640,480
+    );
+
+  worker.postMessage(
+    {
+      type:'infer',
+      width:640,
+      height:480,
+      buffer:
+        image.data.buffer
+    },
+    [
+      image.data.buffer
+    ]
+  );
+}
+
+async function startSystem(){
+
+  if(running) return;
+
+  clearNotices();
+
+  startBtn.disabled=true;
+
+  try{
+
+    preferredFacing='user';
+
+    await startCamera(
+      null,
+      preferredFacing
+    );
+
+    running=true;
+
+    stopBtn.disabled=false;
+
+    await refreshVideoDevices();
+
+    buildWorker();
+
+    showInfo(
+      '正在載入 SegFormer-B1 FP32 模型…'
+    );
+
+  }catch(e){
+
+    running=false;
+
+    stopCameraTracks();
+
+    video.style.display='none';
+    msg.style.display='block';
+
+    startBtn.disabled=false;
+
+    showError(
+      '啟動失敗：'+
+      (e.message||e)
+    );
+  }
+}
+
+async function disposeWorker(){
+
+  if(!worker) return;
+
+  const currentWorker=worker;
+
+  await new Promise(resolve=>{
+
+    let settled=false;
+
+    const finish=()=>{
+      if(settled) return;
+
+      settled=true;
+
+      try{
+        currentWorker.terminate();
+      }catch(e){}
+
+      if(worker===currentWorker){
+        worker=null;
+      }
+
+      resolve();
+    };
+
+    const timeout=
+      setTimeout(
+        finish,
+        3000
+      );
+
+    const oldHandler=
+      currentWorker.onmessage;
+
+    currentWorker.onmessage=
+      (event)=>{
+
+        if(
+          event.data?.type===
+          'disposed'
+        ){
+          clearTimeout(
+            timeout
+          );
+
+          finish();
+
+          return;
+        }
+
+        if(oldHandler){
+          oldHandler(event);
+        }
+      };
+
+    try{
+
+      currentWorker.postMessage({
+        type:'dispose'
+      });
+
+    }catch(e){
+
+      clearTimeout(
+        timeout
+      );
+
+      finish();
+    }
+  });
+
+  modelReady=false;
+  processing=false;
+  backendEl.textContent='—';
+}
+
+async function stopSystem(){
+
+  running=false;
+
+  if(timerId){
+    clearTimeout(timerId);
+    timerId=0;
+  }
+
+  stopBtn.disabled=true;
+  switchCameraBtn.disabled=true;
+  startBtn.disabled=true;
+
+  stopCameraTracks();
+
+  video.pause();
+  video.style.display='none';
+
+  overlayCtx.clearRect(
+    0,0,
+    overlay.width,
+    overlay.height
+  );
+
+  overlay.width=1;
+  overlay.height=1;
+
+  captureCanvas.width=1;
+  captureCanvas.height=1;
+
+  lastOverlay=null;
+
+  latencyEl.textContent='—';
+  backendEl.textContent='—';
+
+  msg.style.display='block';
+
+  showInfo(
+    '正在停止 Webcam 並釋放 SegFormer-B1 模型記憶體…'
+  );
+
+  await disposeWorker();
+
+  topClassEl.textContent='—';
+  topShareEl.textContent='0%';
+  segList.textContent=
+    '尚未開始語意分割。';
+
+  startBtn.disabled=false;
+
+  showInfo(
+    '已停止語意分割並釋放模型執行資源。再次開始時會從瀏覽器快取重新載入模型。'
+  );
+}
+
+startBtn.addEventListener(
+  'click',
+  startSystem
+);
+
+stopBtn.addEventListener(
+  'click',
+  ()=>{
+    void stopSystem();
+  }
+);
+
+switchCameraBtn.addEventListener(
+  'click',
+  switchCamera
+);
+
+window.addEventListener(
+  'pagehide',
+  ()=>{
+    if(worker){
+      try{
+        worker.postMessage({
+          type:'dispose'
+        });
+      }catch(e){}
+
+      worker.terminate();
+      worker=null;
+    }
+
+    stopCameraTracks();
+  }
+);
+</script>
+
+</body>
+</html>
