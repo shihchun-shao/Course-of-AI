@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="description" content="SegFormer-B1 + COCO-Stuff 171 類即時語意分割｜AI 工程素養互動教學平台">
-<title>深度學習 / SegFormer-B1 + COCO-Stuff 171－語意分割</title>
+<meta name="description" content="MaskFormer + ResNet-50 + COCO-Stuff 171 類即時語意分割｜AI 工程素養互動教學平台">
+<title>深度學習 / MaskFormer－語意分割</title>
 
 <style>
 :root{
@@ -34,10 +34,10 @@ main{
 }
 .stage{
   position:relative;background:#0b1020;border-radius:14px;overflow:hidden;
-  aspect-ratio:16/10;display:flex;align-items:center;justify-content:center
+  aspect-ratio:4/3;display:flex;align-items:center;justify-content:center
 }
 video{
-  width:100%;height:100%;object-fit:cover;display:none;background:#0b1020
+  width:100%;height:100%;object-fit:contain;display:none;background:#0b1020
 }
 canvas#overlay{
   position:absolute;inset:0;width:100%;height:100%;pointer-events:none;background:transparent
@@ -147,8 +147,8 @@ footer{border-top:1px solid var(--line);background:#fff;margin-top:12px}
     <a class="back" href="../">← 回 AI 教學首頁</a>
     <span class="badge">DEEP LEARNING</span>
   </div>
-  <h1>Live 語意分割｜SegFormer-B1 + COCO-Stuff 171</h1>
-  <p>利用 SegFormer-B1 + COCO-Stuff 171 類進行即時 Semantic Segmentation，觀察辦公室、電腦教室與一般環境中的 Pixel-level 分類結果。</p>
+  <h1>Live 語意分割｜MaskFormer</h1>
+  <p>利用 MaskFormer + ResNet-50 + COCO-Stuff 171 類進行即時 Semantic Segmentation，觀察人物、物件與環境區域的 Pixel-level 分類結果。</p>
 </header>
 
 <main>
@@ -158,7 +158,7 @@ footer{border-top:1px solid var(--line);background:#fff;margin-top:12px}
   <div class="stage">
     <div class="msg" id="msg">
       <b>尚未啟動攝影機</b>
-      按「開始分割」，允許瀏覽器使用攝影機；第一次使用會下載 SegFormer-B1 模型。
+      按「開始分割」，允許瀏覽器使用攝影機；第一次使用會下載 MaskFormer 模型。
     </div>
 
     <video id="video" playsinline autoplay muted></video>
@@ -187,12 +187,12 @@ footer{border-top:1px solid var(--line);background:#fff;margin-top:12px}
   <div class="setting">
     <div class="setting-row">
       <b>AI 更新間隔</b>
-      <span class="value" id="intervalValue">1200 ms</span>
+      <span class="value" id="intervalValue">1800 ms</span>
     </div>
-    <input id="interval" type="range" min="500" max="3000" step="100" value="1200">
-    <div class="scale-label"><span>500 ms：更新較快</span><span>3000 ms：硬體負擔較低</span></div>
+    <input id="interval" type="range" min="700" max="4000" step="100" value="1800">
+    <div class="scale-label"><span>700 ms：更新較快</span><span>4000 ms：硬體負擔較低</span></div>
     <p class="tiny" style="margin:8px 0 0">
-      Webcam 持續播放；SegFormer 在背景 Worker 中執行，不建立舊影格佇列，只處理最新畫面。
+      Webcam 持續播放；MaskFormer 在背景 Worker 中執行，不建立舊影格佇列，只處理最新畫面。
     </p>
   </div>
 
@@ -214,15 +214,15 @@ footer{border-top:1px solid var(--line);background:#fff;margin-top:12px}
   </div>
 
   <p class="tiny">
-    <span class="badge">SegFormer-B1</span>
-    本頁使用 COCO-Stuff 171-class SegFormer-B1 FP32 模型。模型在背景 Web Worker 執行，停止後會釋放 Pipeline 並終止 Worker。
+    <span class="badge">MaskFormer</span>
+    本頁使用 MaskFormer + ResNet-50 + COCO-Stuff 171-class FP32 模型。模型在背景 Web Worker 執行，停止後會釋放 Pipeline 並終止 Worker。
   </p>
 
 </section>
 
 <aside class="card">
 
-  <h2>SegFormer 如何進行語意分割？</h2>
+  <h2>MaskFormer 如何進行語意分割？</h2>
 
   <div class="step">
     <b>① Input Image</b>
@@ -230,23 +230,23 @@ footer{border-top:1px solid var(--line);background:#fff;margin-top:12px}
   </div>
 
   <div class="step">
-    <b>② MiT Encoder</b>
-    <span>利用 Mix Transformer 建立多尺度階層式特徵，同時保留局部細節與較大範圍的語意資訊。</span>
+    <b>② ResNet-50 Backbone</b>
+    <span>利用 ResNet-50 擷取影像中的多尺度視覺特徵，建立後續遮罩與類別判斷所需要的特徵表示。</span>
   </div>
 
   <div class="step">
-    <b>③ Multi-scale Features</b>
-    <span>不同解析尺度的 Transformer Features 同時描述物件細節、形狀與場景關係。</span>
+    <b>③ Pixel Decoder</b>
+    <span>將 Backbone 的特徵轉換為適合 Pixel-level 預測的特徵，保留物件邊界與空間資訊。</span>
   </div>
 
   <div class="step">
-    <b>④ Lightweight MLP Decoder</b>
-    <span>SegFormer 不使用複雜 Decoder，而以輕量 MLP 融合不同尺度的 Features。</span>
+    <b>④ Transformer Decoder</b>
+    <span>透過 Transformer Decoder 建立一組 Mask Embeddings，讓模型同時學習區域遮罩與其語意類別。</span>
   </div>
 
   <div class="step">
-    <b>⑤ Pixel Classification</b>
-    <span>對影像中的每一個 Pixel 從 COCO-Stuff 的 171 個語意類別中進行判斷。</span>
+    <b>⑤ Mask Classification</b>
+    <span>每個預測 Mask 會搭配一個 COCO-Stuff 語意類別，再整合為每個 Pixel 的最終分類結果。</span>
   </div>
 
   <div class="step">
@@ -259,34 +259,35 @@ footer{border-top:1px solid var(--line);background:#fff;margin-top:12px}
     <span>將彩色 Semantic Mask 半透明疊回原始 Webcam 畫面。</span>
   </div>
 
-  <h2 style="margin-top:18px">AlexNet、YOLOv4 與 SegFormer</h2>
+  <h2 style="margin-top:18px">AlexNet、YOLOv4 與 MaskFormer</h2>
 
   <table>
     <tr><th>模型</th><th>核心任務</th><th>輸出</th></tr>
     <tr><td>AlexNet</td><td>Image Classification</td><td>整張圖的類別</td></tr>
     <tr><td>YOLOv4</td><td>Object Detection</td><td>Bounding Box + 類別</td></tr>
-    <tr><td>SegFormer</td><td>Semantic Segmentation</td><td>每個 Pixel 的類別</td></tr>
+    <tr><td>MaskFormer</td><td>Semantic Segmentation</td><td>每個 Pixel 的類別</td></tr>
   </table>
 
   <h2 style="margin-top:18px">COCO-Stuff 171 類別例子</h2>
 
   <p class="tiny">
-    person、chair、table、desk、laptop、monitor、keyboard、book、cabinet、shelf、door、window、wall、floor、ceiling、board、bottle、backpack、road、tree、sky 等，共 171 類。
+    person、chair、couch、bed、dining table、tv、laptop、keyboard、book、bottle、backpack、
+    cabinet、desk-stuff、door-stuff、floor-wood、wall-other、window-other、road、tree、sky-other、shelf 等，共 171 類。
   </p>
 
-  <h2 style="margin-top:18px">BiSeNet v2 與 SegFormer</h2>
+  <h2 style="margin-top:18px">BiSeNet v2 與 MaskFormer</h2>
 
   <table>
     <tr><th>模型</th><th>特色</th></tr>
     <tr><td>BiSeNet v2</td><td>CNN-based，重視輕量與即時性</td></tr>
-    <tr><td>SegFormer</td><td>Transformer-based，強調多尺度語意理解</td></tr>
+    <tr><td>MaskFormer</td><td>Mask Classification，直接以「遮罩 + 類別」建構語意分割結果</td></tr>
   </table>
 
   <h2 style="margin-top:18px">使用提醒</h2>
 
   <p class="tiny">
-    Webcam 需要 <b>HTTPS 或 localhost</b>。第一次使用需要從 Hugging Face 下載 FP32 SegFormer-B1 COCO-Stuff 171 模型，
-    之後瀏覽器通常會保留下載快取。按下「停止分割」會釋放模型執行資源，但瀏覽器快取檔案仍會保留。
+    Webcam 需要 <b>HTTPS 或 localhost</b>。第一次使用需要從 Hugging Face 下載 FP32 MaskFormer 模型，
+    之後瀏覽器通常會保留下載快取。FP32 ONNX 模型約 166 MB，第一次載入需要較長時間。按下「停止分割」會釋放模型執行資源，但瀏覽器快取檔案仍會保留。
   </p>
 
 </aside>
@@ -305,8 +306,7 @@ footer{border-top:1px solid var(--line);background:#fff;margin-top:12px}
 <script>
 'use strict';
 
-const MODEL_ID='onnx-community/segformer-b1-finetuned-coco-stuff-164k-512-512-ONNX';
-// 若實際部署的 Hugging Face 倉庫名稱不同，只需修改上方 MODEL_ID。
+const MODEL_ID='onnx-community/maskformer-resnet50-coco-stuff';
 
 const video=document.getElementById('video');
 const overlay=document.getElementById('overlay');
@@ -563,7 +563,7 @@ function buildWorker(){
       try{
         self.postMessage({
           type:'status',
-          text:'正在以 WebGPU 載入 SegFormer-B1 COCO-Stuff 171 FP32…'
+          text:'正在以 WebGPU 載入 MaskFormer + COCO-Stuff 171 FP32…'
         });
 
         segmenter=
@@ -811,7 +811,7 @@ function buildWorker(){
 
   worker.onerror=(e)=>{
     showError(
-      'SegFormer Worker 發生錯誤：'+
+      'MaskFormer Worker 發生錯誤：'+
       (e.message || '未知錯誤')
     );
 
@@ -858,7 +858,7 @@ function handleWorkerMessage(event){
     hideProgress();
 
     showOk(
-      'SegFormer-B1 FP32 模型載入完成｜COCO-Stuff 171 classes｜'+
+      'MaskFormer FP32 模型載入完成｜COCO-Stuff 171 classes｜'+
       data.backend
     );
 
@@ -906,7 +906,7 @@ function handleWorkerMessage(event){
     processing=false;
 
     showError(
-      'SegFormer 推論失敗：'+
+      'MaskFormer 推論失敗：'+
       data.text
     );
 
@@ -1378,7 +1378,7 @@ async function startSystem(){
     buildWorker();
 
     showInfo(
-      '正在載入 SegFormer-B1 COCO-Stuff 171 FP32 模型…'
+      '正在載入 MaskFormer + COCO-Stuff 171 FP32 模型…'
     );
 
   }catch(e){
@@ -1514,7 +1514,7 @@ async function stopSystem(){
   msg.style.display='block';
 
   showInfo(
-    '正在停止 Webcam 並釋放 SegFormer-B1 COCO-Stuff 171 模型記憶體…'
+    '正在停止 Webcam 並釋放 MaskFormer 模型記憶體…'
   );
 
   await disposeWorker();
