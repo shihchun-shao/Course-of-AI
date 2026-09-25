@@ -31,7 +31,7 @@ main{max-width:1320px;margin:20px auto;padding:0 20px 28px}.step-tabs{display:fl
 .mission{display:flex;flex-direction:column;justify-content:center;background:linear-gradient(135deg,#eff6ff,#ffffff)}.mission h3{margin:0 0 8px}.mission ol{margin:0;padding-left:21px;color:var(--text);line-height:1.85}.mission .big-q{font-size:19px;line-height:1.55;font-weight:900;color:#1e3a8a;margin:12px 0 0}
 .workspace{display:grid;grid-template-columns:1.45fr .55fr;gap:18px}.embed-card{overflow:hidden}.embed-head{padding:13px 14px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}.embed-title{font-weight:900}.embed-actions{display:flex;gap:8px;flex-wrap:wrap}
 .btn{border:0;border-radius:10px;padding:10px 14px;font-weight:900;background:var(--blue);color:#fff;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:6px}.btn.secondary{background:#fff;border:1px solid var(--line);color:var(--text)}.btn.green{background:var(--green)}.btn.red{background:var(--red)}.btn.purple{background:var(--purple)}
-.iframe-shell{background:var(--stage);min-height:560px;position:relative}.iframe-shell iframe{display:block;width:100%;height:560px;border:0;background:#fff}.iframe-note{position:absolute;inset:auto 12px 12px 12px;padding:8px 10px;border-radius:10px;background:rgba(15,23,42,.86);color:#fff;font-size:12px;line-height:1.5;pointer-events:none}
+.iframe-shell{background:var(--stage);min-height:560px;position:relative}.iframe-shell iframe{display:block;width:100%;height:560px;border:0;background:#fff}.iframe-shell iframe[hidden]{display:none!important}.iframe-note{position:absolute;inset:auto 12px 12px 12px;padding:8px 10px;border-radius:10px;background:rgba(15,23,42,.86);color:#fff;font-size:12px;line-height:1.5;pointer-events:none}
 .student-view-chip{display:inline-flex;align-items:center;padding:7px 11px;border-radius:999px;background:#ecfdf3;color:#15803d;font-size:12px;font-weight:900;border:1px solid #bbf7d0}
 .side{display:flex;flex-direction:column;gap:14px}.side .card{padding:16px}.side h3{margin:0 0 10px;font-size:17px}.cue{border-left:4px solid var(--blue);padding:10px 12px;background:#eff6ff;border-radius:10px;line-height:1.65}.teacher{border-left-color:var(--purple);background:#f5f3ff}.warn{border-left-color:var(--amber);background:#fffbeb}.success{border-left-color:var(--green);background:#f0fdf4}
 .checks{display:grid;gap:8px}.check{display:flex;gap:9px;align-items:flex-start;border:1px solid var(--line);border-radius:11px;padding:9px 10px;background:#fff}.check input{margin-top:3px;transform:scale(1.15)}
@@ -99,7 +99,6 @@ footer{background:#fff;border-top:1px solid var(--line);text-align:center;color:
         <div class="iframe-shell"><iframe id="frame-yolo-1" title="AI 視覺體驗" data-src="../yolov4/" allow="camera" loading="eager"></iframe><div class="iframe-note">只要觀察「AI 找到了什麼、位置在哪裡」，不需要記任何名稱。</div></div>
       </div>
       <aside class="side">
-        <div class="card"><h3>老師先只問</h3><div class="cue teacher">「你覺得電腦是怎麼知道這是人、手機或水瓶的？」</div></div>
         <div class="card"><h3>體驗小結</h3><div class="cue success">AI 不只可以判斷畫面中可能有什麼，也可以把不同物件的位置直接框出來。這一關只需要記住你觀察到的結果。</div></div>
         <div class="card"><h3>3 分鐘 AI 核心概念</h3><div class="cue success">很多 AI 不是由人把每個判斷規則逐條寫死，而是從大量資料中學到規律，再拿來判斷新的影像。</div></div>
       </aside>
@@ -121,6 +120,7 @@ footer{background:#fff;border-top:1px solid var(--line);text-align:center;color:
       <aside class="side">
         <div class="card"><h3>四個測試</h3><div class="checks"><label class="check"><input type="checkbox">正面 → 慢慢轉側臉</label><label class="check"><input type="checkbox">手遮住嘴巴或一隻眼睛</label><label class="check"><input type="checkbox">靠近 → 遠離鏡頭</label><label class="check"><input type="checkbox">稍微改變環境光線</label></div></div>
         <div class="card"><h3>體驗小結</h3><div class="cue success">兩種 AI 都在做「找臉」的工作，但遇到側臉、遮擋、遠近或光線改變時，穩定程度可能不同。把差異說出來就完成這一關。</div></div>
+        <div class="card"><h3>3 分鐘 AI 核心概念</h3><div class="cue success">同一個任務可以用不同方式完成，所以面對側臉、遮擋、距離或光線變化時，兩種 AI 的結果可能不同。AI 並不是永遠正確，而是會受到學習方式、資料與使用環境影響。</div></div>
       </aside>
     </div>
   </section>
@@ -128,18 +128,18 @@ footer{background:#fff;border-top:1px solid var(--line);text-align:center;color:
   <!-- STEP 3 -->
   <section class="lesson" data-lesson="2" data-range="20–30 分鐘">
     <div class="hero">
-      <div class="card card-pad"><div class="kicker">Challenge 03 · 一字之差</div><h2>「認出來」跟「找出來」一樣嗎？</h2><p>先看兩種不同輸出：一個告訴你整張圖最像什麼；另一個會把多個物件的位置一起框出來。先用自己的話說出兩種輸出的差異，不需要知道它們的演算法名稱。</p><span class="time-chip">⏱ 建議 10 分鐘</span></div>
-      <div class="card card-pad mission"><h3>學生任務</h3><ol><li>先用 AI A 看一張影像，它回答了什麼？</li><li>再用 AI B 看同一個世界，它多回答了什麼？</li><li>用自己的話完成一句：「AI A 在＿＿；AI B 在＿＿。」</li></ol><div class="big-q">「如果我要數教室裡有幾個人，只知道『這張圖有人』夠嗎？」</div></div>
+      <div class="card card-pad"><div class="kicker">Challenge 03 · 一字之差</div><h2>「認出來」跟「找出來」一樣嗎？</h2><p>先看兩種不同輸出：一個告訴你整張圖最像什麼；另一個會把多個物件的位置一起框出來。先觀察兩種輸出的差異，不需要知道它們的演算法名稱。</p><span class="time-chip">⏱ 建議 10 分鐘</span></div>
+      <div class="card card-pad mission"><h3>學生任務</h3><ol><li>先用第一種AI看一張影像，它回答了什麼？</li><li>再切換到第二種AI看同一個世界，它多回答了什麼？</li><li>用自己的話完成一句：「第一種AI在＿＿；第二種AI在＿＿。」</li></ol><div class="big-q">「如果我要數教室裡有幾個人，只知道『這張圖有人』夠嗎？」</div></div>
     </div>
     <div class="workspace">
       <div class="card embed-card">
-        <div class="subtabs"><button class="subtab active" data-frame-group="classdet" data-frame="frame-alex">AI A｜認一張圖</button><button class="subtab" data-frame-group="classdet" data-frame="frame-yolo-2">AI B｜找出位置</button></div>
-        <div class="embed-head"><div class="embed-title" id="classEmbedTitle">AI A｜這張圖最像什麼？</div><div class="embed-actions"><span class="student-view-chip">學生體驗模式</span></div></div>
-        <div class="iframe-shell"><iframe id="frame-alex" title="AI A 影像辨識" data-src="../alexnet/"></iframe><iframe id="frame-yolo-2" title="AI B 找位置體驗" data-src="../yolov4/" allow="camera" hidden></iframe><div class="iframe-note">只比較兩種輸出「長什麼樣」，不用記名稱。</div></div>
+        <div class="subtabs"><button class="subtab active" data-frame-group="classdet" data-frame="frame-alex">第一種AI</button><button class="subtab" data-frame-group="classdet" data-frame="frame-yolo-2">第二種AI</button></div>
+        <div class="embed-head"><div class="embed-title" id="classEmbedTitle">第一種AI｜這張圖最像什麼？</div><div class="embed-actions"><span class="student-view-chip">學生體驗模式</span></div></div>
+        <div class="iframe-shell"><iframe id="frame-alex" title="第一種AI 影像體驗" data-src="../alexnet/"></iframe><iframe id="frame-yolo-2" title="第二種AI 影像體驗" data-src="../yolov4/" allow="camera" hidden></iframe><div class="iframe-note">只比較兩種輸出「長什麼樣」，不用記名稱。</div></div>
       </div>
       <aside class="side">
-        <div class="card"><h3>學生先用中文說</h3><div class="word-map"><div class="word-box"><div class="zh">認</div><div class="desc">整張圖最像什麼？</div></div><div class="word-box"><div class="zh">找</div><div class="desc">有哪些東西？在哪裡？</div></div><div class="word-box"><div class="zh">跟</div><div class="desc">位置持續怎麼變？</div></div></div></div>
         <div class="card"><h3>體驗小結</h3><div class="cue success">「認」比較像回答整張圖最像什麼；「找」則會把多個東西的位置一起指出來。這一關只要分得出兩種結果即可。</div></div>
+        <div class="card"><h3>3 分鐘 AI 核心概念</h3><div class="cue success">AI 會依照任務產生不同形式的答案。有些任務只需要回答「這張圖最像什麼」，有些任務還必須回答「有哪些東西、各自在哪裡」。先決定問題要問什麼，才能選擇適合的 AI 能力。</div></div>
       </aside>
     </div>
   </section>
@@ -158,6 +158,7 @@ footer{background:#fff;border-top:1px solid var(--line);text-align:center;color:
       <aside class="side">
         <div class="card"><h3>觀察重點</h3><div class="checks"><label class="check"><input type="checkbox">慢慢移動時能跟上嗎？</label><label class="check"><input type="checkbox">移動很快時會發生什麼？</label><label class="check"><input type="checkbox">遮住後會不會跟丟？</label></div></div>
         <div class="card"><h3>體驗小結</h3><div class="cue success">物件移動時，AI 可以持續更新它的位置。速度太快、遮擋太多或畫面變化太大時，就可能跟丟。</div></div>
+        <div class="card"><h3>3 分鐘 AI 核心概念</h3><div class="cue success">影片其實是一張又一張快速連續出現的影像。只要能比較前後畫面的變化，就可以持續估計物件移動到哪裡；但移動太快、被遮住或外觀改變太大時，就可能失去目標。</div></div>
       </aside>
     </div>
   </section>
@@ -178,6 +179,7 @@ footer{background:#fff;border-top:1px solid var(--line);text-align:center;color:
       <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px"><button class="btn green" id="checkMatch" type="button">檢查答案</button><button class="btn secondary" id="resetMatch" type="button">重新作答</button></div>
       <div class="result-box" id="matchResult"></div>
       <div class="reveal-card show" style="margin-top:16px"><h4>今天真正要帶走的工程概念</h4><div class="concept-flow"><div class="flow-box">攝影機<br><small>輸入</small></div><div class="flow-arrow">→</div><div class="flow-box">AI<br><small>認 / 找 / 跟</small></div><div class="flow-arrow">→</div><div class="flow-box">控制器 / 系統<br><small>產生動作</small></div></div></div>
+      <div class="card" style="margin-top:16px;padding:16px"><h3 style="margin-top:0">3 分鐘 AI 核心概念</h3><div class="cue success">AI 本身只是系統中的一個判斷環節。真正的工程應用還需要把攝影機取得的資料交給 AI，再把 AI 的結果送給控制器、馬達、警示器或其他設備，最後才會產生真實世界的動作。</div></div>
     </div>
   </section>
 
@@ -187,6 +189,7 @@ footer{background:#fff;border-top:1px solid var(--line);text-align:center;color:
       <div class="card card-pad"><div class="kicker">Challenge 06 · Exit Ticket</div><h2>三題就知道你有沒有真的懂</h2><p>不考模型細節，只確認學生能分辨「認、找、跟」，以及知道 AI 的結果可以接到控制系統。</p><span class="time-chip">⏱ 建議 3 分鐘</span></div>
       <div class="card card-pad mission"><h3>今天最低學習成果</h3><div class="big-q">認 ≠ 找 ≠ 跟</div><p style="margin-top:10px">三題答完，就完成零基礎 AI 體驗。</p></div>
     </div>
+    <div class="card card-pad" style="margin-bottom:16px"><h3 style="margin-top:0">3 分鐘 AI 核心概念</h3><div class="cue success">AI 不是一種單一能力，也不是看到任何問題都能用同一種方式解決。面對真實任務時，要先想清楚需要的是「認出來、找位置、持續跟著」，再把結果接到後續的系統或控制設備。</div></div>
     <div class="card card-pad">
       <form class="quiz" id="exitForm">
         <div class="question"><h4>1. 如果 AI 只回答「這張圖片是一隻狗」，最接近今天哪一種能力？</h4><label class="option"><input type="radio" name="q1" value="a"> 認：判斷整張影像是什麼</label><label class="option"><input type="radio" name="q1" value="b"> 找：框出每一個物件的位置</label><label class="option"><input type="radio" name="q1" value="c"> 跟：持續知道物件怎麼移動</label></div>
@@ -249,7 +252,7 @@ footer{background:#fff;border-top:1px solid var(--line);text-align:center;color:
       const group=btn.dataset.frameGroup,target=btn.dataset.frame;const groupBtns=[...document.querySelectorAll(`.subtab[data-frame-group="${group}"]`)];groupBtns.forEach(b=>b.classList.toggle('active',b===btn));
       const ids=groupBtns.map(b=>b.dataset.frame);ids.forEach(id=>{const f=document.getElementById(id);if(id===target){f.hidden=false;mountFrame(id)}else{unloadFrame(f);f.hidden=true}});
       if(group==='faces'){preferredFrame[1]=target;document.getElementById('faceEmbedTitle').textContent=target==='frame-haar'?'第一種AI｜找出人臉':'第二種AI｜找出人臉'}
-      if(group==='classdet'){preferredFrame[2]=target;document.getElementById('classEmbedTitle').textContent=target==='frame-alex'?'AI A｜這張圖最像什麼？':'AI B｜畫面中有哪些東西？在哪裡？'}
+      if(group==='classdet'){preferredFrame[2]=target;document.getElementById('classEmbedTitle').textContent=target==='frame-alex'?'第一種AI｜這張圖最像什麼？':'第二種AI｜畫面中有哪些東西？在哪裡？'}
     });
   });
 
