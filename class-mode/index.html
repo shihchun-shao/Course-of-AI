@@ -15,12 +15,10 @@ html{scroll-behavior:smooth}
 body{margin:0;font-family:system-ui,-apple-system,"Noto Sans TC","Microsoft JhengHei",sans-serif;background:var(--bg);color:var(--text)}
 button,a{font:inherit}button{cursor:pointer}
 header{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:30}
-.header-inner{max-width:1320px;margin:auto;padding:15px 20px;display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center}
+.header-inner{max-width:1320px;margin:auto;padding:15px 20px;display:grid;grid-template-columns:1fr;gap:14px;align-items:center}
 .brandline{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.back{color:var(--blue2);text-decoration:none;font-weight:800;font-size:14px}
 .badge{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;background:#ede9fe;color:#6d28d9;font-size:12px;font-weight:900;letter-spacing:.04em}
 .title-wrap h1{font-size:clamp(20px,3vw,29px);margin:5px 0 0}.title-wrap p{margin:3px 0 0;color:var(--muted);font-size:14px}
-.timerbox{display:flex;align-items:center;gap:8px;white-space:nowrap}.timer{min-width:98px;text-align:center;border:1px solid var(--line);background:#fff;border-radius:12px;padding:8px 10px;font-size:20px;font-weight:900;font-variant-numeric:tabular-nums}
-.iconbtn{border:1px solid var(--line);background:#fff;color:var(--text);border-radius:10px;padding:9px 11px;font-weight:800}
 .progress-wrap{max-width:1320px;margin:auto;padding:0 20px 12px}.progress-head{display:flex;justify-content:space-between;gap:12px;align-items:center;font-size:13px;color:var(--muted);margin-bottom:7px}
 .progress{height:8px;border-radius:999px;background:#e7edf6;overflow:hidden}.progress>span{display:block;height:100%;width:16.666%;background:var(--blue);transition:width .25s ease}
 main{max-width:1320px;margin:20px auto;padding:0 20px 28px}.step-tabs{display:flex;gap:8px;overflow:auto;padding:2px 0 12px;scrollbar-width:thin}
@@ -45,7 +43,7 @@ main{max-width:1320px;margin:20px auto;padding:0 20px 28px}.step-tabs{display:fl
 .navbar{position:sticky;bottom:12px;margin-top:20px;display:flex;justify-content:space-between;gap:12px;align-items:center;background:rgba(255,255,255,.94);backdrop-filter:blur(12px);border:1px solid var(--line);border-radius:16px;padding:10px;box-shadow:0 14px 38px rgba(15,23,42,.12);z-index:20}.navcenter{font-size:13px;color:var(--muted);font-weight:800;text-align:center}.navcenter strong{color:var(--text)}
 footer{background:#fff;border-top:1px solid var(--line);text-align:center;color:var(--muted);font-size:13px;line-height:1.8;padding:22px}.toast{position:fixed;right:18px;bottom:92px;z-index:60;background:#172033;color:#fff;padding:10px 13px;border-radius:10px;box-shadow:var(--shadow);opacity:0;transform:translateY(8px);pointer-events:none;transition:.2s}.toast.show{opacity:1;transform:translateY(0)}
 @media(max-width:980px){.hero,.workspace{grid-template-columns:1fr}.iframe-shell,.iframe-shell iframe{min-height:520px;height:520px}.side{display:grid;grid-template-columns:1fr 1fr}.match-grid{grid-template-columns:1fr}.concept-flow{grid-template-columns:1fr}.flow-arrow{transform:rotate(90deg)} }
-@media(max-width:680px){.header-inner{grid-template-columns:1fr}.timerbox{justify-content:space-between}.timer{flex:1}.title-wrap p{display:none}.hero{gap:12px}.card-pad{padding:15px}.side{display:flex}.iframe-shell,.iframe-shell iframe{min-height:72vh;height:72vh}.navbar{bottom:7px}.navcenter{display:none}.btn{padding:10px 12px}.step-tabs{margin-right:-20px;padding-right:20px}.word-map{grid-template-columns:1fr}}
+@media(max-width:680px){.header-inner{grid-template-columns:1fr}.title-wrap p{display:none}.hero{gap:12px}.card-pad{padding:15px}.side{display:flex}.iframe-shell,.iframe-shell iframe{min-height:72vh;height:72vh}.navbar{bottom:7px}.navcenter{display:none}.btn{padding:10px 12px}.step-tabs{margin-right:-20px;padding-right:20px}.word-map{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -55,11 +53,6 @@ footer{background:#fff;border-top:1px solid var(--line);text-align:center;color:
       <div class="brandline"><a class="back" href="../">← 回 AI 教學首頁</a><span class="badge">CLASS MODE · ZERO BASIC</span></div>
       <h1>AI 零基礎體驗課</h1>
       <p>先體驗、再猜測、再比較，用自己的觀察理解 AI。全程不需要背演算法名稱。建議課程時間 50 分鐘。</p>
-    </div>
-    <div class="timerbox">
-      <div class="timer" id="timer">50:00</div>
-      <button class="iconbtn" id="timerToggle" type="button">開始計時</button>
-      <button class="iconbtn" id="timerReset" type="button">重設</button>
     </div>
   </div>
   <div class="progress-wrap">
@@ -228,12 +221,7 @@ footer{background:#fff;border-top:1px solid var(--line);text-align:center;color:
   const frameGroups={0:['frame-yolo-1'],1:['frame-haar','frame-retina'],2:['frame-alex','frame-yolo-2'],3:['frame-klt'],4:[],5:[]};
   const preferredFrame={1:'frame-haar',2:'frame-alex'};
 
-  function unloadFrame(frame){
-    if(!frame)return;
-    if(frame._classResultObserver){try{frame._classResultObserver.disconnect()}catch(e){} frame._classResultObserver=null;}
-    if(frame._classResultTimer){clearInterval(frame._classResultTimer);frame._classResultTimer=null;}
-    if(frame.getAttribute('src')&&frame.getAttribute('src')!=='about:blank')frame.setAttribute('src','about:blank')
-  }
+  function unloadFrame(frame){if(!frame)return;if(frame._top1Observer){try{frame._top1Observer.disconnect()}catch(e){}frame._top1Observer=null;}if(frame.getAttribute('src')&&frame.getAttribute('src')!=='about:blank')frame.setAttribute('src','about:blank')}
   function mountFrame(id){const frame=document.getElementById(id);if(!frame)return;frame.hidden=false;if(!frame.getAttribute('src')||frame.getAttribute('src')==='about:blank')frame.setAttribute('src',frame.dataset.src)}
   function unloadAllExcept(ids){document.querySelectorAll('iframe[data-src]').forEach(f=>{if(!ids.includes(f.id))unloadFrame(f)})}
   function activateStepFrame(index){
@@ -261,33 +249,26 @@ footer{background:#fff;border-top:1px solid var(--line);text-align:center;color:
     });
   });
 
-  // Challenge 03 / first AI: mirror the current recognized class into the image stage.
-  // This keeps the zero-basic page simple while making the actual answer immediately visible.
-  function installClassResultOverlay(frame){
+  // Challenge 03 / first AI: show the existing Top-1 class in the image stage.
+  // This observes only the AlexNet page's own #top1Label element; it does not scan the whole iframe.
+  function installTop1Overlay(frame){
     if(frame.id!=='frame-alex')return;
     try{
       const doc=frame.contentDocument;
       if(!doc||!doc.body)return;
+      const stage=doc.querySelector('.stage');
+      const source=doc.getElementById('top1Label');
+      if(!stage||!source)return;
 
-      let stage=doc.querySelector('.stage');
-      if(!stage){
-        const visual=doc.querySelector('canvas,video,img');
-        stage=visual&&visual.parentElement;
-      }
-      if(!stage)return;
-
-      const stageStyle=doc.defaultView.getComputedStyle(stage);
-      if(stageStyle.position==='static')stage.style.position='relative';
-
-      let overlay=doc.getElementById('class-mode-alex-result');
+      if(doc.defaultView.getComputedStyle(stage).position==='static')stage.style.position='relative';
+      let overlay=doc.getElementById('class-mode-top1-overlay');
       if(!overlay){
         overlay=doc.createElement('div');
-        overlay.id='class-mode-alex-result';
-        overlay.textContent='辨識類別：等待辨識…';
+        overlay.id='class-mode-top1-overlay';
         Object.assign(overlay.style,{
-          position:'absolute',left:'14px',top:'14px',zIndex:'99999',
+          position:'absolute',left:'14px',top:'14px',zIndex:'50',
           color:'#dc2626',fontWeight:'900',fontSize:'clamp(20px,2.4vw,30px)',
-          lineHeight:'1.25',background:'rgba(255,255,255,.9)',padding:'8px 12px',
+          lineHeight:'1.25',background:'rgba(255,255,255,.90)',padding:'8px 12px',
           borderRadius:'10px',boxShadow:'0 3px 12px rgba(0,0,0,.16)',
           pointerEvents:'none',maxWidth:'calc(100% - 28px)',overflow:'hidden',
           textOverflow:'ellipsis',whiteSpace:'nowrap'
@@ -295,61 +276,15 @@ footer{background:#fff;border-top:1px solid var(--line);text-align:center;color:
         stage.appendChild(overlay);
       }
 
-      const cleanClassText=(raw)=>{
-        let t=(raw||'').replace(/\s+/g,' ').trim();
-        if(!t)return '';
-        t=t.replace(/^(Top\s*[- ]?1|第\s*1\s*名|辨識結果|辨識類別|預測結果|預測類別|類別|結果)\s*[:：-]?\s*/i,'');
-        t=t.replace(/\s*[|｜]\s*(confidence|信心度|機率).*$/i,'');
-        t=t.replace(/\s*\(?\d+(?:\.\d+)?%\)?\s*$/,'').trim();
-        if(t.length>80)t=t.slice(0,80).trim();
-        return t;
+      const render=()=>{
+        const value=(source.textContent||'').replace(/\s+/g,' ').trim();
+        overlay.textContent='辨識類別：'+(value&&value!=='尚未開始'?value:'等待辨識…');
       };
-
-      const readClass=()=>{
-        const selectors=[
-          '#top1 .label','#top1 .class-name','#top1','[data-rank="1"] .label','[data-rank="1"]',
-          '.top1 .label','.top1 .class-name','.top1','.top-1','.top-result',
-          '.prediction:first-child','.predictions li:first-child','.prediction-list li:first-child',
-          '.result-list li:first-child','.results li:first-child','.top-list li:first-child','.top5 li:first-child',
-          '#predictionLabel','#prediction','#resultLabel','#result','.prediction-label','.result-label'
-        ];
-        for(const sel of selectors){
-          const el=doc.querySelector(sel);
-          if(el&&el.id!=='class-mode-alex-result'){
-            const t=cleanClassText(el.textContent);
-            if(t&&t.length>=2&&!/開始|停止|準備|載入|選擇|上傳/i.test(t))return t;
-          }
-        }
-
-        let best=''; let bestScore=-1;
-        const nodes=[...doc.querySelectorAll('strong,b,span,div,li,p')];
-        for(const el of nodes){
-          if(el.id==='class-mode-alex-result'||el.closest('#class-mode-alex-result')||el.closest('button'))continue;
-          const raw=(el.textContent||'').replace(/\s+/g,' ').trim();
-          if(!raw||raw.length>140)continue;
-          const meta=((el.id||'')+' '+(typeof el.className==='string'?el.className:'')).toLowerCase();
-          let score=0;
-          if(/prediction|predict|result|class|label|top1|top-1/.test(meta))score+=7;
-          if(/Top\s*[- ]?1|第\s*1\s*名|辨識結果|辨識類別|預測結果|預測類別|類別/.test(raw))score+=6;
-          if(/\d+(?:\.\d+)?%/.test(raw))score+=2;
-          if(/開始|停止|載入|準備|模型|網路|圖片尺寸|FPS|confidence|演算法/i.test(raw))score-=5;
-          const t=cleanClassText(raw);
-          if(score>bestScore&&t&&t.length>=2){best=t;bestScore=score;}
-        }
-        return bestScore>=5?best:'';
-      };
-
-      const update=()=>{
-        const current=readClass();
-        if(current)overlay.textContent='辨識類別：'+current;
-      };
-      update();
-      if(frame._classResultObserver){try{frame._classResultObserver.disconnect()}catch(e){}}
-      frame._classResultObserver=new MutationObserver(update);
-      frame._classResultObserver.observe(doc.body,{subtree:true,childList:true,characterData:true});
-      if(frame._classResultTimer)clearInterval(frame._classResultTimer);
-      frame._classResultTimer=setInterval(update,700);
-    }catch(err){/* same-origin on GitHub Pages; ignore if browser blocks access */}
+      render();
+      if(frame._top1Observer){try{frame._top1Observer.disconnect()}catch(e){}}
+      frame._top1Observer=new MutationObserver(render);
+      frame._top1Observer.observe(source,{childList:true,characterData:true,subtree:true});
+    }catch(err){/* same-origin on GitHub Pages; ignore if access is blocked */}
   }
 
   // CLASS MODE uses the existing units only as interactive engines.
@@ -401,18 +336,12 @@ footer{background:#fff;border-top:1px solid var(--line);text-align:center;color:
         else if(/載入.*(模型|model)/i.test(t)) btn.textContent='準備 AI';
       });
 
-      installClassResultOverlay(frame);
+      if(frame.id==='frame-alex')installTop1Overlay(frame);
     }catch(err){/* GitHub Pages deployment is same-origin; ignore if browser blocks access. */}
   }
   document.querySelectorAll('iframe[data-src]').forEach(frame=>frame.addEventListener('load',()=>{
     if(frame.getAttribute('src')&&frame.getAttribute('src')!=='about:blank')studentizeFrame(frame);
   }));
-
-  const timerEl=document.getElementById('timer'),timerToggle=document.getElementById('timerToggle'),timerReset=document.getElementById('timerReset');let remaining=50*60,timerId=null;
-  function renderTimer(){const m=Math.floor(remaining/60),s=remaining%60;timerEl.textContent=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;timerEl.style.color=remaining<=180?'var(--red)':'var(--text)'}
-  function tick(){if(remaining<=0){clearInterval(timerId);timerId=null;timerToggle.textContent='時間到';showToast('50 分鐘到，請完成最後三題');return}remaining--;renderTimer()}
-  timerToggle.addEventListener('click',()=>{if(remaining<=0)return;if(timerId){clearInterval(timerId);timerId=null;timerToggle.textContent='繼續計時'}else{timerId=setInterval(tick,1000);timerToggle.textContent='暫停'}});
-  timerReset.addEventListener('click',()=>{clearInterval(timerId);timerId=null;remaining=50*60;renderTimer();timerToggle.textContent='開始計時'});
 
   const checkMatch=document.getElementById('checkMatch'),resetMatch=document.getElementById('resetMatch'),matchResult=document.getElementById('matchResult'),selects=[...document.querySelectorAll('.match-item select')];
   checkMatch.addEventListener('click',()=>{let score=0;selects.forEach(s=>{if(s.value===s.dataset.answer)score++});matchResult.className='result-box show '+(score===4?'good':'mid');matchResult.innerHTML=score===4?'4 / 4，全對。你已經能用「認、找、跟、控制」拆解一個 AI 工程系統。':`${score} / 4。提示：整張圖判斷＝認；要位置＝找；持續位置＝跟；要讓設備動起來＝送給控制器。`});
@@ -421,7 +350,7 @@ footer{background:#fff;border-top:1px solid var(--line);text-align:center;color:
   const exitForm=document.getElementById('exitForm'),quizResult=document.getElementById('quizResult');document.getElementById('resetQuiz').addEventListener('click',()=>{exitForm.reset();quizResult.className='result-box';quizResult.textContent=''})
   exitForm.addEventListener('submit',e=>{e.preventDefault();const fd=new FormData(exitForm),answers={q1:'a',q2:'b',q3:'a'};const answered=['q1','q2','q3'].filter(q=>fd.get(q)).length;if(answered<3){quizResult.className='result-box show mid';quizResult.textContent='還有題目沒有作答。三題都選完再送出。';return}let score=0;Object.entries(answers).forEach(([q,a])=>{if(fd.get(q)===a)score++});quizResult.className='result-box show '+(score===3?'good':'mid');quizResult.innerHTML=`<b>${score} / 3</b><br>今天最重要的不是背任何名稱，而是分清楚「認、找、跟」三種不同能力；真正的工程系統還會把 AI 的結果交給控制器或其他設備。`;localStorage.setItem('courseAiClassZeroCompleted','1')});
 
-  window.addEventListener('pagehide',()=>document.querySelectorAll('iframe[data-src]').forEach(unloadFrame));setStep(current,false);renderTimer();
+  window.addEventListener('pagehide',()=>document.querySelectorAll('iframe[data-src]').forEach(unloadFrame));setStep(current,false);
 })();
 </script>
 </body>
