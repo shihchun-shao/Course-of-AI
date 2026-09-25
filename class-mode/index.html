@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>CLASS MODE｜50 分鐘 AI 零基礎體驗課</title>
+<style>
+:root{
+  --bg:#f4f7fb;--card:#fff;--text:#172033;--muted:#667085;--blue:#2563eb;
+  --blue2:#1d4ed8;--red:#dc2626;--green:#15803d;--amber:#b45309;--purple:#7c3aed;
+  --line:#d9e1ec;--stage:#0b1020;--soft:#eef4ff;--shadow:0 10px 34px rgba(15,23,42,.08)
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:system-ui,-apple-system,"Noto Sans TC","Microsoft JhengHei",sans-serif;background:var(--bg);color:var(--text)}
+button,a{font:inherit}button{cursor:pointer}
+header{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:30}
+.header-inner{max-width:1320px;margin:auto;padding:15px 20px;display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center}
+.brandline{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.back{color:var(--blue2);text-decoration:none;font-weight:800;font-size:14px}
+.badge{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;background:#ede9fe;color:#6d28d9;font-size:12px;font-weight:900;letter-spacing:.04em}
+.title-wrap h1{font-size:clamp(20px,3vw,29px);margin:5px 0 0}.title-wrap p{margin:3px 0 0;color:var(--muted);font-size:14px}
+.timerbox{display:flex;align-items:center;gap:8px;white-space:nowrap}.timer{min-width:98px;text-align:center;border:1px solid var(--line);background:#fff;border-radius:12px;padding:8px 10px;font-size:20px;font-weight:900;font-variant-numeric:tabular-nums}
+.iconbtn{border:1px solid var(--line);background:#fff;color:var(--text);border-radius:10px;padding:9px 11px;font-weight:800}
+.progress-wrap{max-width:1320px;margin:auto;padding:0 20px 12px}.progress-head{display:flex;justify-content:space-between;gap:12px;align-items:center;font-size:13px;color:var(--muted);margin-bottom:7px}
+.progress{height:8px;border-radius:999px;background:#e7edf6;overflow:hidden}.progress>span{display:block;height:100%;width:16.666%;background:var(--blue);transition:width .25s ease}
+main{max-width:1320px;margin:20px auto;padding:0 20px 28px}.step-tabs{display:flex;gap:8px;overflow:auto;padding:2px 0 12px;scrollbar-width:thin}
+.step-tab{flex:0 0 auto;border:1px solid var(--line);background:#fff;border-radius:999px;padding:9px 13px;color:var(--muted);font-size:13px;font-weight:800}.step-tab.active{background:var(--blue);border-color:var(--blue);color:#fff}.step-tab.done:not(.active){border-color:#bbf7d0;background:#f0fdf4;color:var(--green)}
+.lesson{display:none}.lesson.active{display:block}.hero{display:grid;grid-template-columns:1.3fr .7fr;gap:18px;margin-bottom:18px}.card{background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow)}.card-pad{padding:18px}
+.kicker{display:flex;align-items:center;gap:8px;color:var(--blue2);font-weight:900;font-size:13px;letter-spacing:.04em}.hero h2{font-size:clamp(28px,4vw,42px);margin:7px 0 8px}.hero p{margin:0;color:var(--muted);line-height:1.75}
+.time-chip{display:inline-flex;align-items:center;gap:6px;margin-top:12px;background:#fff7ed;color:#9a3412;border:1px solid #fed7aa;border-radius:999px;padding:6px 10px;font-size:13px;font-weight:900}
+.mission{display:flex;flex-direction:column;justify-content:center;background:linear-gradient(135deg,#eff6ff,#ffffff)}.mission h3{margin:0 0 8px}.mission ol{margin:0;padding-left:21px;color:var(--text);line-height:1.85}.mission .big-q{font-size:19px;line-height:1.55;font-weight:900;color:#1e3a8a;margin:12px 0 0}
+.workspace{display:grid;grid-template-columns:1.45fr .55fr;gap:18px}.embed-card{overflow:hidden}.embed-head{padding:13px 14px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}.embed-title{font-weight:900}.embed-actions{display:flex;gap:8px;flex-wrap:wrap}
+.btn{border:0;border-radius:10px;padding:10px 14px;font-weight:900;background:var(--blue);color:#fff;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:6px}.btn.secondary{background:#fff;border:1px solid var(--line);color:var(--text)}.btn.green{background:var(--green)}.btn.red{background:var(--red)}.btn.purple{background:var(--purple)}
+.iframe-shell{background:var(--stage);min-height:560px;position:relative}.iframe-shell iframe{display:block;width:100%;height:560px;border:0;background:#fff}.iframe-note{position:absolute;inset:auto 12px 12px 12px;padding:8px 10px;border-radius:10px;background:rgba(15,23,42,.86);color:#fff;font-size:12px;line-height:1.5;pointer-events:none}
+.side{display:flex;flex-direction:column;gap:14px}.side .card{padding:16px}.side h3{margin:0 0 10px;font-size:17px}.cue{border-left:4px solid var(--blue);padding:10px 12px;background:#eff6ff;border-radius:10px;line-height:1.65}.teacher{border-left-color:var(--purple);background:#f5f3ff}.warn{border-left-color:var(--amber);background:#fffbeb}.success{border-left-color:var(--green);background:#f0fdf4}
+.checks{display:grid;gap:8px}.check{display:flex;gap:9px;align-items:flex-start;border:1px solid var(--line);border-radius:11px;padding:9px 10px;background:#fff}.check input{margin-top:3px;transform:scale(1.15)}
+.subtabs{display:flex;gap:8px;padding:12px 14px 0}.subtab{border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 12px;font-weight:900;color:var(--muted)}.subtab.active{background:#172033;color:#fff;border-color:#172033}
+.reveal-card{display:none;margin-top:12px;border:1px solid #c4b5fd;background:linear-gradient(135deg,#faf5ff,#fff);border-radius:14px;padding:14px;line-height:1.7}.reveal-card.show{display:block}.reveal-card h4{margin:0 0 7px;font-size:18px;color:#5b21b6}.reveal-card b{color:#172033}.reveal-card .term{display:inline-block;margin:4px 4px 0 0;padding:4px 8px;border-radius:999px;background:#ede9fe;color:#6d28d9;font-size:12px;font-weight:900}
+.word-map{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.word-box{border:1px solid var(--line);border-radius:14px;padding:13px;text-align:center;background:#fff}.word-box .zh{font-size:23px;font-weight:900}.word-box .en{color:var(--blue2);font-weight:900;margin-top:3px}.word-box .desc{color:var(--muted);font-size:13px;line-height:1.5;margin-top:5px}
+.concept-flow{display:grid;grid-template-columns:repeat(5,1fr);align-items:center;gap:8px;margin-top:12px}.flow-box{padding:13px 10px;border:1px solid var(--line);border-radius:13px;background:#fff;text-align:center;font-weight:900;line-height:1.45}.flow-arrow{text-align:center;color:var(--muted);font-size:22px;font-weight:900}
+.match-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.match-item{border:1px solid var(--line);border-radius:14px;padding:14px}.match-item h4{margin:0 0 8px}.match-item p{margin:0 0 10px;color:var(--muted);line-height:1.55}.match-item select{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--text);font-weight:700}
+.result-box{display:none;margin-top:14px;border-radius:13px;padding:13px 14px;font-weight:800;line-height:1.6}.result-box.show{display:block}.result-box.good{background:#f0fdf4;color:#166534;border:1px solid #bbf7d0}.result-box.mid{background:#fffbeb;color:#92400e;border:1px solid #fde68a}
+.quiz{display:grid;gap:14px}.question{border:1px solid var(--line);border-radius:14px;padding:15px}.question h4{margin:0 0 10px;line-height:1.5}.option{display:flex;gap:9px;align-items:flex-start;padding:8px 9px;border-radius:9px}.option:hover{background:#f8fafc}.option input{margin-top:3px}
+.navbar{position:sticky;bottom:12px;margin-top:20px;display:flex;justify-content:space-between;gap:12px;align-items:center;background:rgba(255,255,255,.94);backdrop-filter:blur(12px);border:1px solid var(--line);border-radius:16px;padding:10px;box-shadow:0 14px 38px rgba(15,23,42,.12);z-index:20}.navcenter{font-size:13px;color:var(--muted);font-weight:800;text-align:center}.navcenter strong{color:var(--text)}
+footer{background:#fff;border-top:1px solid var(--line);text-align:center;color:var(--muted);font-size:13px;line-height:1.8;padding:22px}.toast{position:fixed;right:18px;bottom:92px;z-index:60;background:#172033;color:#fff;padding:10px 13px;border-radius:10px;box-shadow:var(--shadow);opacity:0;transform:translateY(8px);pointer-events:none;transition:.2s}.toast.show{opacity:1;transform:translateY(0)}
+@media(max-width:980px){.hero,.workspace{grid-template-columns:1fr}.iframe-shell,.iframe-shell iframe{min-height:520px;height:520px}.side{display:grid;grid-template-columns:1fr 1fr}.match-grid{grid-template-columns:1fr}.concept-flow{grid-template-columns:1fr}.flow-arrow{transform:rotate(90deg)} }
+@media(max-width:680px){.header-inner{grid-template-columns:1fr}.timerbox{justify-content:space-between}.timer{flex:1}.title-wrap p{display:none}.hero{gap:12px}.card-pad{padding:15px}.side{display:flex}.iframe-shell,.iframe-shell iframe{min-height:72vh;height:72vh}.navbar{bottom:7px}.navcenter{display:none}.btn{padding:10px 12px}.step-tabs{margin-right:-20px;padding-right:20px}.word-map{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+  <div class="header-inner">
+    <div class="title-wrap">
+      <div class="brandline"><a class="back" href="../">← 回 AI 教學首頁</a><span class="badge">CLASS MODE · ZERO BASIC</span></div>
+      <h1>50 分鐘 AI 零基礎體驗課</h1>
+      <p>先體驗、再猜測、再比較，最後才揭曉演算法名稱。學生不需要任何 AI 基礎。</p>
+    </div>
+    <div class="timerbox">
+      <div class="timer" id="timer">50:00</div>
+      <button class="iconbtn" id="timerToggle" type="button">開始計時</button>
+      <button class="iconbtn" id="timerReset" type="button">重設</button>
+    </div>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-head"><span id="progressLabel">挑戰 1 / 6</span><span id="timeHint">建議：0–8 分鐘</span></div>
+    <div class="progress"><span id="progressBar"></span></div>
+  </div>
+</header>
+
+<main>
+  <nav class="step-tabs" aria-label="課堂任務">
+    <button class="step-tab active" data-step="0">01 電腦看得到嗎？</button>
+    <button class="step-tab" data-step="1">02 你能騙過 AI 嗎？</button>
+    <button class="step-tab" data-step="2">03 認出來 ≠ 找出來</button>
+    <button class="step-tab" data-step="3">04 找到後怎麼跟？</button>
+    <button class="step-tab" data-step="4">05 把 AI 接到真實世界</button>
+    <button class="step-tab" data-step="5">06 我真的懂了嗎？</button>
+  </nav>
+
+  <!-- STEP 1 -->
+  <section class="lesson active" data-lesson="0" data-range="0–8 分鐘">
+    <div class="hero">
+      <div class="card card-pad">
+        <div class="kicker">Challenge 01 · 先玩再說</div>
+        <h2>電腦真的「看得到」嗎？</h2>
+        <p>先不學名稱，也不講公式。直接拿人、手機、水瓶或椅子進入鏡頭，先觀察電腦能不能把不同物件框出來。</p>
+        <span class="time-chip">⏱ 建議 8 分鐘</span>
+      </div>
+      <div class="card card-pad mission">
+        <h3>學生任務</h3>
+        <ol><li>拿 2–3 種物品到鏡頭前。</li><li>兩個人或多個物品一起入鏡。</li><li>換角度，找一次 AI 認錯的結果。</li></ol>
+        <div class="big-q">「它是真的看懂了，還是只是在做判斷？」</div>
+      </div>
+    </div>
+    <div class="workspace">
+      <div class="card embed-card">
+        <div class="embed-head"><div class="embed-title">AI 實驗 01｜它能找出哪些東西？</div><div class="embed-actions"><a class="btn secondary" href="../yolov4/" target="_blank" rel="noopener">另開 AI 實作 ↗</a></div></div>
+        <div class="iframe-shell"><iframe id="frame-yolo-1" title="AI 物件偵測實作" data-src="../yolov4/" allow="camera" loading="eager"></iframe><div class="iframe-note">先看框線與結果，不需要記住任何模型名稱。</div></div>
+      </div>
+      <aside class="side">
+        <div class="card"><h3>老師先只問</h3><div class="cue teacher">「你覺得電腦是怎麼知道這是人、手機或水瓶的？」</div></div>
+        <div class="card"><h3>完成後再揭曉</h3><button class="btn purple reveal-btn" type="button" data-reveal="reveal1">揭曉：剛剛玩的到底是什麼？</button><div class="reveal-card" id="reveal1"><h4>原來這叫「物件偵測」</h4><div>電腦不只回答「是什麼」，還要回答「在哪裡」。</div><span class="term">Object Detection</span><span class="term">YOLO</span><div style="margin-top:9px;color:var(--muted)">今天先把 YOLO 當成這個任務使用的 AI 工具名稱，不需要背架構。</div></div></div>
+        <div class="card"><h3>3 分鐘 AI 核心概念</h3><div class="cue success">很多 AI 不是由人把每個判斷規則逐條寫死，而是從大量資料中學到規律，再拿來判斷新的影像。</div></div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- STEP 2 -->
+  <section class="lesson" data-lesson="1" data-range="8–20 分鐘">
+    <div class="hero">
+      <div class="card card-pad"><div class="kicker">Challenge 02 · 比一比</div><h2>你能騙過 AI 嗎？</h2><p>先不告訴學生兩套方法叫什麼，只把它們稱作 AI A 與 AI B。學生用同樣的側臉、遮擋、距離與光線條件測試，先自己判斷哪一個比較穩。</p><span class="time-chip">⏱ 建議 12 分鐘</span></div>
+      <div class="card card-pad mission"><h3>學生任務</h3><ol><li>先測 AI A，想辦法讓它找不到你的臉。</li><li>用完全相同的方式測 AI B。</li><li>選出你覺得比較穩定的一個，並說出理由。</li></ol><div class="big-q">「同樣是找臉，為什麼表現會不一樣？」</div></div>
+    </div>
+    <div class="workspace">
+      <div class="card embed-card">
+        <div class="subtabs"><button class="subtab active" data-frame-group="faces" data-frame="frame-haar">AI A</button><button class="subtab" data-frame-group="faces" data-frame="frame-retina">AI B</button></div>
+        <div class="embed-head"><div class="embed-title" id="faceEmbedTitle">AI A｜找出人臉</div><div class="embed-actions"><a class="btn secondary" id="faceOpen" href="../Haar/" target="_blank" rel="noopener">另開目前實作 ↗</a></div></div>
+        <div class="iframe-shell"><iframe id="frame-haar" title="AI A 人臉偵測" data-src="../Haar/" allow="camera"></iframe><iframe id="frame-retina" title="AI B 人臉偵測" data-src="../retinaface/" allow="camera" hidden></iframe><div class="iframe-note">先比較結果，不要先告訴學生 AI A / AI B 的演算法名稱。</div></div>
+      </div>
+      <aside class="side">
+        <div class="card"><h3>四個測試</h3><div class="checks"><label class="check"><input type="checkbox">正面 → 慢慢轉側臉</label><label class="check"><input type="checkbox">手遮住嘴巴或一隻眼睛</label><label class="check"><input type="checkbox">靠近 → 遠離鏡頭</label><label class="check"><input type="checkbox">稍微改變環境光線</label></div></div>
+        <div class="card"><h3>比較完成再揭曉</h3><button class="btn purple reveal-btn" type="button" data-reveal="reveal2">揭曉 AI A / AI B</button><div class="reveal-card" id="reveal2"><h4>兩種「找臉」方法</h4><b>AI A = Haar</b><br>人先設計要找的影像特徵，再用分類器判斷。<br><br><b>AI B = RetinaFace</b><br>深度學習從大量影像資料中學習複雜的人臉特徵。<br><span class="term">傳統方法</span><span class="term">深度學習</span></div></div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- STEP 3 -->
+  <section class="lesson" data-lesson="2" data-range="20–30 分鐘">
+    <div class="hero">
+      <div class="card card-pad"><div class="kicker">Challenge 03 · 一字之差</div><h2>「認出來」跟「找出來」一樣嗎？</h2><p>先看兩種不同輸出：一個告訴你整張圖最像什麼；另一個會把多個物件的位置一起框出來。先用自己的話說差異，再揭曉專有名詞。</p><span class="time-chip">⏱ 建議 10 分鐘</span></div>
+      <div class="card card-pad mission"><h3>學生任務</h3><ol><li>先用 AI A 看一張影像，它回答了什麼？</li><li>再用 AI B 看同一個世界，它多回答了什麼？</li><li>用自己的話完成一句：「AI A 在＿＿；AI B 在＿＿。」</li></ol><div class="big-q">「如果我要數教室裡有幾個人，只知道『這張圖有人』夠嗎？」</div></div>
+    </div>
+    <div class="workspace">
+      <div class="card embed-card">
+        <div class="subtabs"><button class="subtab active" data-frame-group="classdet" data-frame="frame-alex">AI A｜認一張圖</button><button class="subtab" data-frame-group="classdet" data-frame="frame-yolo-2">AI B｜找出位置</button></div>
+        <div class="embed-head"><div class="embed-title" id="classEmbedTitle">AI A｜這張圖最像什麼？</div><div class="embed-actions"><a class="btn secondary" id="classOpen" href="../alexnet/" target="_blank" rel="noopener">另開目前實作 ↗</a></div></div>
+        <div class="iframe-shell"><iframe id="frame-alex" title="AI A 影像辨識" data-src="../alexnet/"></iframe><iframe id="frame-yolo-2" title="AI B 物件偵測" data-src="../yolov4/" allow="camera" hidden></iframe><div class="iframe-note">先比較「輸出長什麼樣」，再學名詞。</div></div>
+      </div>
+      <aside class="side">
+        <div class="card"><h3>學生先用中文說</h3><div class="word-map"><div class="word-box"><div class="zh">認</div><div class="desc">整張圖最像什麼？</div></div><div class="word-box"><div class="zh">找</div><div class="desc">有哪些東西？在哪裡？</div></div><div class="word-box"><div class="zh">跟</div><div class="desc">位置持續怎麼變？</div></div></div></div>
+        <div class="card"><h3>完成後再揭曉</h3><button class="btn purple reveal-btn" type="button" data-reveal="reveal3">揭曉專有名詞</button><div class="reveal-card" id="reveal3"><h4>原來「認」跟「找」是兩種任務</h4><b>認 = Classification（影像分類）</b><br>本課用 AlexNet 體驗。<br><br><b>找 = Object Detection（物件偵測）</b><br>本課用 YOLO 體驗。</div></div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- STEP 4 -->
+  <section class="lesson" data-lesson="3" data-range="30–40 分鐘">
+    <div class="hero">
+      <div class="card card-pad"><div class="kicker">Challenge 04 · 動起來</div><h2>找到之後，怎麼一直跟著它？</h2><p>讓學生自己框住一個物件，再慢慢移動。先看綠點、框線與移動路徑如何跟著變化，最後才揭曉這種能力的專有名詞。</p><span class="time-chip">⏱ 建議 10 分鐘</span></div>
+      <div class="card card-pad mission"><h3>學生任務</h3><ol><li>框住一個水瓶、筆袋或其他物件。</li><li>先慢慢移動，再快速移動。</li><li>試著遮住物件一部分，觀察是否跟丟。</li></ol><div class="big-q">「電腦不是每一秒都重新認一次，它還可以怎麼持續知道位置？」</div></div>
+    </div>
+    <div class="workspace">
+      <div class="card embed-card">
+        <div class="embed-head"><div class="embed-title">AI 實驗 04｜跟著一個移動中的物件</div><div class="embed-actions"><a class="btn secondary" href="../klt/" target="_blank" rel="noopener">另開實作頁 ↗</a></div></div>
+        <div class="iframe-shell"><iframe id="frame-klt" title="物件追蹤實作" data-src="../klt/" allow="camera"></iframe><div class="iframe-note">綠點＝電腦盯住的局部特徵；藍框＝目前位置；紅線＝走過的路徑；黃 X＝起點。</div></div>
+      </div>
+      <aside class="side">
+        <div class="card"><h3>觀察重點</h3><div class="checks"><label class="check"><input type="checkbox">慢慢移動時能跟上嗎？</label><label class="check"><input type="checkbox">移動很快時會發生什麼？</label><label class="check"><input type="checkbox">遮住後會不會跟丟？</label></div></div>
+        <div class="card"><h3>完成後再揭曉</h3><button class="btn purple reveal-btn" type="button" data-reveal="reveal4">揭曉：這叫什麼？</button><div class="reveal-card" id="reveal4"><h4>這叫 Tracking（追蹤）</h4>今天使用的是 <b>KLT 特徵點追蹤</b>。它會利用前後影像中的特徵點變化，持續估計物件位置。<br><span class="term">Tracking</span><span class="term">KLT</span></div></div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- STEP 5 -->
+  <section class="lesson" data-lesson="4" data-range="40–47 分鐘">
+    <div class="hero">
+      <div class="card card-pad"><div class="kicker">Challenge 05 · 工程整合</div><h2>把 AI 接到真實世界</h2><p>這一關不考模型名稱，而是讓學生用「認、找、跟」判斷真實系統需要什麼能力，再把 AI 的輸出接到控制器與設備。</p><span class="time-chip">⏱ 建議 7 分鐘</span></div>
+      <div class="card card-pad mission"><h3>只記一條工程流程</h3><div class="big-q">輸入 → AI 判斷 → 位置 / 類別 → 控制器 → 真實動作</div><p style="margin-top:10px">先判斷需求需要「認、找、跟」哪一種能力。</p></div>
+    </div>
+    <div class="card card-pad">
+      <div class="match-grid">
+        <div class="match-item"><h4>① 手機判斷照片主要是貓還是狗</h4><p>重點是判斷整張影像屬於哪一類。</p><select data-answer="認"><option value="">請選擇</option><option>認</option><option>找</option><option>跟</option></select></div>
+        <div class="match-item"><h4>② 工廠找出沒戴安全帽的人</h4><p>不只要知道有沒有，還要知道是哪一個人、位置在哪裡。</p><select data-answer="找"><option value="">請選擇</option><option>認</option><option>找</option><option>跟</option></select></div>
+        <div class="match-item"><h4>③ 攝影機持續跟著球員移動</h4><p>目標已經找到，接下來要持續估計它的位置。</p><select data-answer="跟"><option value="">請選擇</option><option>認</option><option>找</option><option>跟</option></select></div>
+        <div class="match-item"><h4>④ 自動跟拍攝影機要轉動馬達</h4><p>AI 算出人物位置後，下一步應該把座標送去哪裡？</p><select data-answer="控制器"><option value="">請選擇</option><option>重新拍一張照片</option><option>控制器</option><option>停止所有運算</option></select></div>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px"><button class="btn green" id="checkMatch" type="button">檢查答案</button><button class="btn secondary" id="resetMatch" type="button">重新作答</button></div>
+      <div class="result-box" id="matchResult"></div>
+      <div class="reveal-card show" style="margin-top:16px"><h4>今天真正要帶走的工程概念</h4><div class="concept-flow"><div class="flow-box">攝影機<br><small>輸入</small></div><div class="flow-arrow">→</div><div class="flow-box">AI<br><small>認 / 找 / 跟</small></div><div class="flow-arrow">→</div><div class="flow-box">控制器 / 系統<br><small>產生動作</small></div></div></div>
+    </div>
+  </section>
+
+  <!-- STEP 6 -->
+  <section class="lesson" data-lesson="5" data-range="47–50 分鐘">
+    <div class="hero">
+      <div class="card card-pad"><div class="kicker">Challenge 06 · Exit Ticket</div><h2>三題就知道你有沒有真的懂</h2><p>不考模型細節，只確認學生能分辨「認、找、跟」，以及知道 AI 的結果可以接到控制系統。</p><span class="time-chip">⏱ 建議 3 分鐘</span></div>
+      <div class="card card-pad mission"><h3>今天最低學習成果</h3><div class="big-q">辨識 ≠ 偵測 ≠ 追蹤</div><p style="margin-top:10px">三題答完，就完成零基礎 AI 體驗。</p></div>
+    </div>
+    <div class="card card-pad">
+      <form class="quiz" id="exitForm">
+        <div class="question"><h4>1. 如果 AI 只回答「這張圖片是一隻狗」，最接近今天哪一種能力？</h4><label class="option"><input type="radio" name="q1" value="a"> 認：判斷整張影像是什麼</label><label class="option"><input type="radio" name="q1" value="b"> 找：框出每一個物件的位置</label><label class="option"><input type="radio" name="q1" value="c"> 跟：持續知道物件怎麼移動</label></div>
+        <div class="question"><h4>2. 如果 AI 在畫面中把三個人都框出來，還標出各自位置，最接近哪一種能力？</h4><label class="option"><input type="radio" name="q2" value="a"> 認</label><label class="option"><input type="radio" name="q2" value="b"> 找</label><label class="option"><input type="radio" name="q2" value="c"> 跟</label></div>
+        <div class="question"><h4>3. 如果攝影機要一直跟著一個移動的人，最完整的想法是哪一個？</h4><label class="option"><input type="radio" name="q3" value="a"> 找到人 → 持續追蹤位置 → 把位置送給控制器驅動馬達</label><label class="option"><input type="radio" name="q3" value="b"> 只要第一次知道「這是一個人」就可以</label><label class="option"><input type="radio" name="q3" value="c"> 不需要知道人的位置</label></div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn green" type="submit">送出 Exit Ticket</button><button class="btn secondary" type="button" id="resetQuiz">清除答案</button></div>
+      </form>
+      <div class="result-box" id="quizResult"></div>
+    </div>
+  </section>
+
+  <div class="navbar">
+    <button class="btn secondary" id="prevBtn" type="button">← 上一個挑戰</button>
+    <div class="navcenter"><strong id="navTitle">挑戰 01</strong><br><span id="navSubtitle">電腦看得到嗎？</span></div>
+    <button class="btn" id="nextBtn" type="button">下一個挑戰 →</button>
+  </div>
+</main>
+<footer>AI 工程素養互動教學平台<br>大安高工控制科邵時俊老師製作</footer>
+<div class="toast" id="toast">已切換挑戰</div>
+
+<script>
+(() => {
+  const stepTabs=[...document.querySelectorAll('.step-tab')];
+  const lessons=[...document.querySelectorAll('.lesson')];
+  const progressBar=document.getElementById('progressBar');
+  const progressLabel=document.getElementById('progressLabel');
+  const timeHint=document.getElementById('timeHint');
+  const navTitle=document.getElementById('navTitle');
+  const navSubtitle=document.getElementById('navSubtitle');
+  const prevBtn=document.getElementById('prevBtn');
+  const nextBtn=document.getElementById('nextBtn');
+  const toast=document.getElementById('toast');
+  const labels=['電腦看得到嗎？','你能騙過 AI 嗎？','認出來 ≠ 找出來','找到後怎麼跟？','把 AI 接到真實世界','我真的懂了嗎？'];
+  let current=Math.min(5,Math.max(0,Number(localStorage.getItem('courseAiClassZeroStep')||0)));
+
+  const frameGroups={0:['frame-yolo-1'],1:['frame-haar','frame-retina'],2:['frame-alex','frame-yolo-2'],3:['frame-klt'],4:[],5:[]};
+  const preferredFrame={1:'frame-haar',2:'frame-alex'};
+
+  function unloadFrame(frame){if(!frame)return;if(frame.getAttribute('src')&&frame.getAttribute('src')!=='about:blank')frame.setAttribute('src','about:blank')}
+  function mountFrame(id){const frame=document.getElementById(id);if(!frame)return;frame.hidden=false;if(!frame.getAttribute('src')||frame.getAttribute('src')==='about:blank')frame.setAttribute('src',frame.dataset.src)}
+  function unloadAllExcept(ids){document.querySelectorAll('iframe[data-src]').forEach(f=>{if(!ids.includes(f.id))unloadFrame(f)})}
+  function activateStepFrame(index){
+    if(index===1||index===2){
+      const id=preferredFrame[index];unloadAllExcept([id]);
+      frameGroups[index].forEach(fid=>{const f=document.getElementById(fid);if(fid!==id){unloadFrame(f);f.hidden=true}});mountFrame(id);
+    }else{unloadAllExcept(frameGroups[index]);frameGroups[index].forEach(mountFrame)}
+  }
+  function showToast(text){toast.textContent=text;toast.classList.add('show');clearTimeout(showToast.t);showToast.t=setTimeout(()=>toast.classList.remove('show'),1200)}
+  function setStep(index,announce=true){
+    current=Math.min(5,Math.max(0,index));lessons.forEach((el,i)=>el.classList.toggle('active',i===current));
+    stepTabs.forEach((el,i)=>{el.classList.toggle('active',i===current);el.classList.toggle('done',i<current)});
+    progressBar.style.width=`${((current+1)/6)*100}%`;progressLabel.textContent=`挑戰 ${current+1} / 6`;timeHint.textContent=`建議：${lessons[current].dataset.range}`;
+    navTitle.textContent=`挑戰 ${String(current+1).padStart(2,'0')}`;navSubtitle.textContent=labels[current];prevBtn.disabled=current===0;prevBtn.style.opacity=current===0?'.45':'1';nextBtn.textContent=current===5?'回到挑戰 01 ↺':'下一個挑戰 →';
+    localStorage.setItem('courseAiClassZeroStep',String(current));activateStepFrame(current);stepTabs[current].scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});if(announce)showToast(`已切換：${labels[current]}`);window.scrollTo({top:0,behavior:'smooth'});
+  }
+  stepTabs.forEach(btn=>btn.addEventListener('click',()=>setStep(Number(btn.dataset.step))));prevBtn.addEventListener('click',()=>setStep(current-1));nextBtn.addEventListener('click',()=>setStep(current===5?0:current+1));
+
+  document.querySelectorAll('.subtab').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const group=btn.dataset.frameGroup,target=btn.dataset.frame;const groupBtns=[...document.querySelectorAll(`.subtab[data-frame-group="${group}"]`)];groupBtns.forEach(b=>b.classList.toggle('active',b===btn));
+      const ids=groupBtns.map(b=>b.dataset.frame);ids.forEach(id=>{const f=document.getElementById(id);if(id===target){f.hidden=false;mountFrame(id)}else{unloadFrame(f);f.hidden=true}});
+      if(group==='faces'){preferredFrame[1]=target;document.getElementById('faceEmbedTitle').textContent=target==='frame-haar'?'AI A｜找出人臉':'AI B｜找出人臉';document.getElementById('faceOpen').href=target==='frame-haar'?'../Haar/':'../retinaface/'}
+      if(group==='classdet'){preferredFrame[2]=target;document.getElementById('classEmbedTitle').textContent=target==='frame-alex'?'AI A｜這張圖最像什麼？':'AI B｜畫面中有哪些東西？在哪裡？';document.getElementById('classOpen').href=target==='frame-alex'?'../alexnet/':'../yolov4/'}
+    });
+  });
+
+  // In CLASS MODE, same-origin unit headers are hidden so students see the experience before the algorithm name.
+  function studentizeFrame(frame){
+    try{
+      const doc=frame.contentDocument;
+      if(!doc||!doc.head)return;
+      if(doc.getElementById('class-mode-student-style'))return;
+      const style=doc.createElement('style');
+      style.id='class-mode-student-style';
+      style.textContent='header{display:none!important} footer{display:none!important} body{padding-top:0!important}';
+      doc.head.appendChild(style);
+    }catch(err){/* Fallback: the wrapper still works even if the browser blocks iframe DOM access. */}
+  }
+  document.querySelectorAll('iframe[data-src]').forEach(frame=>frame.addEventListener('load',()=>{
+    if(frame.getAttribute('src')&&frame.getAttribute('src')!=='about:blank')studentizeFrame(frame);
+  }));
+
+  document.querySelectorAll('.reveal-btn').forEach(btn=>btn.addEventListener('click',()=>{const box=document.getElementById(btn.dataset.reveal);const show=!box.classList.contains('show');box.classList.toggle('show',show);btn.textContent=show?'收起揭曉':'再次揭曉'}));
+
+  const timerEl=document.getElementById('timer'),timerToggle=document.getElementById('timerToggle'),timerReset=document.getElementById('timerReset');let remaining=50*60,timerId=null;
+  function renderTimer(){const m=Math.floor(remaining/60),s=remaining%60;timerEl.textContent=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;timerEl.style.color=remaining<=180?'var(--red)':'var(--text)'}
+  function tick(){if(remaining<=0){clearInterval(timerId);timerId=null;timerToggle.textContent='時間到';showToast('50 分鐘到，請完成最後三題');return}remaining--;renderTimer()}
+  timerToggle.addEventListener('click',()=>{if(remaining<=0)return;if(timerId){clearInterval(timerId);timerId=null;timerToggle.textContent='繼續計時'}else{timerId=setInterval(tick,1000);timerToggle.textContent='暫停'}});
+  timerReset.addEventListener('click',()=>{clearInterval(timerId);timerId=null;remaining=50*60;renderTimer();timerToggle.textContent='開始計時'});
+
+  const checkMatch=document.getElementById('checkMatch'),resetMatch=document.getElementById('resetMatch'),matchResult=document.getElementById('matchResult'),selects=[...document.querySelectorAll('.match-item select')];
+  checkMatch.addEventListener('click',()=>{let score=0;selects.forEach(s=>{if(s.value===s.dataset.answer)score++});matchResult.className='result-box show '+(score===4?'good':'mid');matchResult.innerHTML=score===4?'4 / 4，全對。你已經能用「認、找、跟、控制」拆解一個 AI 工程系統。':`${score} / 4。提示：整張圖判斷＝認；要位置＝找；持續位置＝跟；要讓設備動起來＝送給控制器。`});
+  resetMatch.addEventListener('click',()=>{selects.forEach(s=>s.value='');matchResult.className='result-box';matchResult.textContent=''})
+
+  const exitForm=document.getElementById('exitForm'),quizResult=document.getElementById('quizResult');document.getElementById('resetQuiz').addEventListener('click',()=>{exitForm.reset();quizResult.className='result-box';quizResult.textContent=''})
+  exitForm.addEventListener('submit',e=>{e.preventDefault();const fd=new FormData(exitForm),answers={q1:'a',q2:'b',q3:'a'};const answered=['q1','q2','q3'].filter(q=>fd.get(q)).length;if(answered<3){quizResult.className='result-box show mid';quizResult.textContent='還有題目沒有作答。三題都選完再送出。';return}let score=0;Object.entries(answers).forEach(([q,a])=>{if(fd.get(q)===a)score++});quizResult.className='result-box show '+(score===3?'good':'mid');quizResult.innerHTML=`<b>${score} / 3</b><br>今天最重要的不是背模型，而是分清楚：認＝分類、找＝偵測、跟＝追蹤；真正的工程系統還會把 AI 的結果交給控制器或其他設備。`;localStorage.setItem('courseAiClassZeroCompleted','1')});
+
+  window.addEventListener('pagehide',()=>document.querySelectorAll('iframe[data-src]').forEach(unloadFrame));setStep(current,false);renderTimer();
+})();
+</script>
+</body>
+</html>
