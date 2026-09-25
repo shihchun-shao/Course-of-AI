@@ -278,7 +278,7 @@ footer{background:#fff;border-top:1px solid var(--line);text-align:center;color:
 
       const render=()=>{
         const value=(source.textContent||'').replace(/\s+/g,' ').trim();
-        overlay.textContent='辨識類別：'+(value&&value!=='尚未開始'?value:'等待辨識…');
+        overlay.textContent='辨識圖片：'+(value&&value!=='尚未開始'?value:'等待辨識…');
       };
       render();
       if(frame._top1Observer){try{frame._top1Observer.disconnect()}catch(e){}}
