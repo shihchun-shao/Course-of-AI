@@ -228,7 +228,12 @@ footer{background:#fff;border-top:1px solid var(--line);text-align:center;color:
   const frameGroups={0:['frame-yolo-1'],1:['frame-haar','frame-retina'],2:['frame-alex','frame-yolo-2'],3:['frame-klt'],4:[],5:[]};
   const preferredFrame={1:'frame-haar',2:'frame-alex'};
 
-  function unloadFrame(frame){if(!frame)return;if(frame.getAttribute('src')&&frame.getAttribute('src')!=='about:blank')frame.setAttribute('src','about:blank')}
+  function unloadFrame(frame){
+    if(!frame)return;
+    if(frame._classResultObserver){try{frame._classResultObserver.disconnect()}catch(e){} frame._classResultObserver=null;}
+    if(frame._classResultTimer){clearInterval(frame._classResultTimer);frame._classResultTimer=null;}
+    if(frame.getAttribute('src')&&frame.getAttribute('src')!=='about:blank')frame.setAttribute('src','about:blank')
+  }
   function mountFrame(id){const frame=document.getElementById(id);if(!frame)return;frame.hidden=false;if(!frame.getAttribute('src')||frame.getAttribute('src')==='about:blank')frame.setAttribute('src',frame.dataset.src)}
   function unloadAllExcept(ids){document.querySelectorAll('iframe[data-src]').forEach(f=>{if(!ids.includes(f.id))unloadFrame(f)})}
   function activateStepFrame(index){
@@ -255,6 +260,97 @@ footer{background:#fff;border-top:1px solid var(--line);text-align:center;color:
       if(group==='classdet'){preferredFrame[2]=target;document.getElementById('classEmbedTitle').textContent=target==='frame-alex'?'第一種AI｜這張圖最像什麼？':'第二種AI｜畫面中有哪些東西？在哪裡？'}
     });
   });
+
+  // Challenge 03 / first AI: mirror the current recognized class into the image stage.
+  // This keeps the zero-basic page simple while making the actual answer immediately visible.
+  function installClassResultOverlay(frame){
+    if(frame.id!=='frame-alex')return;
+    try{
+      const doc=frame.contentDocument;
+      if(!doc||!doc.body)return;
+
+      let stage=doc.querySelector('.stage');
+      if(!stage){
+        const visual=doc.querySelector('canvas,video,img');
+        stage=visual&&visual.parentElement;
+      }
+      if(!stage)return;
+
+      const stageStyle=doc.defaultView.getComputedStyle(stage);
+      if(stageStyle.position==='static')stage.style.position='relative';
+
+      let overlay=doc.getElementById('class-mode-alex-result');
+      if(!overlay){
+        overlay=doc.createElement('div');
+        overlay.id='class-mode-alex-result';
+        overlay.textContent='辨識類別：等待辨識…';
+        Object.assign(overlay.style,{
+          position:'absolute',left:'14px',top:'14px',zIndex:'99999',
+          color:'#dc2626',fontWeight:'900',fontSize:'clamp(20px,2.4vw,30px)',
+          lineHeight:'1.25',background:'rgba(255,255,255,.9)',padding:'8px 12px',
+          borderRadius:'10px',boxShadow:'0 3px 12px rgba(0,0,0,.16)',
+          pointerEvents:'none',maxWidth:'calc(100% - 28px)',overflow:'hidden',
+          textOverflow:'ellipsis',whiteSpace:'nowrap'
+        });
+        stage.appendChild(overlay);
+      }
+
+      const cleanClassText=(raw)=>{
+        let t=(raw||'').replace(/\s+/g,' ').trim();
+        if(!t)return '';
+        t=t.replace(/^(Top\s*[- ]?1|第\s*1\s*名|辨識結果|辨識類別|預測結果|預測類別|類別|結果)\s*[:：-]?\s*/i,'');
+        t=t.replace(/\s*[|｜]\s*(confidence|信心度|機率).*$/i,'');
+        t=t.replace(/\s*\(?\d+(?:\.\d+)?%\)?\s*$/,'').trim();
+        if(t.length>80)t=t.slice(0,80).trim();
+        return t;
+      };
+
+      const readClass=()=>{
+        const selectors=[
+          '#top1 .label','#top1 .class-name','#top1','[data-rank="1"] .label','[data-rank="1"]',
+          '.top1 .label','.top1 .class-name','.top1','.top-1','.top-result',
+          '.prediction:first-child','.predictions li:first-child','.prediction-list li:first-child',
+          '.result-list li:first-child','.results li:first-child','.top-list li:first-child','.top5 li:first-child',
+          '#predictionLabel','#prediction','#resultLabel','#result','.prediction-label','.result-label'
+        ];
+        for(const sel of selectors){
+          const el=doc.querySelector(sel);
+          if(el&&el.id!=='class-mode-alex-result'){
+            const t=cleanClassText(el.textContent);
+            if(t&&t.length>=2&&!/開始|停止|準備|載入|選擇|上傳/i.test(t))return t;
+          }
+        }
+
+        let best=''; let bestScore=-1;
+        const nodes=[...doc.querySelectorAll('strong,b,span,div,li,p')];
+        for(const el of nodes){
+          if(el.id==='class-mode-alex-result'||el.closest('#class-mode-alex-result')||el.closest('button'))continue;
+          const raw=(el.textContent||'').replace(/\s+/g,' ').trim();
+          if(!raw||raw.length>140)continue;
+          const meta=((el.id||'')+' '+(typeof el.className==='string'?el.className:'')).toLowerCase();
+          let score=0;
+          if(/prediction|predict|result|class|label|top1|top-1/.test(meta))score+=7;
+          if(/Top\s*[- ]?1|第\s*1\s*名|辨識結果|辨識類別|預測結果|預測類別|類別/.test(raw))score+=6;
+          if(/\d+(?:\.\d+)?%/.test(raw))score+=2;
+          if(/開始|停止|載入|準備|模型|網路|圖片尺寸|FPS|confidence|演算法/i.test(raw))score-=5;
+          const t=cleanClassText(raw);
+          if(score>bestScore&&t&&t.length>=2){best=t;bestScore=score;}
+        }
+        return bestScore>=5?best:'';
+      };
+
+      const update=()=>{
+        const current=readClass();
+        if(current)overlay.textContent='辨識類別：'+current;
+      };
+      update();
+      if(frame._classResultObserver){try{frame._classResultObserver.disconnect()}catch(e){}}
+      frame._classResultObserver=new MutationObserver(update);
+      frame._classResultObserver.observe(doc.body,{subtree:true,childList:true,characterData:true});
+      if(frame._classResultTimer)clearInterval(frame._classResultTimer);
+      frame._classResultTimer=setInterval(update,700);
+    }catch(err){/* same-origin on GitHub Pages; ignore if browser blocks access */}
+  }
 
   // CLASS MODE uses the existing units only as interactive engines.
   // In zero-basic mode, all embedded units are simplified so students only see the experience.
@@ -304,6 +400,8 @@ footer{background:#fff;border-top:1px solid var(--line);text-align:center;color:
         else if(/停止.*(辨識|偵測|追蹤|YOLO|Haar|Retina|AlexNet|KLT)/i.test(t)) btn.textContent='停止體驗';
         else if(/載入.*(模型|model)/i.test(t)) btn.textContent='準備 AI';
       });
+
+      installClassResultOverlay(frame);
     }catch(err){/* GitHub Pages deployment is same-origin; ignore if browser blocks access. */}
   }
   document.querySelectorAll('iframe[data-src]').forEach(frame=>frame.addEventListener('load',()=>{
