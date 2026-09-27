@@ -23,11 +23,12 @@ header{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0
 .progress{height:8px;border-radius:999px;background:#e7edf6;overflow:hidden}.progress>span{display:block;height:100%;width:16.666%;background:var(--blue);transition:width .25s ease}
 main{max-width:1320px;margin:20px auto;padding:0 20px 28px}.step-tabs{display:flex;gap:8px;overflow:auto;padding:2px 0 12px;scrollbar-width:thin}
 .step-tab{flex:0 0 auto;border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 11px;color:var(--muted);font-size:12px;font-weight:800}.step-tab.active{background:var(--blue);border-color:var(--blue);color:#fff}.step-tab.done:not(.active){border-color:#bbf7d0;background:#f0fdf4;color:var(--green)}
-.lesson{display:none}.lesson.active{display:block}.hero{display:grid;grid-template-columns:1.3fr .7fr;gap:16px;margin-bottom:16px;align-items:start}.card{background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow)}.card-pad{padding:16px 18px}
-.hero>.card:first-child{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"kicker time" "title time";column-gap:18px;row-gap:3px;align-items:center;min-height:0}.hero>.card:first-child .kicker{grid-area:kicker}.hero>.card:first-child h2{grid-area:title}.hero>.card:first-child .time-chip{grid-area:time;justify-self:end}
-.kicker{display:flex;align-items:center;gap:8px;color:var(--blue2);font-weight:900;font-size:12px;letter-spacing:.04em}.hero h2{font-size:clamp(26px,3.3vw,38px);line-height:1.22;margin:2px 0 0}.hero p{margin:0;color:var(--muted);line-height:1.75}
+.lesson{display:none}.lesson.active{display:block}.hero{margin-bottom:16px}.card{background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow)}.card-pad{padding:16px 18px}
+.hero-combined{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);grid-template-areas:"intro task" "focus focus";align-items:stretch;overflow:hidden;padding:0}
+.hero-intro{grid-area:intro;display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"kicker time" "title time";column-gap:16px;row-gap:4px;align-items:center;padding:16px 20px}.hero-intro .kicker{grid-area:kicker}.hero-intro h2{grid-area:title}.hero-intro .time-chip{grid-area:time;justify-self:end}
+.kicker{display:flex;align-items:center;gap:8px;color:var(--blue2);font-weight:900;font-size:12px;letter-spacing:.04em}.hero h2{font-size:clamp(25px,3vw,36px);line-height:1.2;margin:2px 0 0}.hero p{margin:0;color:var(--muted);line-height:1.65}
 .time-chip{display:inline-flex;align-items:center;gap:5px;margin:0;background:#fff7ed;color:#9a3412;border:1px solid #fed7aa;border-radius:999px;padding:5px 9px;font-size:12px;font-weight:900;white-space:nowrap}
-.mission{display:flex;flex-direction:column;justify-content:center;background:linear-gradient(135deg,#eff6ff,#ffffff);padding:15px 17px}.mission h3{margin:0 0 6px;font-size:16px}.mission ol{margin:0;padding-left:20px;color:var(--text);line-height:1.68;font-size:14px}.mission .big-q{font-size:17px;line-height:1.48;font-weight:900;color:#1e3a8a;margin:9px 0 0}
+.hero-task{grid-area:task;padding:14px 20px;border-left:1px solid var(--line);background:linear-gradient(135deg,#f7faff,#eef5ff);display:flex;flex-direction:column;justify-content:center}.hero-task h3{margin:0 0 6px;font-size:16px}.hero-task ol{margin:0;padding-left:20px;color:var(--text);line-height:1.62;font-size:14px}.hero-task p{font-size:14px}.hero-focus{grid-area:focus;border-top:1px solid var(--line);background:#fbfdff;color:#1e3a8a;font-size:16px;line-height:1.45;font-weight:900;padding:10px 20px}.hero-focus.flow-focus{font-size:15px;letter-spacing:.01em}
 .workspace{display:grid;grid-template-columns:1.45fr .55fr;gap:18px}.embed-card{overflow:hidden}.embed-head{padding:13px 14px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}.embed-title{font-weight:900}.embed-actions{display:flex;gap:8px;flex-wrap:wrap}
 .btn{border:0;border-radius:9px;padding:8px 11px;font-size:13px;font-weight:900;background:var(--blue);color:#fff;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:5px;line-height:1.25}.btn.secondary{background:#fff;border:1px solid var(--line);color:var(--text)}.btn.green{background:var(--green)}.btn.red{background:var(--red)}.btn.purple{background:var(--purple)}
 .finish-btn{background:#d97706}.concept-next-wrap{display:none;margin-top:14px;padding:10px 0 0;text-align:right}.concept-next-wrap.show{display:block}.concept-next-btn{background:var(--purple);padding:9px 13px;font-size:13px;box-shadow:0 6px 18px rgba(124,58,237,.16)}
@@ -44,8 +45,8 @@ main{max-width:1320px;margin:20px auto;padding:0 20px 28px}.step-tabs{display:fl
 .quiz{display:grid;gap:14px}.question{border:1px solid var(--line);border-radius:14px;padding:15px}.question h4{margin:0 0 10px;line-height:1.5}.option{display:flex;gap:9px;align-items:flex-start;padding:8px 9px;border-radius:9px}.option:hover{background:#f8fafc}.option input{margin-top:3px}
 .navbar{position:sticky;bottom:12px;margin-top:18px;display:flex;justify-content:space-between;gap:10px;align-items:center;background:rgba(255,255,255,.94);backdrop-filter:blur(12px);border:1px solid var(--line);border-radius:14px;padding:7px 8px;box-shadow:0 12px 30px rgba(15,23,42,.10);z-index:20}.navbar .btn{padding:7px 10px;font-size:12px}.navcenter{font-size:13px;color:var(--muted);font-weight:800;text-align:center}.navcenter strong{color:var(--text)}
 footer{background:#fff;border-top:1px solid var(--line);text-align:center;color:var(--muted);font-size:13px;line-height:1.8;padding:22px}.toast{position:fixed;right:18px;bottom:92px;z-index:60;background:#172033;color:#fff;padding:10px 13px;border-radius:10px;box-shadow:var(--shadow);opacity:0;transform:translateY(8px);pointer-events:none;transition:.2s}.toast.show{opacity:1;transform:translateY(0)}
-@media(max-width:980px){.hero,.workspace{grid-template-columns:1fr}.iframe-shell,.iframe-shell iframe{min-height:520px;height:520px}.side{display:grid;grid-template-columns:1fr 1fr}.match-grid{grid-template-columns:1fr}.concept-flow{grid-template-columns:1fr}.flow-arrow{transform:rotate(90deg)} }
-@media(max-width:680px){.header-inner{grid-template-columns:1fr}.title-wrap p{display:none}.hero{gap:10px}.card-pad{padding:14px 15px}.hero>.card:first-child{grid-template-columns:1fr;grid-template-areas:"kicker" "title" "time";row-gap:3px}.hero>.card:first-child .time-chip{justify-self:start;margin-top:6px}.hero h2{font-size:clamp(25px,8vw,34px)}.side{display:flex}.iframe-shell,.iframe-shell iframe{min-height:72vh;height:72vh}.navbar{bottom:7px}.navcenter{display:none}.btn{padding:7px 10px;font-size:12px}.step-tabs{margin-right:-20px;padding-right:20px}.word-map{grid-template-columns:1fr}}
+@media(max-width:980px){.hero-combined{grid-template-columns:1fr;grid-template-areas:"intro" "task" "focus"}.hero-task{border-left:0;border-top:1px solid var(--line)}.workspace{grid-template-columns:1fr}.iframe-shell,.iframe-shell iframe{min-height:520px;height:520px}.side{display:grid;grid-template-columns:1fr 1fr}.match-grid{grid-template-columns:1fr}.concept-flow{grid-template-columns:1fr}.flow-arrow{transform:rotate(90deg)} }
+@media(max-width:680px){.header-inner{grid-template-columns:1fr}.title-wrap p{display:none}.card-pad{padding:14px 15px}.hero-intro{grid-template-columns:1fr;grid-template-areas:"kicker" "title" "time";row-gap:3px;padding:14px 15px}.hero-intro .time-chip{justify-self:start;margin-top:6px}.hero-task{padding:13px 15px}.hero-focus{padding:9px 15px;font-size:15px}.hero h2{font-size:clamp(25px,8vw,34px)}.side{display:flex}.iframe-shell,.iframe-shell iframe{min-height:72vh;height:72vh}.navbar{bottom:7px}.navcenter{display:none}.btn{padding:7px 10px;font-size:12px}.step-tabs{margin-right:-20px;padding-right:20px}.word-map{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -75,17 +76,17 @@ footer{background:#fff;border-top:1px solid var(--line);text-align:center;color:
 
   <!-- STEP 1 -->
   <section class="lesson active" data-lesson="0" data-range="0–8 分鐘">
-    <div class="hero">
-      <div class="card card-pad">
+    <div class="hero card hero-combined">
+      <div class="hero-intro">
         <div class="kicker">Challenge 01 · 先玩再說</div>
         <h2>電腦真的「看得到」嗎？</h2>
         <span class="time-chip">⏱ 建議 8 分鐘</span>
       </div>
-      <div class="card card-pad mission">
+      <div class="hero-task">
         <h3>學生任務</h3>
         <ol><li>拿 2–3 種物品到鏡頭前。</li><li>兩個人或多個物品一起入鏡。</li><li>換角度，找一次 AI 認錯的結果。</li></ol>
-        <div class="big-q">「它是真的看懂了，還是只是在做判斷？」</div>
       </div>
+      <div class="hero-focus">「它是真的看懂了，還是只是在做判斷？」</div>
     </div>
     <div class="workspace">
       <div class="card embed-card">
@@ -101,9 +102,10 @@ footer{background:#fff;border-top:1px solid var(--line);text-align:center;color:
 
   <!-- STEP 2 -->
   <section class="lesson" data-lesson="1" data-range="8–20 分鐘">
-    <div class="hero">
-      <div class="card card-pad"><div class="kicker">Challenge 02 · 比一比</div><h2>你能騙過 AI 嗎？</h2><span class="time-chip">⏱ 建議 12 分鐘</span></div>
-      <div class="card card-pad mission"><h3>學生任務</h3><ol><li>先測第一種AI，想辦法讓它找不到你的臉。</li><li>用完全相同的方式測第二種AI。</li><li>選出你覺得比較穩定的一個，並說出理由。</li></ol><div class="big-q">「同樣是找臉，為什麼表現會不一樣？」</div></div>
+    <div class="hero card hero-combined">
+      <div class="hero-intro"><div class="kicker">Challenge 02 · 比一比</div><h2>你能騙過 AI 嗎？</h2><span class="time-chip">⏱ 建議 12 分鐘</span></div>
+      <div class="hero-task"><h3>學生任務</h3><ol><li>先測第一種AI，想辦法讓它找不到你的臉。</li><li>用完全相同的方式測第二種AI。</li><li>選出你覺得比較穩定的一個，並說出理由。</li></ol></div>
+      <div class="hero-focus">「同樣是找臉，為什麼表現會不一樣？」</div>
     </div>
     <div class="workspace">
       <div class="card embed-card">
@@ -121,9 +123,10 @@ footer{background:#fff;border-top:1px solid var(--line);text-align:center;color:
 
   <!-- STEP 3 -->
   <section class="lesson" data-lesson="2" data-range="20–30 分鐘">
-    <div class="hero">
-      <div class="card card-pad"><div class="kicker">Challenge 03 · 一字之差</div><h2>「認出來」跟「找出來」一樣嗎？</h2><span class="time-chip">⏱ 建議 10 分鐘</span></div>
-      <div class="card card-pad mission"><h3>學生任務</h3><ol><li>先用第一種AI看一張影像，它回答了什麼？</li><li>再切換到第二種AI看同一個世界，它多回答了什麼？</li><li>用自己的話完成一句：「第一種AI在＿＿；第二種AI在＿＿。」</li></ol><div class="big-q">「如果我要數教室裡有幾個人，只知道『這張圖有人』夠嗎？」</div></div>
+    <div class="hero card hero-combined">
+      <div class="hero-intro"><div class="kicker">Challenge 03 · 一字之差</div><h2>「認出來」跟「找出來」一樣嗎？</h2><span class="time-chip">⏱ 建議 10 分鐘</span></div>
+      <div class="hero-task"><h3>學生任務</h3><ol><li>先用第一種AI看一張影像，它回答了什麼？</li><li>再切換到第二種AI看同一個世界，它多回答了什麼？</li><li>用自己的話完成一句：「第一種AI在＿＿；第二種AI在＿＿。」</li></ol></div>
+      <div class="hero-focus">「如果我要數教室裡有幾個人，只知道『這張圖有人』夠嗎？」</div>
     </div>
     <div class="workspace">
       <div class="card embed-card">
@@ -140,9 +143,10 @@ footer{background:#fff;border-top:1px solid var(--line);text-align:center;color:
 
   <!-- STEP 4 -->
   <section class="lesson" data-lesson="3" data-range="30–40 分鐘">
-    <div class="hero">
-      <div class="card card-pad"><div class="kicker">Challenge 04 · 動起來</div><h2>找到之後，怎麼一直跟著它？</h2><span class="time-chip">⏱ 建議 10 分鐘</span></div>
-      <div class="card card-pad mission"><h3>學生任務</h3><ol><li>框住一個水瓶、筆袋或其他物件。</li><li>先慢慢移動，再快速移動。</li><li>試著遮住物件一部分，觀察是否跟丟。</li></ol><div class="big-q">「電腦不是每一秒都重新認一次，它還可以怎麼持續知道位置？」</div></div>
+    <div class="hero card hero-combined">
+      <div class="hero-intro"><div class="kicker">Challenge 04 · 動起來</div><h2>找到之後，怎麼一直跟著它？</h2><span class="time-chip">⏱ 建議 10 分鐘</span></div>
+      <div class="hero-task"><h3>學生任務</h3><ol><li>框住一個水瓶、筆袋或其他物件。</li><li>先慢慢移動，再快速移動。</li><li>試著遮住物件一部分，觀察是否跟丟。</li></ol></div>
+      <div class="hero-focus">「電腦不是每一秒都重新認一次，它還可以怎麼持續知道位置？」</div>
     </div>
     <div class="workspace">
       <div class="card embed-card">
@@ -159,9 +163,10 @@ footer{background:#fff;border-top:1px solid var(--line);text-align:center;color:
 
   <!-- STEP 5 -->
   <section class="lesson" data-lesson="4" data-range="40–47 分鐘">
-    <div class="hero">
-      <div class="card card-pad"><div class="kicker">Challenge 05 · 工程整合</div><h2>把 AI 接到真實世界</h2><span class="time-chip">⏱ 建議 7 分鐘</span></div>
-      <div class="card card-pad mission"><h3>只記一條工程流程</h3><div class="big-q">輸入 → AI 判斷 → 位置 / 類別 → 控制器 → 真實動作</div><p style="margin-top:10px">先判斷需求需要「認、找、跟」哪一種能力。</p></div>
+    <div class="hero card hero-combined">
+      <div class="hero-intro"><div class="kicker">Challenge 05 · 工程整合</div><h2>把 AI 接到真實世界</h2><span class="time-chip">⏱ 建議 7 分鐘</span></div>
+      <div class="hero-task"><h3>只記一條工程流程</h3><p>先判斷需求需要「認、找、跟」哪一種能力。</p></div>
+      <div class="hero-focus flow-focus">輸入 → AI 判斷 → 位置 / 類別 → 控制器 → 真實動作</div>
     </div>
     <div class="card card-pad">
       <div class="match-grid">
@@ -179,9 +184,10 @@ footer{background:#fff;border-top:1px solid var(--line);text-align:center;color:
 
   <!-- STEP 6 -->
   <section class="lesson" data-lesson="5" data-range="47–50 分鐘">
-    <div class="hero">
-      <div class="card card-pad"><div class="kicker">Challenge 06 · Exit Ticket</div><h2>三題就知道你有沒有真的懂</h2><span class="time-chip">⏱ 建議 3 分鐘</span></div>
-      <div class="card card-pad mission"><h3>今天最低學習成果</h3><div class="big-q">認 ≠ 找 ≠ 跟</div><p style="margin-top:10px">三題答完，就完成零基礎 AI 體驗。</p></div>
+    <div class="hero card hero-combined">
+      <div class="hero-intro"><div class="kicker">Challenge 06 · Exit Ticket</div><h2>三題就知道你有沒有真的懂</h2><span class="time-chip">⏱ 建議 3 分鐘</span></div>
+      <div class="hero-task"><h3>今天最低學習成果</h3><p>三題答完，就完成零基礎 AI 體驗。</p></div>
+      <div class="hero-focus">認 ≠ 找 ≠ 跟</div>
     </div>
     <div class="card card-pad post-experience" style="margin-bottom:16px"><h3 style="margin-top:0">AI 核心概念</h3><div class="cue success">AI 不是一種單一能力，也不是看到任何問題都能用同一種方式解決。面對真實任務時，要先想清楚需要的是「認出來、找位置、持續跟著」，再把結果接到後續的系統或控制設備。</div></div>
     <div class="card card-pad">
