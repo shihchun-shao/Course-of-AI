@@ -431,26 +431,11 @@ footer{background:#fff;border-top:1px solid var(--line);text-align:center;color:
       setTimeout(arrangeRangeControls,900);
 
       // Challenge 01 already draws detection labels directly on the live image.
-      // Hide the duplicate "目前偵測結果" summary so students only watch the stage itself.
-      const hideChallengeOneResultSummary=()=>{
-        if(frame.id!=='frame-yolo-1')return;
-        const phrase='目前偵測結果';
-        const candidates=[...doc.querySelectorAll('h1,h2,h3,h4,h5,h6,p,div,section,article,span,strong,b')]
-          .filter(el=>(el.textContent||'').replace(/\s+/g,' ').trim().includes(phrase));
-        candidates.forEach(el=>{
-          const box=el.closest('.result-card,.results-card,.result-panel,.results-panel,.status-card,.status-panel,.result-box,.results,.result,.panel,.card,section,article');
-          if(box && !box.querySelector('input[type=range],button,canvas,video') && (box.textContent||'').trim().length<1200){
-            box.style.display='none';
-            return;
-          }
-          el.style.display='none';
-          const next=el.nextElementSibling;
-          if(next && !next.matches('input,button,canvas,video') && !next.querySelector('input,button,canvas,video')) next.style.display='none';
-        });
-      };
-      hideChallengeOneResultSummary();
-      setTimeout(hideChallengeOneResultSummary,250);
-      setTimeout(hideChallengeOneResultSummary,900);
+      // Hide only the duplicate detection summary block; keep the stage, camera controls and sliders intact.
+      if(frame.id==='frame-yolo-1'){
+        const detectionList=doc.querySelector('.detection-list');
+        if(detectionList)detectionList.style.display='none';
+      }
 
       // Remove navigation links to the full teaching units while keeping interactive controls usable.
       [...doc.querySelectorAll('a')].forEach(a=>{
