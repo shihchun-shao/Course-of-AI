@@ -446,6 +446,13 @@ footer{background:#fff;border-top:1px solid var(--line);text-align:center;color:
         if(text && text.length<320 && terms.some(t=>text.toLowerCase().includes(t.toLowerCase()))) el.style.display='none';
       });
 
+      // Challenge 01: the boxes/labels on the live image are already the learning output.
+      // Hide the duplicated text list below the controls only for the first YOLO experience.
+      if(frame.id==='frame-yolo-1'){
+        const detectionList=doc.querySelector('.detection-list');
+        if(detectionList)detectionList.style.display='none';
+      }
+
       // Make recognizable control wording less technical.
       [...doc.querySelectorAll('button')].forEach(btn=>{
         const t=(btn.textContent||'').trim();
