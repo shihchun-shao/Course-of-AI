@@ -379,8 +379,56 @@ footer{background:#fff;border-top:1px solid var(--line);text-align:center;color:
           padding:7px 10px!important;border-radius:8px!important;font-size:13px!important;
           min-height:34px!important;line-height:1.2!important
         }
+        .class-mode-stage-layout{
+          display:grid!important;grid-template-columns:minmax(0,1fr) 220px!important;gap:12px!important;
+          align-items:start!important;width:100%!important;max-width:980px!important;margin:0 auto!important
+        }
+        .class-mode-stage-layout>.stage{width:100%!important;min-width:0!important;margin:0!important}
+        .class-mode-range-panel{
+          min-width:0!important;background:#fff!important;border:1px solid #d9e1ec!important;border-radius:12px!important;
+          padding:12px!important;box-shadow:0 6px 18px rgba(15,23,42,.06)!important;align-self:start!important
+        }
+        .class-mode-range-panel label,.class-mode-range-panel .control-row,.class-mode-range-panel .slider-row,
+        .class-mode-range-panel .range-row,.class-mode-range-panel .control-group,.class-mode-range-panel .field,
+        .class-mode-range-panel .setting,.class-mode-range-panel .control{
+          width:100%!important;max-width:none!important;margin:0 0 10px!important
+        }
+        .class-mode-range-panel input[type=range]{width:100%!important;min-width:0!important;max-width:none!important}
+        .class-mode-range-panel>*:last-child{margin-bottom:0!important}
+        @media(max-width:760px){
+          .class-mode-stage-layout{grid-template-columns:1fr!important}
+          .class-mode-range-panel{position:static!important}
+        }
       `;
       doc.head.appendChild(style);
+
+      // Keep range controls beside the live stage on desktop so students can see visual changes while dragging.
+      const arrangeRangeControls=()=>{
+        const stage=doc.querySelector('.stage');
+        if(!stage||doc.querySelector('.class-mode-stage-layout'))return;
+        const ranges=[...doc.querySelectorAll('input[type="range"]')].filter(r=>!r.closest('.stage'));
+        if(!ranges.length)return;
+        let nodes=[];
+        ranges.forEach(range=>{
+          let node=range.closest('.control-row,.slider-row,.range-row,.control-group,.field,.setting,.control,label')||range.parentElement;
+          if(!node||node===doc.body||node.contains(stage))return;
+          if(nodes.some(n=>n===node||n.contains(node)))return;
+          nodes=nodes.filter(n=>!node.contains(n));
+          nodes.push(node);
+        });
+        if(!nodes.length)return;
+        const layout=doc.createElement('div');
+        layout.className='class-mode-stage-layout';
+        const panel=doc.createElement('div');
+        panel.className='class-mode-range-panel';
+        stage.parentNode.insertBefore(layout,stage);
+        layout.appendChild(stage);
+        nodes.forEach(node=>panel.appendChild(node));
+        layout.appendChild(panel);
+      };
+      arrangeRangeControls();
+      setTimeout(arrangeRangeControls,250);
+      setTimeout(arrangeRangeControls,900);
 
       // Remove navigation links to the full teaching units while keeping interactive controls usable.
       [...doc.querySelectorAll('a')].forEach(a=>{
