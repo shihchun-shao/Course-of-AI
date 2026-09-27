@@ -29,6 +29,7 @@ main{max-width:1320px;margin:20px auto;padding:0 20px 28px}.step-tabs{display:fl
 .mission{display:flex;flex-direction:column;justify-content:center;background:linear-gradient(135deg,#eff6ff,#ffffff)}.mission h3{margin:0 0 8px}.mission ol{margin:0;padding-left:21px;color:var(--text);line-height:1.85}.mission .big-q{font-size:19px;line-height:1.55;font-weight:900;color:#1e3a8a;margin:12px 0 0}
 .workspace{display:grid;grid-template-columns:1.45fr .55fr;gap:18px}.embed-card{overflow:hidden}.embed-head{padding:13px 14px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}.embed-title{font-weight:900}.embed-actions{display:flex;gap:8px;flex-wrap:wrap}
 .btn{border:0;border-radius:10px;padding:10px 14px;font-weight:900;background:var(--blue);color:#fff;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:6px}.btn.secondary{background:#fff;border:1px solid var(--line);color:var(--text)}.btn.green{background:var(--green)}.btn.red{background:var(--red)}.btn.purple{background:var(--purple)}
+.finish-btn{background:#d97706}.concept-next-wrap{display:none;margin-top:16px;padding:14px 0 2px;text-align:right}.concept-next-wrap.show{display:block}.concept-next-btn{background:var(--purple);padding:12px 18px;box-shadow:0 8px 22px rgba(124,58,237,.18)}
 .iframe-shell{background:var(--stage);min-height:560px;position:relative}.iframe-shell iframe{display:block;width:100%;height:560px;border:0;background:#fff}.iframe-shell iframe[hidden]{display:none!important}.iframe-note{position:absolute;inset:auto 12px 12px 12px;padding:8px 10px;border-radius:10px;background:rgba(15,23,42,.86);color:#fff;font-size:12px;line-height:1.5;pointer-events:none}
 .student-view-chip{display:inline-flex;align-items:center;padding:7px 11px;border-radius:999px;background:#ecfdf3;color:#15803d;font-size:12px;font-weight:900;border:1px solid #bbf7d0}
 .side{display:flex;flex-direction:column;gap:14px}.side .card{padding:16px}.post-experience{display:none}.post-experience.show{display:block}.side h3{margin:0 0 10px;font-size:17px}.cue{border-left:4px solid var(--blue);padding:10px 12px;background:#eff6ff;border-radius:10px;line-height:1.65}.teacher{border-left-color:var(--purple);background:#f5f3ff}.warn{border-left-color:var(--amber);background:#fffbeb}.success{border-left-color:var(--green);background:#f0fdf4}
@@ -197,7 +198,7 @@ footer{background:#fff;border-top:1px solid var(--line);text-align:center;color:
   <div class="navbar">
     <button class="btn secondary" id="prevBtn" type="button">← 上一個挑戰</button>
     <div class="navcenter"><strong id="navTitle">挑戰 01</strong><br><span id="navSubtitle">電腦看得到嗎？</span></div>
-    <button class="btn" id="nextBtn" type="button">下一個挑戰 →</button>
+    <button class="btn finish-btn" id="nextBtn" type="button">體驗結束 ✓</button>
   </div>
 </main>
 <footer>AI 工程素養互動教學平台<br>大安高工控制科邵時俊老師製作</footer>
@@ -239,9 +240,29 @@ footer{background:#fff;border-top:1px solid var(--line);text-align:center;color:
     navTitle.textContent=`挑戰 ${String(current+1).padStart(2,'0')}`;navSubtitle.textContent=labels[current];prevBtn.disabled=current===0;prevBtn.style.opacity=current===0?'.45':'1';updateExperienceState();
     localStorage.setItem('courseAiClassZeroStep',String(current));activateStepFrame(current);stepTabs[current].scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});if(announce)showToast(`已切換：${labels[current]}`);window.scrollTo({top:0,behavior:'smooth'});
   }
-  function updateExperienceState(){lessons.forEach((lesson,i)=>lesson.querySelectorAll('.post-experience').forEach(el=>el.classList.toggle('show',revealed.has(i))));nextBtn.textContent=revealed.has(current)?(current===5?'回到挑戰 01 ↺':'下一個挑戰 →'):'體驗結束'}
-  function finishExperience(){revealed.add(current);updateExperienceState();showToast('已完成體驗，請閱讀小結與 AI 核心概念');const first=lessons[current].querySelector('.post-experience');if(first)setTimeout(()=>first.scrollIntoView({behavior:'smooth',block:'center'}),80)}
-  stepTabs.forEach(btn=>btn.addEventListener('click',()=>setStep(Number(btn.dataset.step))));prevBtn.addEventListener('click',()=>setStep(current-1));nextBtn.addEventListener('click',()=>{if(!revealed.has(current)){finishExperience();return}setStep(current===5?0:current+1)});
+  // Create a separate purple navigation button after the revealed concept area.
+  lessons.forEach((lesson,i)=>{
+    const wrap=document.createElement('div');
+    wrap.className='concept-next-wrap';
+    wrap.innerHTML=`<button class="btn concept-next-btn" type="button">${i===5?'回到挑戰 01 ↺':'下一個挑戰 →'}</button>`;
+    const posts=[...lesson.querySelectorAll('.post-experience')];
+    const anchor=posts.length?posts[posts.length-1]:lesson.lastElementChild;
+    if(i===5){lesson.appendChild(wrap)}else if(anchor){anchor.insertAdjacentElement('afterend',wrap)}else{lesson.appendChild(wrap)}
+    wrap.querySelector('button').addEventListener('click',()=>setStep(i===5?0:i+1));
+  });
+  function updateExperienceState(){
+    lessons.forEach((lesson,i)=>{
+      const isRevealed=revealed.has(i);
+      lesson.querySelectorAll('.post-experience').forEach(el=>el.classList.toggle('show',isRevealed));
+      const wrap=lesson.querySelector('.concept-next-wrap');
+      if(wrap)wrap.classList.toggle('show',isRevealed);
+    });
+    const done=revealed.has(current);
+    nextBtn.textContent='體驗結束 ✓';
+    nextBtn.style.display=done?'none':'inline-flex';
+  }
+  function finishExperience(){revealed.add(current);updateExperienceState();showToast('已完成體驗，請先閱讀小結與 AI 核心概念');const first=lessons[current].querySelector('.post-experience');if(first)setTimeout(()=>first.scrollIntoView({behavior:'smooth',block:'center'}),80)}
+  stepTabs.forEach(btn=>btn.addEventListener('click',()=>setStep(Number(btn.dataset.step))));prevBtn.addEventListener('click',()=>setStep(current-1));nextBtn.addEventListener('click',finishExperience);
 
   document.querySelectorAll('.subtab').forEach(btn=>{
     btn.addEventListener('click',()=>{
