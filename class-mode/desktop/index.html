@@ -20,7 +20,7 @@ header{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0
 .badge{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;background:#ede9fe;color:#6d28d9;font-size:12px;font-weight:900;letter-spacing:.04em}
 .title-wrap h1{font-size:clamp(20px,3vw,29px);margin:5px 0 0}.title-wrap p{margin:3px 0 0;color:var(--muted);font-size:14px}
 .progress-wrap{max-width:1320px;margin:auto;padding:0 20px 12px}.progress-head{display:flex;justify-content:space-between;gap:12px;align-items:center;font-size:13px;color:var(--muted);margin-bottom:7px}
-.progress{height:8px;border-radius:999px;background:#e7edf6;overflow:hidden}.progress>span{display:block;height:100%;width:16.666%;background:var(--blue);transition:width .25s ease}
+.progress{height:8px;border-radius:999px;background:#e7edf6;overflow:hidden}.progress>span{display:block;height:100%;width:14.2857%;background:var(--blue);transition:width .25s ease}
 main{max-width:1320px;margin:20px auto;padding:0 20px 28px}.step-tabs{display:flex;gap:8px;overflow:auto;padding:2px 0 12px;scrollbar-width:thin}
 .step-tab{flex:0 0 auto;border:1px solid var(--line);background:#fff;border-radius:999px;padding:9px 13px;color:var(--muted);font-size:13px;font-weight:800}.step-tab.active{background:var(--blue);border-color:var(--blue);color:#fff}.step-tab.done:not(.active){border-color:#bbf7d0;background:#f0fdf4;color:var(--green)}
 .lesson{display:none}.lesson.active{display:block}.hero{display:grid;grid-template-columns:1.3fr .7fr;gap:18px;margin-bottom:18px}.card{background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow)}.card-pad{padding:18px}
@@ -46,6 +46,30 @@ footer{background:#fff;border-top:1px solid var(--line);text-align:center;color:
 @media(max-width:980px){.hero,.workspace{grid-template-columns:1fr}.iframe-shell,.iframe-shell iframe{min-height:600px;height:600px}.side{display:grid;grid-template-columns:1fr 1fr}.match-grid{grid-template-columns:1fr}.concept-flow{grid-template-columns:1fr}.flow-arrow{transform:rotate(90deg)} }
 @media(max-width:680px){.header-inner{grid-template-columns:1fr}.title-wrap p{display:none}.hero{gap:12px}.card-pad{padding:15px}.side{display:flex}.iframe-shell,.iframe-shell iframe{min-height:680px;height:680px}.iframe-note{max-width:calc(100% - 24px)}.navbar{bottom:7px}.navcenter{display:none}.btn{padding:10px 12px}.step-tabs{margin-right:-20px;padding-right:20px}.word-map{grid-template-columns:1fr}}
 </style>
+
+<style>
+.feedback-wrap{max-width:980px;margin:0 auto;display:grid;gap:16px}
+.feedback-hero{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(320px,.95fr);gap:22px;align-items:center;padding:24px;background:linear-gradient(135deg,#ffffff 0%,#f4f8ff 100%)}
+.feedback-copy h2{margin:6px 0 10px;font-size:clamp(28px,4vw,42px);line-height:1.2}
+.feedback-copy p{margin:0;color:var(--muted);line-height:1.8;font-size:15px}
+.feedback-points{display:grid;gap:9px}
+.feedback-point{display:flex;gap:10px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:13px;padding:11px 12px;font-size:14px;font-weight:800;line-height:1.45}
+.feedback-point span{flex:0 0 30px;width:30px;height:30px;border-radius:9px;background:#eef4ff;color:var(--blue2);display:grid;place-items:center;font-size:12px;font-weight:900}
+.feedback-action-card{text-align:center;padding:26px 22px}
+.feedback-action-card h3{margin:0 0 7px;font-size:21px}
+.feedback-action-card p{margin:0 auto 15px;color:var(--muted);line-height:1.7;max-width:680px}
+.feedback-primary{background:var(--green);padding:15px 28px;font-size:18px;min-width:250px;border-radius:12px;box-shadow:0 10px 26px rgba(21,128,61,.20)}
+.feedback-return{margin:14px auto 0;padding:10px 12px;max-width:620px;border-radius:11px;background:#fffbeb;border:1px solid #fde68a;color:#92400e;font-size:13px;font-weight:800;line-height:1.6}
+.feedback-done{margin-top:10px}
+.feedback-complete{display:none;text-align:center;padding:24px;border-color:#bbf7d0;background:linear-gradient(135deg,#f0fdf4,#fff)}
+.feedback-complete.show{display:block}
+.feedback-complete .done-mark{font-size:34px;margin-bottom:6px}
+.feedback-complete h3{margin:0 0 7px;color:#166534;font-size:23px}
+.feedback-complete p{margin:0;color:#475467;line-height:1.7}
+.feedback-mini{display:inline-flex;align-items:center;gap:6px;margin-top:12px;padding:6px 10px;border-radius:999px;background:#eef4ff;color:var(--blue2);font-size:12px;font-weight:900}
+@media(max-width:980px){.feedback-hero{grid-template-columns:1fr}}
+@media(max-width:680px){.feedback-hero{padding:18px}.feedback-action-card{padding:22px 16px}.feedback-copy h2{font-size:30px}.feedback-primary{width:100%;min-width:0}}
+</style>
 </head>
 <body>
 <header>
@@ -53,7 +77,7 @@ footer{background:#fff;border-top:1px solid var(--line);text-align:center;color:
     <div class="title-wrap">
       <div class="brandline"><a class="back" href="../">← 回裝置選擇</a><span class="badge">DESKTOP · ZERO BASIC</span></div>
       <h1>桌機版｜AI 零基礎體驗課</h1>
-      <p>桌機／筆電操作版：影像顯示在左、控制參數在右，方便一邊調整、一邊觀察 AI 結果。</p>
+      <p>桌機 / 筆電體驗：影像置左、控制置右，方便邊調整邊觀察 AI 結果。</p>
     </div>
   </div>
   <div class="progress-wrap">
@@ -70,6 +94,7 @@ footer{background:#fff;border-top:1px solid var(--line);text-align:center;color:
     <button class="step-tab" data-step="3">04 找到後怎麼跟？</button>
     <button class="step-tab" data-step="4">05 把 AI 接到真實世界</button>
     <button class="step-tab" data-step="5">06 我真的懂了嗎？</button>
+    <button class="step-tab" data-step="6">07 課程回饋</button>
   </nav>
 
   <!-- STEP 1 -->
@@ -127,7 +152,7 @@ footer{background:#fff;border-top:1px solid var(--line);text-align:center;color:
       <div class="card embed-card">
         <div class="subtabs"><button class="subtab active" data-frame-group="classdet" data-frame="frame-alex">第一種AI</button><button class="subtab" data-frame-group="classdet" data-frame="frame-yolo-2">第二種AI</button></div>
         <div class="embed-head"><div class="embed-title" id="classEmbedTitle">第一種AI｜這張圖最像什麼？</div><div class="embed-actions"><span class="student-view-chip">學生體驗模式</span></div></div>
-        <div class="iframe-shell"><iframe id="frame-alex" title="第一種AI 影像體驗" data-src="../../alexnet/" allow="camera"></iframe><iframe id="frame-yolo-2" title="第二種AI 影像體驗" data-src="../../yolov4/" allow="camera" hidden></iframe><div class="iframe-note">只比較兩種輸出「長什麼樣」，不用記名稱。</div></div>
+        <div class="iframe-shell"><iframe id="frame-alex" title="第一種AI 影像體驗" data-src="../../alexnet/"></iframe><iframe id="frame-yolo-2" title="第二種AI 影像體驗" data-src="../../yolov4/" allow="camera" hidden></iframe><div class="iframe-note">只比較兩種輸出「長什麼樣」，不用記名稱。</div></div>
       </div>
       <aside class="side">
         <div class="card post-experience"><h3>體驗小結</h3><div class="cue success">「認」比較像回答整張圖最像什麼；「找」則會把多個東西的位置一起指出來。這一關只要分得出兩種結果即可。</div></div>
@@ -193,6 +218,40 @@ footer{background:#fff;border-top:1px solid var(--line);text-align:center;color:
     </div>
   </section>
 
+  <!-- STEP 7 · FEEDBACK -->
+  <section class="lesson" data-lesson="6">
+    <div class="feedback-wrap">
+      <div class="card feedback-hero">
+        <div class="feedback-copy">
+          <div class="kicker">FINAL · FEEDBACK</div>
+          <h2>告訴老師，今天的 AI 體驗怎麼樣？</h2>
+          <p>你已經完成今天的 AI 體驗與學習檢核。最後把最真實的學習感受留下來，幫助老師了解哪些活動最有幫助、哪些地方還可以做得更好。</p>
+          <span class="feedback-mini">✓ 最後一步</span>
+        </div>
+        <div class="feedback-points" aria-label="回饋重點">
+          <div class="feedback-point"><span>01</span><div>哪一個 AI 體驗最讓你有印象？</div></div>
+          <div class="feedback-point"><span>02</span><div>你是否更了解 AI 是怎麼工作的？</div></div>
+          <div class="feedback-point"><span>03</span><div>這個互動平台是否幫助你理解 AI？</div></div>
+        </div>
+      </div>
+
+      <div class="card feedback-action-card">
+        <h3>填寫課程回饋</h3>
+        <p>點擊下方按鈕會在新分頁開啟 Google 表單。填答送出後，再回到這個頁面完成今天的課程。</p>
+        <a class="btn feedback-primary" id="feedbackLink" href="https://forms.gle/U1FaQM2TpzHEAAbo8" target="_blank" rel="noopener">填寫課程回饋 ↗</a>
+        <div class="feedback-return" id="feedbackReturnHint" hidden>Google 表單已開啟。填答並送出後，請回到這個頁面，再按下「我已完成課程回饋」。</div>
+        <div><button class="btn secondary feedback-done" id="feedbackDone" type="button" hidden>✓ 我已完成課程回饋</button></div>
+      </div>
+
+      <div class="card feedback-complete" id="feedbackComplete">
+        <div class="done-mark">✓</div>
+        <h3>AI 零基礎體驗課完成！</h3>
+        <p>今天你不是在背 AI 名詞，而是實際看見 AI 如何「認、找、跟」，以及它如何成為真實工程系統的一部分。</p>
+      </div>
+    </div>
+  </section>
+
+
   <div class="navbar">
     <button class="btn secondary" id="prevBtn" type="button">← 上一個挑戰</button>
     <div class="navcenter"><strong id="navTitle">挑戰 01</strong><br><span id="navSubtitle">電腦看得到嗎？</span></div>
@@ -213,11 +272,11 @@ footer{background:#fff;border-top:1px solid var(--line);text-align:center;color:
   const prevBtn=document.getElementById('prevBtn');
   const nextBtn=document.getElementById('nextBtn');
   const toast=document.getElementById('toast');
-  const labels=['電腦看得到嗎？','你能騙過 AI 嗎？','認出來 ≠ 找出來','找到後怎麼跟？','把 AI 接到真實世界','我真的懂了嗎？'];
-  let current=Math.min(5,Math.max(0,Number(localStorage.getItem('courseAiClassZeroStep')||0)));
+  const labels=['電腦看得到嗎？','你能騙過 AI 嗎？','認出來 ≠ 找出來','找到後怎麼跟？','把 AI 接到真實世界','我真的懂了嗎？','課程回饋'];
+  let current=Math.min(6,Math.max(0,Number(localStorage.getItem('courseAiClassZeroStep')||0)));
   const revealed=new Set();
 
-  const frameGroups={0:['frame-yolo-1'],1:['frame-haar','frame-retina'],2:['frame-alex','frame-yolo-2'],3:['frame-klt'],4:[],5:[]};
+  const frameGroups={0:['frame-yolo-1'],1:['frame-haar','frame-retina'],2:['frame-alex','frame-yolo-2'],3:['frame-klt'],4:[],5:[],6:[]};
   const preferredFrame={1:'frame-haar',2:'frame-alex'};
 
   function unloadFrame(frame){if(!frame)return;if(frame._top1Observer){try{frame._top1Observer.disconnect()}catch(e){}frame._top1Observer=null;}if(frame.getAttribute('src')&&frame.getAttribute('src')!=='about:blank')frame.setAttribute('src','about:blank')}
@@ -231,21 +290,23 @@ footer{background:#fff;border-top:1px solid var(--line);text-align:center;color:
   }
   function showToast(text){toast.textContent=text;toast.classList.add('show');clearTimeout(showToast.t);showToast.t=setTimeout(()=>toast.classList.remove('show'),1200)}
   function setStep(index,announce=true){
-    current=Math.min(5,Math.max(0,index));lessons.forEach((el,i)=>el.classList.toggle('active',i===current));
+    current=Math.min(6,Math.max(0,index));lessons.forEach((el,i)=>el.classList.toggle('active',i===current));
     stepTabs.forEach((el,i)=>{el.classList.toggle('active',i===current);el.classList.toggle('done',i<current)});
-    progressBar.style.width=`${((current+1)/6)*100}%`;progressLabel.textContent=`挑戰 ${current+1} / 6`;
-    navTitle.textContent=`挑戰 ${String(current+1).padStart(2,'0')}`;navSubtitle.textContent=labels[current];prevBtn.disabled=current===0;prevBtn.style.opacity=current===0?'.45':'1';updateExperienceState();
+    progressBar.style.width=`${((current+1)/7)*100}%`;progressLabel.textContent=current===6?'課程回饋 · 最後一步':`挑戰 ${current+1} / 6`;
+    navTitle.textContent=current===6?'最後一步':`挑戰 ${String(current+1).padStart(2,'0')}`;navSubtitle.textContent=labels[current];prevBtn.disabled=current===0;prevBtn.style.opacity=current===0?'.45':'1';updateExperienceState();
     localStorage.setItem('courseAiClassZeroStep',String(current));activateStepFrame(current);stepTabs[current].scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});if(announce)showToast(`已切換：${labels[current]}`);window.scrollTo({top:0,behavior:'smooth'});
   }
   // Create a separate purple navigation button after the revealed concept area.
   lessons.forEach((lesson,i)=>{
+    if(i===6)return;
     const wrap=document.createElement('div');
     wrap.className='concept-next-wrap';
-    wrap.innerHTML=`<button class="btn concept-next-btn" type="button">${i===5?'回到挑戰 01 ↺':'下一個挑戰 →'}</button>`;
+    const label=i===5?'前往課程回饋 →':'下一個挑戰 →';
+    wrap.innerHTML=`<button class="btn concept-next-btn" type="button">${label}</button>`;
     const posts=[...lesson.querySelectorAll('.post-experience')];
     const anchor=posts.length?posts[posts.length-1]:lesson.lastElementChild;
-    if(i===5){lesson.appendChild(wrap)}else if(anchor){anchor.insertAdjacentElement('afterend',wrap)}else{lesson.appendChild(wrap)}
-    wrap.querySelector('button').addEventListener('click',()=>setStep(i===5?0:i+1));
+    if(anchor){anchor.insertAdjacentElement('afterend',wrap)}else{lesson.appendChild(wrap)}
+    wrap.querySelector('button').addEventListener('click',()=>setStep(i+1));
   });
   function updateExperienceState(){
     lessons.forEach((lesson,i)=>{
@@ -256,7 +317,7 @@ footer{background:#fff;border-top:1px solid var(--line);text-align:center;color:
     });
     const done=revealed.has(current);
     nextBtn.textContent='體驗結束 ✓';
-    nextBtn.style.display=done?'none':'inline-flex';
+    nextBtn.style.display=(current===6||done)?'none':'inline-flex';
   }
   function finishExperience(){revealed.add(current);updateExperienceState();showToast('已完成體驗，請先閱讀小結與 AI 核心概念');const first=lessons[current].querySelector('.post-experience');if(first)setTimeout(()=>first.scrollIntoView({behavior:'smooth',block:'center'}),80)}
   stepTabs.forEach(btn=>btn.addEventListener('click',()=>setStep(Number(btn.dataset.step))));prevBtn.addEventListener('click',()=>setStep(current-1));nextBtn.addEventListener('click',finishExperience);
@@ -487,8 +548,19 @@ footer{background:#fff;border-top:1px solid var(--line);text-align:center;color:
   const exitForm=document.getElementById('exitForm'),quizResult=document.getElementById('quizResult');document.getElementById('resetQuiz').addEventListener('click',()=>{exitForm.reset();quizResult.className='result-box';quizResult.textContent=''})
   exitForm.addEventListener('submit',e=>{e.preventDefault();const fd=new FormData(exitForm),answers={q1:'a',q2:'b',q3:'a'};const answered=['q1','q2','q3'].filter(q=>fd.get(q)).length;if(answered<3){quizResult.className='result-box show mid';quizResult.textContent='還有題目沒有作答。三題都選完再送出。';return}let score=0;Object.entries(answers).forEach(([q,a])=>{if(fd.get(q)===a)score++});quizResult.className='result-box show '+(score===3?'good':'mid');quizResult.innerHTML=`<b>${score} / 3</b><br>今天最重要的不是背任何名稱，而是分清楚「認、找、跟」三種不同能力；真正的工程系統還會把 AI 的結果交給控制器或其他設備。`;localStorage.setItem('courseAiClassZeroCompleted','1')});
 
+  const feedbackLink=document.getElementById('feedbackLink');
+  const feedbackReturnHint=document.getElementById('feedbackReturnHint');
+  const feedbackDone=document.getElementById('feedbackDone');
+  const feedbackComplete=document.getElementById('feedbackComplete');
+  function showFeedbackReturn(){feedbackReturnHint.hidden=false;feedbackDone.hidden=false;localStorage.setItem('courseAiFeedbackOpened','1')}
+  if(localStorage.getItem('courseAiFeedbackOpened')==='1')showFeedbackReturn();
+  if(localStorage.getItem('courseAiFeedbackDone')==='1')feedbackComplete.classList.add('show');
+  feedbackLink.addEventListener('click',()=>setTimeout(showFeedbackReturn,120));
+  feedbackDone.addEventListener('click',()=>{feedbackComplete.classList.add('show');localStorage.setItem('courseAiFeedbackDone','1');feedbackComplete.scrollIntoView({behavior:'smooth',block:'center'});showToast('課程完成，謝謝你的回饋！')});
+
   window.addEventListener('pagehide',()=>document.querySelectorAll('iframe[data-src]').forEach(unloadFrame));setStep(current,false);
 })();
 </script>
+
 </body>
 </html>
