@@ -387,12 +387,21 @@ body.mobile-mode .btn{min-height:44px}
           background:#0b1020!important;
           border-radius:12px!important
         }
-        .class-mode-live-stage video,.class-mode-live-stage canvas,.class-mode-live-stage img{
+        /* 手機相機畫面滿版顯示：影像用 cover 填滿舞台，不再保留左右黑邊。
+           Canvas 則必須完整鋪滿舞台，避免 AI 框線與影像座標錯位。 */
+        .class-mode-live-stage video,.class-mode-live-stage img{
           width:100%!important;
           max-width:100%!important;
           height:100%!important;
           max-height:46vh!important;
-          object-fit:contain!important
+          object-fit:cover!important
+        }
+        .class-mode-live-stage canvas{
+          width:100%!important;
+          max-width:100%!important;
+          height:100%!important;
+          max-height:46vh!important;
+          object-fit:fill!important
         }
 
         /* 操作區永遠接在影像下方，不再做左右欄。 */
@@ -451,6 +460,26 @@ body.mobile-mode .btn{min-height:44px}
         }
       `;
       doc.head.appendChild(style);
+
+      // RetinaFace 原頁面使用 object-fit:contain，座標換算也採 contain。
+      // 行動版改成滿版 cover 後，同步改用 cover 的顯示座標，讓人臉框與關鍵點仍對準影像。
+      if(frame.id==='frame-retina'){
+        try{
+          const win=frame.contentWindow;
+          if(win){
+            win.getDisplayRect=function(){
+              const overlay=doc.getElementById('overlay');
+              const video=doc.getElementById('video');
+              if(!overlay||!video)return {s:1,x:0,y:0,w:0,h:0};
+              const cw=overlay.clientWidth,ch=overlay.clientHeight;
+              const vw=video.videoWidth||640,vh=video.videoHeight||480;
+              const scale=Math.max(cw/vw,ch/vh);
+              const w=vw*scale,h=vh*scale;
+              return {s:scale,x:(cw-w)/2,y:(ch-h)/2,w,h};
+            };
+          }
+        }catch(err){/* display enhancement only */}
+      }
 
       // Remove navigation links to the full teaching units while keeping interactive controls usable.
       [...doc.querySelectorAll('a')].forEach(a=>{
