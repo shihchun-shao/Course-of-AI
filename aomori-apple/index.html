@@ -3,454 +3,471 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>UNIT 01｜蘋果果實偵測</title>
+<title>03｜青森智慧選果 AI 體驗課程</title>
 <style>
 :root{
-  --bg:#f4f7fb;--card:#fff;--text:#172033;--muted:#667085;--blue:#2563eb;--red:#dc2626;
-  --green:#15803d;--line:#d9e1ec;--stage:#0b1020;--amber:#b45309;--cyan:#0891b2;
+  --bg:#f4f7fb;--card:#ffffff;--text:#172033;--muted:#667085;--blue:#2563eb;
+  --green:#15803d;--red:#dc2626;--amber:#b45309;--purple:#7c3aed;--cyan:#0891b2;
+  --line:#d9e1ec;--dark:#0b1020;
 }
 *{box-sizing:border-box}
+html{scroll-behavior:smooth}
 body{margin:0;font-family:system-ui,-apple-system,"Noto Sans TC","Microsoft JhengHei",sans-serif;background:var(--bg);color:var(--text)}
-button,input{font:inherit}
-header{padding:22px 6vw;background:#fff;border-bottom:1px solid var(--line)}
+a{color:inherit}
+header{background:#fff;border-bottom:1px solid var(--line);padding:22px 6vw 24px}
 .header-inner{max-width:1240px;margin:0 auto}
-.back{color:#1d4ed8;text-decoration:none;font-weight:800;font-size:14px}
-.badge{display:inline-block;margin-left:10px;border-radius:999px;padding:4px 9px;font-size:12px;font-weight:900;background:#e0f2fe;color:#075985;letter-spacing:.04em}
-h1{margin:8px 0 6px;font-size:clamp(28px,4vw,42px);line-height:1.2}
-header p{margin:0;color:var(--muted);line-height:1.75}
-.course-chip{display:inline-flex;gap:8px;align-items:center;margin-top:13px;padding:8px 11px;border:1px solid #fecaca;border-radius:12px;background:#fff7f7;color:#991b1b;font-size:13px;font-weight:800}
-main{max-width:1240px;margin:24px auto;padding:0 18px;display:grid;grid-template-columns:1.35fr .85fr;gap:20px;align-items:start}
-.card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:0 8px 28px #0000000a}
-.card h2{font-size:20px;margin:0 0 14px}.card h3{font-size:16px;margin:18px 0 10px}
-.stage{position:relative;background:var(--stage);border-radius:16px;overflow:hidden;aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;isolation:isolate}
-video{width:100%;height:100%;object-fit:contain;display:block;background:#0b1020}
-video.mirror{transform:scaleX(-1)}
-#boxLayer{position:absolute;inset:0;pointer-events:none;z-index:3}
-.det-box{position:absolute;border:3px solid #22c55e;border-radius:10px;box-shadow:0 0 0 2px #0005 inset}
-.det-label{position:absolute;left:-3px;top:-30px;background:#16a34a;color:#fff;padding:5px 8px;border-radius:8px;font-size:12px;font-weight:900;white-space:nowrap;box-shadow:0 4px 14px #0003}
-.status-pill{position:absolute;top:12px;left:12px;padding:7px 10px;border-radius:999px;background:#111827d9;color:#fff;font-size:12px;font-weight:800;display:flex;gap:7px;align-items:center;z-index:6}
-.dot{width:8px;height:8px;border-radius:50%;background:#94a3b8}.dot.live{background:#22c55e;box-shadow:0 0 0 5px #22c55e20}.dot.busy{background:#f59e0b;box-shadow:0 0 0 5px #f59e0b20}
-.count-overlay{position:absolute;right:12px;top:12px;background:#fffffff2;border-radius:13px;padding:10px 14px;min-width:132px;text-align:center;box-shadow:0 8px 24px #0003;z-index:6}
-.count-overlay small{display:block;color:var(--muted);font-weight:800}.count-overlay strong{display:block;font-size:32px;line-height:1.05;margin-top:2px}.count-overlay span{font-size:12px;color:var(--muted)}
-.scan-guide{position:absolute;left:50%;bottom:13px;transform:translateX(-50%);padding:7px 11px;border-radius:999px;background:#111827cc;color:#fff;font-size:12px;font-weight:800;white-space:nowrap;z-index:5}
-.controls{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
-button{border:0;border-radius:10px;padding:11px 16px;font-weight:850;background:var(--blue);color:#fff;cursor:pointer;min-height:44px}
-button.stop{background:var(--red)}button.secondary{background:#475569}button.next{background:var(--green)}button.amber{background:var(--amber)}button:disabled{opacity:.45;cursor:not-allowed}
-.metric-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}
-.metric{border:1px solid var(--line);border-radius:14px;padding:13px;min-width:0}.metric small{color:var(--muted)}.metric strong{display:block;font-size:19px;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.metric .tiny{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.45}
-.result-panel{border:1px solid var(--line);border-radius:16px;padding:16px;background:#fbfdff}
-.result-number{font-size:58px;font-weight:950;line-height:1;color:var(--green);letter-spacing:-.04em}.result-unit{font-weight:900;margin-left:5px;color:#334155}.result-line{display:flex;align-items:end;gap:4px}.result-note{margin-top:8px;color:var(--muted);font-size:13px;line-height:1.6}
-.model-row{display:flex;gap:10px;align-items:center;justify-content:space-between;border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-top:12px}.model-row strong{font-size:13px}.model-state{font-size:12px;font-weight:900;color:var(--amber)}.model-state.ready{color:var(--green)}.model-state.fail{color:var(--red)}
-.threshold{margin-top:14px;padding:12px;border:1px solid var(--line);border-radius:12px}.threshold-head{display:flex;justify-content:space-between;gap:10px;font-size:13px;font-weight:850;margin-bottom:8px}.threshold input{width:100%}
-.notice{margin-top:16px;padding:12px 13px;border-radius:13px;background:#eff6ff;border:1px solid #bfdbfe;color:#1e40af;font-size:13px;line-height:1.65}.notice.warn{background:#fffbeb;border-color:#fde68a;color:#92400e}.notice.good{background:#f0fdf4;border-color:#bbf7d0;color:#166534}
-.step{border:1px solid var(--line);border-radius:12px;padding:11px 12px;margin-bottom:9px}.step b{display:block;margin-bottom:3px}.step span{color:var(--muted);font-size:14px;line-height:1.6}
-.mini-flow{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin:8px 0 16px}.mini-flow span{padding:6px 9px;border-radius:999px;border:1px solid var(--line);background:#f8fafc;font-size:12px;font-weight:850;color:#475569}.mini-flow i{color:#94a3b8;font-style:normal}
-footer{background:#fff;border-top:1px solid var(--line);margin-top:12px;text-align:center;color:var(--muted);font-size:13px;line-height:1.8;padding:22px}
-
-/* Production-line transition: scatter -> guide -> single file -> one-at-a-time inspection */
-#transitionLayer{position:absolute;inset:0;z-index:20;background:linear-gradient(180deg,#edf5ff 0%,#f8fbff 55%,#e8eef5 55%,#d6e0ea 100%);display:none;overflow:hidden}
-#transitionLayer.show{display:block}
-.factory-title{position:absolute;left:18px;top:14px;right:18px;text-align:center;font-weight:950;color:#334155;font-size:clamp(15px,2.2vw,21px);z-index:12}
-.factory-sub{position:absolute;left:18px;top:45px;right:18px;text-align:center;color:#64748b;font-size:12px;font-weight:750;z-index:12}
-.phase-flow{position:absolute;left:7%;right:7%;top:19%;display:flex;align-items:center;justify-content:center;gap:7px;z-index:3;pointer-events:none}.phase-flow span{padding:5px 8px;border-radius:999px;background:#ffffffd9;border:1px solid #cbd5e1;color:#475569;font-size:10px;font-weight:900;box-shadow:0 4px 14px #3341550c}.phase-flow i{font-style:normal;color:#94a3b8;font-weight:900}
-.guide-zone{position:absolute;left:5%;top:27%;width:53%;height:28%;border-radius:18px;background:linear-gradient(180deg,#ffffffd6,#e9f0f7d6);border:2px solid #cbd5e1;box-shadow:inset 0 0 0 1px #ffffffb8;z-index:1;overflow:hidden}.guide-zone::before{content:'導流集中區';position:absolute;left:12px;top:10px;padding:4px 7px;border-radius:999px;background:#ffffffdd;color:#64748b;font-size:10px;font-weight:900;border:1px solid #dbe3ec}.guide-rail{position:absolute;right:2%;width:66%;height:5px;border-radius:999px;background:#64748b;box-shadow:0 2px 5px #0f172a20;transform-origin:right center}.guide-rail.top{top:28%;transform:rotate(10deg)}.guide-rail.bottom{bottom:25%;transform:rotate(-10deg)}.guide-throat{position:absolute;right:0;top:43%;width:12%;height:19%;border-radius:8px 0 0 8px;background:#334155;box-shadow:inset 0 0 0 3px #64748b}
-.conveyor{position:absolute;left:6%;right:20%;bottom:13%;height:25%;border-radius:20px;background:#475569;border:5px solid #334155;overflow:hidden;box-shadow:0 10px 26px #0f172a2e;z-index:2}
-.conveyor::before{content:'單列輸送帶';position:absolute;left:12px;top:9px;z-index:3;padding:4px 7px;border-radius:999px;background:#0f172acc;color:#fff;font-size:10px;font-weight:900}
-.belt{position:absolute;inset:9px 12px 34px;background:repeating-linear-gradient(90deg,#64748b 0 28px,#7c8da3 28px 56px);border-radius:12px;animation:beltMove 1s linear infinite}
-.belt-rail{position:absolute;left:2%;right:2%;height:5px;border-radius:999px;background:#cbd5e1;z-index:2;box-shadow:0 1px 3px #0f172a38}.belt-rail.top{top:20%}.belt-rail.bottom{top:58%}
-.roller-row{position:absolute;left:3%;right:3%;bottom:5px;height:23px;display:flex;justify-content:space-around;align-items:center}.roller{width:23px;height:23px;border-radius:50%;background:#cbd5e1;border:4px solid #64748b;box-shadow:inset 0 0 0 2px #94a3b8}
-.station{position:absolute;right:3%;bottom:22%;width:18%;min-width:112px;height:45%;border-radius:16px;background:#fff;border:3px solid #64748b;box-shadow:0 10px 24px #3341552a;display:flex;align-items:center;justify-content:flex-start;flex-direction:column;gap:5px;text-align:center;padding:13px 8px 8px;z-index:4}.station::before,.station::after{content:'';position:absolute;top:29%;bottom:12%;width:8px;border-radius:999px;background:#475569}.station::before{left:15%}.station::after{right:15%}.station b{font-size:13px;color:#334155}.station span{font-size:11px;color:#64748b}.station .gate{width:58%;height:8px;border-radius:999px;background:#22c55e;box-shadow:0 0 0 0 #22c55e55}.station .sensor-window{position:absolute;left:22%;right:22%;top:36%;bottom:15%;border:2px dashed #94a3b8;border-radius:11px;background:#f8fafc80;overflow:hidden}.station .scan-line{position:absolute;left:6%;right:6%;top:15%;height:3px;border-radius:99px;background:#22c55e;opacity:0;box-shadow:0 0 10px #22c55e}.station.active{border-color:#22c55e;box-shadow:0 0 0 5px #22c55e18,0 12px 26px #3341552a}.station.active .gate{animation:gatePulse 1s ease-in-out infinite}.station.active .scan-line{opacity:1;animation:scanMove 1.25s ease-in-out infinite alternate}
-.apple-chip{position:absolute;z-index:7;object-fit:contain;filter:drop-shadow(0 7px 7px #0f172a33);transition:left 1.25s cubic-bezier(.22,.78,.2,1),top 1.25s cubic-bezier(.22,.78,.2,1),width 1.25s ease,height 1.25s ease,transform 1.25s ease,filter .4s ease;transform-origin:center}.apple-chip.inspecting{z-index:8;filter:drop-shadow(0 8px 8px #0f172a33) drop-shadow(0 0 10px #22c55e70)}
-.transition-status{position:absolute;left:50%;bottom:3.5%;transform:translateX(-50%);padding:8px 13px;border-radius:999px;background:#0f172ae8;color:#fff;font-weight:850;font-size:12px;white-space:nowrap;z-index:15;box-shadow:0 6px 18px #0f172a26}
-@keyframes beltMove{from{background-position:0 0}to{background-position:56px 0}}
-@keyframes gatePulse{0%,100%{box-shadow:0 0 0 0 #22c55e45}50%{box-shadow:0 0 0 8px #22c55e12}}
-@keyframes scanMove{from{top:14%}to{top:82%}}
-@media(prefers-reduced-motion:reduce){.belt,.station.active .gate,.station.active .scan-line{animation:none}.apple-chip{transition:none!important}}
-
-@media(max-width:1020px){.metric-grid{grid-template-columns:1fr 1fr}}
-@media(max-width:920px){main{grid-template-columns:1fr}.stage{aspect-ratio:4/3}}
-@media(max-width:560px){header{padding:18px 16px}main{padding:0 12px;margin-top:16px}.card{padding:14px;border-radius:15px}.controls button{flex:1 1 42%}.metric-grid{grid-template-columns:1fr 1fr}.count-overlay{min-width:108px;padding:8px 11px}.count-overlay strong{font-size:28px}.guide-zone{left:3%;width:51%;top:29%;height:25%}.conveyor{left:4%;right:25%;height:23%;bottom:14%}.station{min-width:88px;width:22%;height:42%;right:2%;bottom:23%;padding-top:10px}.factory-sub{top:43px}.phase-flow{left:3%;right:3%;gap:4px}.phase-flow span{font-size:9px;padding:4px 6px}.phase-flow i{font-size:10px}.scan-guide{max-width:88%;white-space:normal;text-align:center}.transition-status{max-width:92%;white-space:normal;text-align:center}}
+.back{font-size:14px;font-weight:850;color:#1d4ed8;text-decoration:none}
+.badge{display:inline-flex;margin-left:10px;padding:5px 10px;border-radius:999px;background:#e0f2fe;color:#075985;font-size:12px;font-weight:950;letter-spacing:.04em}
+h1{font-size:clamp(30px,4vw,46px);margin:11px 0 8px;line-height:1.15}
+header p{margin:0;color:var(--muted);font-size:15px;line-height:1.8;max-width:900px}
+main{max-width:1240px;margin:24px auto;padding:0 18px 10px}
+.hero-card,.unit-card{background:var(--card);border:1px solid var(--line);border-radius:20px;box-shadow:0 8px 28px #0000000a}
+.hero-card{padding:20px}
+.hero-top{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:14px}
+.hero-top h2{margin:0;font-size:22px}.hero-top p{margin:5px 0 0;color:var(--muted);line-height:1.65;font-size:14px}
+.demo-badge{white-space:nowrap;background:#eef2ff;color:#4338ca;border:1px solid #c7d2fe;padding:7px 10px;border-radius:999px;font-size:12px;font-weight:900}
+.production-stage{position:relative;min-height:455px;border:1px solid #cbd5e1;border-radius:18px;overflow:hidden;background:linear-gradient(180deg,#f8fbff 0%,#eef5ff 58%,#e7edf5 58%,#e7edf5 100%)}
+.factory-sky{position:absolute;inset:0 0 45% 0;background-image:linear-gradient(#ffffff80 1px,transparent 1px),linear-gradient(90deg,#ffffff80 1px,transparent 1px);background-size:42px 42px;opacity:.55}
+.belt{position:absolute;left:4%;right:4%;top:66%;height:76px;background:#334155;border-radius:15px;box-shadow:inset 0 -13px 0 #1e293b,inset 0 13px 0 #475569}
+.belt:before,.belt:after{content:"";position:absolute;left:22px;right:22px;height:12px;border-radius:999px;background:repeating-linear-gradient(90deg,#94a3b8 0 34px,#64748b 34px 48px)}
+.belt:before{top:10px}.belt:after{bottom:10px}
+.station-row{position:absolute;left:4%;right:4%;top:48px;display:grid;grid-template-columns:minmax(250px,1.8fr) repeat(4,minmax(145px,1fr));gap:12px;z-index:2}
+.station{position:relative;text-align:center;padding:12px 8px 10px;border:2px solid #cbd5e1;background:#fff;border-radius:16px;min-height:150px;transition:.3s ease;box-shadow:0 7px 22px #0000000a}
+.station:after{content:"";position:absolute;left:50%;top:100%;width:3px;height:88px;background:#94a3b8;transform:translateX(-50%);z-index:-1}
+.station.active{border-color:#60a5fa;box-shadow:0 0 0 4px #dbeafe,0 12px 28px #2563eb18;transform:translateY(-4px)}
+.station.done{border-color:#86efac;background:#f7fff9}
+.station .unit-no{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;margin:0 auto 8px;background:#e2e8f0;color:#475569;font-size:13px;font-weight:950}
+.station.active .unit-no{background:var(--blue);color:#fff}.station.done .unit-no{background:var(--green);color:#fff}
+.station b{display:block;font-size:14px;line-height:1.4}.station small{display:block;color:var(--muted);font-size:11px;margin-top:5px;line-height:1.35}
+.station-output{margin-top:8px;font-size:11px;font-weight:900;color:#1d4ed8;background:#eff6ff;border-radius:8px;padding:5px 6px;min-height:26px;display:grid;place-items:center}
+.station-one{min-height:205px;padding-left:12px;padding-right:12px}
+.intake-zone{margin-top:9px;padding:8px 8px 7px;border:1px dashed #f59e0b;border-radius:11px;background:#fffaf0}
+.intake-label{font-size:10px;font-weight:900;color:#92400e;margin-bottom:7px;letter-spacing:.03em}
+.intake-apples{position:relative;height:98px;min-height:98px;border-radius:10px;overflow:hidden}
+.intake-apples.randomized{background:linear-gradient(180deg,#fffdf7 0%,#fff8ea 100%)}
+.intake-apple{position:absolute;left:0;top:0;width:29px;height:27px;border-radius:50% 50% 46% 46%/48% 48% 54% 54%;background:radial-gradient(circle at 35% 28%,#ff9c9c 0 9%,#ef4444 22%,#c81e1e 78%,#991b1b 100%);border:1px solid #8b1d1d;box-shadow:0 5px 8px #0002;transition:opacity .25s ease,transform .25s ease,filter .25s ease,left .25s ease,top .25s ease;animation:queueBob 1.7s ease-in-out infinite}
+.intake-apple:nth-child(2){animation-delay:.12s}.intake-apple:nth-child(3){animation-delay:.24s}.intake-apple:nth-child(4){animation-delay:.36s}.intake-apple:nth-child(5){animation-delay:.48s}
+.intake-apple:before{content:"";position:absolute;width:5px;height:11px;background:#6b4f2a;border-radius:4px;left:13px;top:-8px;transform:rotate(8deg)}
+.intake-apple:after{content:"";position:absolute;width:11px;height:6px;border-radius:100% 0 100% 0;background:#16a34a;left:16px;top:-5px;transform:rotate(-24deg)}
+.intake-apple.processing{transform:scale(1.12);filter:drop-shadow(0 0 7px #2563eb88);animation:none}
+.intake-apple.done{opacity:0;transform:scale(.72);filter:grayscale(.25);animation:none;pointer-events:none}
+@keyframes queueBob{50%{transform:translateY(-3px)}}
+.apple-runner{position:absolute;width:54px;height:54px;left:6%;top:64.5%;z-index:7;opacity:1;transition:left 1.05s cubic-bezier(.2,.8,.2,1),top 1.05s cubic-bezier(.2,.8,.2,1),transform .3s ease,opacity .2s ease;filter:drop-shadow(0 8px 8px #0004)}
+.apple-runner.hidden{opacity:0}
+.apple-body{position:absolute;left:7px;top:9px;width:40px;height:38px;border-radius:50% 50% 47% 47%/46% 46% 54% 54%;background:radial-gradient(circle at 35% 28%,#ff8b8b 0 8%,#ef4444 20%,#c81e1e 78%,#991b1b 100%);border:1px solid #8b1d1d}
+.apple-body:before{content:"";position:absolute;width:7px;height:18px;background:#6b4f2a;border-radius:5px;left:18px;top:-13px;transform:rotate(8deg)}
+.apple-body:after{content:"";position:absolute;width:17px;height:9px;border-radius:100% 0 100% 0;background:#16a34a;left:22px;top:-8px;transform:rotate(-24deg)}
+.apple-glow{position:absolute;inset:-9px;border-radius:50%;border:2px solid #ffffffaa;animation:pulse 1.4s ease-in-out infinite}
+@keyframes pulse{50%{transform:scale(1.12);opacity:.35}}
+.result-panel{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);z-index:5;width:min(92%,720px);display:flex;gap:12px;align-items:center;background:#fffffff5;border:1px solid #cbd5e1;border-radius:14px;padding:10px 12px;box-shadow:0 10px 30px #0002}
+.result-icon{width:40px;height:40px;border-radius:11px;background:#dbeafe;color:#1d4ed8;display:grid;place-items:center;font-weight:950;flex:0 0 auto}
+.result-copy{min-width:0}.result-copy small{display:block;color:var(--muted);font-size:11px;font-weight:800}.result-copy strong{display:block;margin-top:3px;font-size:15px}.result-copy span{display:block;color:#475569;font-size:12px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.line-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+button{border:0;border-radius:10px;padding:10px 14px;font:inherit;font-weight:850;cursor:pointer;background:var(--blue);color:#fff;min-height:42px}
+button.secondary{background:#475569}button:disabled{opacity:.5;cursor:not-allowed}
+.section-title{margin:28px 0 12px}.section-title h2{margin:0;font-size:22px}.section-title p{margin:5px 0 0;color:var(--muted);font-size:14px}
+.unit-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.unit-card{padding:18px;display:flex;flex-direction:column;min-height:210px}
+.unit-card .topline{display:flex;align-items:center;justify-content:space-between;gap:10px}.unit-card .num{font-size:12px;font-weight:950;color:#1d4ed8;background:#dbeafe;padding:5px 8px;border-radius:999px}.unit-card .status{font-size:11px;font-weight:900;color:#166534;background:#dcfce7;padding:5px 8px;border-radius:999px}.unit-card .status.build{color:#92400e;background:#fef3c7}
+.unit-card h3{margin:13px 0 7px;font-size:20px}.unit-card p{margin:0;color:var(--muted);font-size:14px;line-height:1.65}.tech{margin-top:12px;font-size:12px;font-weight:850;color:#475569}.unit-card .go{margin-top:auto;padding-top:16px}.go a,.go span{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:10px 14px;border-radius:10px;font-weight:900;text-decoration:none;font-size:14px}.go a{background:var(--blue);color:#fff}.go span{background:#e2e8f0;color:#64748b}
+.unit-card.wide{grid-column:1/-1}
+.flow-strip{margin-top:18px;display:grid;grid-template-columns:repeat(9,auto);justify-content:center;align-items:center;gap:8px;color:#64748b;font-size:12px;font-weight:850}.flow-node{padding:7px 9px;border-radius:999px;background:#fff;border:1px solid var(--line);color:#334155}.flow-arrow{color:#94a3b8;font-size:16px}
+footer{margin-top:28px;background:#fff;border-top:1px solid var(--line);padding:22px;text-align:center;color:var(--muted);font-size:13px;line-height:1.8}
+@media(max-width:900px){
+  .station-row{left:3%;right:3%;gap:7px;grid-template-columns:minmax(180px,1.7fr) repeat(4,minmax(105px,1fr))}.station{padding:10px 5px;min-height:150px}.station-one{min-height:200px}.station b{font-size:12px}.station small{font-size:10px}.station-output{font-size:10px}.apple-runner{width:48px;height:48px}.production-stage{min-height:455px}.unit-grid{grid-template-columns:1fr}.unit-card.wide{grid-column:auto}.flow-strip{grid-template-columns:1fr;justify-items:center}.flow-arrow{transform:rotate(90deg)}
+}
+@media(max-width:640px){
+  header{padding:18px 16px}.badge{display:inline-flex;margin:9px 0 0}.hero-top{display:block}.demo-badge{display:inline-flex;margin-top:10px}.hero-card{padding:14px}.production-stage{min-height:900px;background:linear-gradient(90deg,#f8fbff 0%,#eef5ff 58%,#e7edf5 58%,#e7edf5 100%)}
+  .factory-sky{inset:0 42% 0 0}.belt{left:61%;right:auto;top:4%;bottom:4%;height:auto;width:74px}.belt:before,.belt:after{top:22px;bottom:22px;width:12px;height:auto;background:repeating-linear-gradient(180deg,#94a3b8 0 34px,#64748b 34px 48px)}.belt:before{left:10px;right:auto}.belt:after{right:10px;left:auto}
+  .station-row{left:4%;right:45%;top:28px;bottom:28px;display:grid;grid-template-columns:1fr;grid-template-rows:1.65fr repeat(4,1fr);gap:8px}.station{min-height:0;text-align:left;padding:9px 10px;display:grid;grid-template-columns:34px 1fr;grid-template-areas:"num title" "num sub" "num out";align-items:center}.station-one{grid-template-areas:"num title" "num sub" "num out" "intake intake"}.station:after{left:100%;top:50%;width:66px;height:3px;transform:none}.station .unit-no{grid-area:num;width:31px;height:31px;margin:0 9px 0 0}.station b{grid-area:title;font-size:12px}.station small{grid-area:sub;margin-top:2px}.station-output{grid-area:out;margin-top:4px;min-height:22px;justify-self:start;padding:4px 6px}.station-one .intake-zone{grid-area:intake;margin-top:5px;padding:6px}.station-one .intake-label{text-align:center;margin-bottom:6px}.station-one .intake-apples{height:78px;min-height:78px}.station-one .intake-apple{width:25px;height:23px}
+  .apple-runner{left:63.5%;top:7%;transition:left .8s ease,top 1.05s cubic-bezier(.2,.8,.2,1)}
+  .result-panel{left:4%;right:4%;bottom:12px;transform:none;width:auto}.result-copy span{white-space:normal}.line-actions button{flex:1 1 45%}
+}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}.apple-runner{transition:none!important}.apple-glow,.intake-apple{animation:none!important}}
 </style>
 </head>
 <body>
-<header><div class="header-inner">
-  <a class="back" href="../">← 回 AI 教學首頁</a><span class="badge">COMPUTER VISION · AI VALIDATION</span>
-  <h1>UNIT 01｜蘋果果實偵測</h1>
-  <div class="course-chip">03｜青森智慧選果 AI 體驗課程</div>
-</div></header>
+<header>
+  <div class="header-inner">
+    <a class="back" href="../">← 回 AI 教學首頁</a>
+    <span class="badge">SMART SORTING LINE</span>
+    <h1>03｜青森智慧選果 AI 體驗課程</h1>
+    <p>讓一顆蘋果依序通過「偵測、尺寸量測、顏色分析、瑕疵檢測與智慧分級」五個站點，理解 AI 如何從單一演算法整合成完整的智慧選果生產線。</p>
+  </div>
+</header>
 
 <main>
-<section class="card">
-  <div class="stage" id="stage">
-    <video id="video" playsinline autoplay muted></video>
-    <div id="boxLayer"></div>
-    <div class="status-pill"><span id="liveDot" class="dot busy"></span><span id="cameraStatus">系統初始化中…</span></div>
-    <div class="count-overlay"><small>目前偵測</small><strong id="appleCount">0</strong><span>顆蘋果</span></div>
-    <div class="scan-guide" id="scanGuide" hidden></div>
-
-    <div id="transitionLayer" aria-live="polite">
-      <div class="factory-title">果實整理與單列輸送</div>
-      <div class="factory-sub">將散落果實導流集中，整理成單列後逐顆送入大小檢測站</div>
-      <div class="phase-flow"><span>多顆果實</span><i>→</i><span>導流集中</span><i>→</i><span>單列排列</span><i>→</i><span>逐顆進站</span></div>
-      <div class="guide-zone"><div class="guide-rail top"></div><div class="guide-rail bottom"></div><div class="guide-throat"></div></div>
-      <div class="conveyor"><div class="belt"></div><div class="belt-rail top"></div><div class="belt-rail bottom"></div><div class="roller-row" id="rollers"></div></div>
-      <div class="station" id="sizeStation"><div class="gate"></div><b>大小檢測站</b><span>逐顆量測</span><div class="sensor-window"><div class="scan-line"></div></div></div>
-      <div class="transition-status" id="transitionStatus">準備整理果實…</div>
+  <section class="hero-card">
+    <div class="hero-top">
+      <div>
+        <h2>AI 智慧選果生產線</h2>
+        <p>第一站先同時偵測 5 顆蘋果並完成數量統計，再讓蘋果逐一進入 UNIT 02，依序完成尺寸、顏色、瑕疵與分級檢測。</p>
+      </div>
+      <div class="demo-badge">流程動畫示意</div>
     </div>
+
+    <div id="productionStage" class="production-stage" aria-label="UNIT 01 到 UNIT 05 智慧選果生產線動畫">
+      <div class="factory-sky"></div>
+      <div class="belt"></div>
+
+      <div class="station-row">
+        <div class="station station-one" data-step="0">
+          <div class="unit-no">01</div>
+          <b>蘋果偵測與數量統計</b>
+          <small>Object Detection · Batch Intake</small>
+          <div class="station-output" id="outputUnit1">Apple × 5</div>
+          <div class="intake-zone" aria-label="UNIT 01 共有五顆待檢蘋果">
+            <div class="intake-label">進料區｜5 顆待檢蘋果</div>
+            <div class="intake-apples">
+              <span class="intake-apple" data-apple="0"></span>
+              <span class="intake-apple" data-apple="1"></span>
+              <span class="intake-apple" data-apple="2"></span>
+              <span class="intake-apple" data-apple="3"></span>
+              <span class="intake-apple" data-apple="4"></span>
+            </div>
+          </div>
+        </div>
+        <div class="station" data-step="1">
+          <div class="unit-no">02</div>
+          <b>大小量測與建立 Bar Code</b>
+          <small>Measurement × Traceability</small>
+          <div class="station-output" id="outputUnit2">等待單顆進站</div>
+        </div>
+        <div class="station" data-step="2">
+          <div class="unit-no">03</div>
+          <b>顏色與飽滿度檢測</b>
+          <small>Color Analysis</small>
+          <div class="station-output" id="outputUnit3">等待尺寸完成</div>
+        </div>
+        <div class="station" data-step="3">
+          <div class="unit-no">04</div>
+          <b>瑕疵檢測</b>
+          <small>Defect Detection</small>
+          <div class="station-output" id="outputUnit4">等待顏色完成</div>
+        </div>
+        <div class="station" data-step="4">
+          <div class="unit-no">05</div>
+          <b>智慧選果與分級</b>
+          <small>System Integration</small>
+          <div class="station-output" id="outputUnit5">等待瑕疵完成</div>
+        </div>
+      </div>
+
+      <div id="appleRunner" class="apple-runner hidden" aria-hidden="true">
+        <div class="apple-glow"></div>
+        <div class="apple-body"></div>
+      </div>
+
+      <div class="result-panel">
+        <div id="resultIcon" class="result-icon">01</div>
+        <div class="result-copy">
+          <small>目前站點</small>
+          <strong id="resultTitle">UNIT 01｜蘋果偵測與數量統計</strong>
+          <span id="resultText">AI 找出畫面中的蘋果並統計數量。</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="line-actions">
+      <button id="playBtn">重新播放生產線</button>
+      <button id="pauseBtn" class="secondary">暫停動畫</button>
+    </div>
+  </section>
+
+  <div class="flow-strip" aria-label="智慧選果流程">
+    <span class="flow-node">偵測數量</span><span class="flow-arrow">→</span>
+    <span class="flow-node">尺寸量測</span><span class="flow-arrow">→</span>
+    <span class="flow-node">顏色檢測</span><span class="flow-arrow">→</span>
+    <span class="flow-node">瑕疵檢測</span><span class="flow-arrow">→</span>
+    <span class="flow-node">智慧分級</span>
   </div>
 
-  <div class="controls">
-    <button id="startBtn">啟動攝影機</button>
-    <button id="switchBtn" class="secondary" disabled>切換攝影機</button>
-    <button id="stopBtn" class="stop" disabled>停止</button>
-    <button id="nextBtn" class="next" disabled>下一步｜送往大小檢測站</button>
-    <button id="resetBtn" class="amber" hidden>重新偵測</button>
-    <button id="unit02Btn" class="next" hidden disabled>進入 UNIT 02｜大小量測與建立 Bar Code</button>
+  <div class="section-title">
+    <h2>五個 AI 工程站點</h2>
+    <p>UNIT 01、UNIT 02 已可進入；後續單元完成後可直接接入同一條產品履歷。</p>
   </div>
 
-  <div class="metric-grid">
-    <div class="metric"><small>偵測到蘋果</small><strong id="metricCount">0 顆</strong><div class="tiny">不建立蘋果編號</div></div>
-    <div class="metric"><small>候選區域</small><strong id="metricCandidates">0</strong><div class="tiny">白底分割後的果實候選</div></div>
-    <div class="metric"><small>單次視覺處理</small><strong id="metricTime">—</strong><div class="tiny">低解析度處理，避免 Webcam 卡頓</div></div>
-    <div class="metric"><small>AI 輔助驗證</small><strong id="metricState">載入中</strong><div class="tiny">只在背景檢核候選區域</div></div>
-  </div>
-</section>
+  <section class="unit-grid">
+    <article class="unit-card">
+      <div class="topline"><span class="num">UNIT 01</span><span class="status">已完成</span></div>
+      <h3>蘋果偵測與數量統計</h3>
+      <p>利用物件偵測找出畫面中的蘋果，觀察 AI 如何從影像中辨識物件位置並完成數量統計。</p>
+      <div class="tech">Object Detection · Bounding Box · Counting</div>
+      <div class="go"><a href="./unit01/">進入 UNIT 01</a></div>
+    </article>
 
-<aside class="card">
-  <h2>果實偵測結果</h2>
-  <div class="result-panel">
-    <div class="result-line"><div class="result-number" id="resultCount">0</div><div class="result-unit">顆蘋果</div></div>
-    <div class="result-note" id="resultNote">啟動攝影機，將白底、多顆真實蘋果教材完整放入畫面。</div>
-  </div>
+    <article class="unit-card">
+      <div class="topline"><span class="num">UNIT 02</span><span class="status">已完成</span></div>
+      <h3>大小量測與建立 Bar Code</h3>
+      <p>利用 Apple 與 Stop Sign 的物件偵測結果進行比例換算，完成尺寸量測並建立產品唯一識別碼。</p>
+      <div class="tech">Object Detection · Calibration · Bar Code</div>
+      <div class="go"><a href="./unit02/">進入 UNIT 02</a></div>
+    </article>
 
-  <div class="model-row"><strong>辨識架構</strong><span id="modelState" class="model-state">INITIALIZING</span></div>
+    <article class="unit-card">
+      <div class="topline"><span class="num">UNIT 03</span><span class="status build">建置中</span></div>
+      <h3>顏色與飽滿度檢測</h3>
+      <p>讀取 UNIT 02 的產品 ID，在同一筆蘋果履歷中加入紅色比例、平均飽和度與顏色等級。</p>
+      <div class="tech">Color Analysis · Saturation · Product Record</div>
+      <div class="go"><span>建置中</span></div>
+    </article>
 
-  <div class="threshold">
-    <div class="threshold-head"><span>果實區域靈敏度</span><span id="thresholdValue">標準</span></div>
-    <input id="thresholdRange" type="range" min="1" max="5" step="1" value="3" aria-label="果實區域靈敏度">
-  </div>
+    <article class="unit-card">
+      <div class="topline"><span class="num">UNIT 04</span><span class="status build">建置中</span></div>
+      <h3>瑕疵檢測</h3>
+      <p>針對蘋果表面進行瑕疵判斷，將檢測結果接續寫入同一筆產品履歷，作為後續分級依據。</p>
+      <div class="tech">Defect Detection · Inspection · Traceability</div>
+      <div class="go"><span>建置中</span></div>
+    </article>
 
-  <div id="notice" class="notice">
-    <b>新版採「白底分割 → 果實篩選 → AI 輔助驗證」。</b><br>
-    Webcam 畫面不再直接交給大型模型持續推論，因此顯示會更順；黑色 Apple Logo、文字等低彩度物件會在第一層就被排除。
-  </div>
-
-  <h3>UNIT 01 處理流程</h3>
-  <div class="mini-flow"><span>真實照片</span><i>→</i><span>白底分割</span><i>→</i><span>果實候選</span><i>→</i><span>AI 輔助驗證</span><i>→</i><span>多顆計數</span><i>→</i><span>輸送帶集中</span></div>
-  <div class="step"><b>① Webcam 保持順暢顯示</b><span>攝影機使用 640×480 顯示，不再每半秒把高解析度整張畫面送入深度學習模型。</span></div>
-  <div class="step"><b>② 白底快速分割</b><span>只在低解析度影像中尋找具有果實色彩、面積與形狀條件的區域，因此 Apple Logo、文字與大部分印刷干擾會被排除。</span></div>
-  <div class="step"><b>③ AI 背景輔助驗證</b><span>通用 Apple 模型只偶爾檢核候選果實，而不是負責整張畫面的即時計數；即使 AI 模型尚未載入，白底教材模式仍可正常運作。</span></div>
-  <div class="step"><b>④ 即時計數、不編號</b><span>畫面只顯示找到幾顆蘋果與綠色框，不建立任何永久身份。</span></div>
-  <div class="step"><b>⑤ 下一步轉場</b><span>按下下一步後，凍結當下結果並擷取真實蘋果 ROI，將白底轉透明後集中到輸送帶；Bar Code 留到 UNIT 02 才建立。</span></div>
-
-  <div class="notice warn">請提供真實蘋果的圖樣搭配白底作檢測</div>
-</aside>
+    <article class="unit-card wide">
+      <div class="topline"><span class="num">UNIT 05</span><span class="status build">建置中</span></div>
+      <h3>智慧選果與分級</h3>
+      <p>整合尺寸、顏色與瑕疵等檢測資料，模擬智慧選果系統如何根據多項條件完成最終分級與產線決策。</p>
+      <div class="tech">System Integration · Decision Logic · Smart Sorting</div>
+      <div class="go"><span>建置中</span></div>
+    </article>
+  </section>
 </main>
 
-<canvas id="processCanvas" hidden></canvas>
-<canvas id="snapshotCanvas" hidden></canvas>
-<canvas id="cropCanvas" hidden></canvas>
-<canvas id="aiCanvas" hidden width="224" height="224"></canvas>
 <footer>AI 工程素養互動教學平台<br>大安高工控制科邵時俊老師製作</footer>
 
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.min.js"></script>
 <script>
 (() => {
-'use strict';
-const PROCESS_WIDTH = 360;
-const VISION_INTERVAL = 280;
-const AI_CHECK_INTERVAL = 2600;
-const stage = document.getElementById('stage');
-const video = document.getElementById('video');
-const boxLayer = document.getElementById('boxLayer');
-const processCanvas = document.getElementById('processCanvas');
-const snapshotCanvas = document.getElementById('snapshotCanvas');
-const cropCanvas = document.getElementById('cropCanvas');
-const aiCanvas = document.getElementById('aiCanvas');
-const processCtx = processCanvas.getContext('2d', {willReadFrequently:true});
-const snapshotCtx = snapshotCanvas.getContext('2d', {willReadFrequently:true});
-const cropCtx = cropCanvas.getContext('2d', {willReadFrequently:true});
-const aiCtx = aiCanvas.getContext('2d', {willReadFrequently:true});
-const transitionLayer = document.getElementById('transitionLayer');
-const transitionStatus = document.getElementById('transitionStatus');
-const sizeStation = document.getElementById('sizeStation');
-const rollers = document.getElementById('rollers');
+  'use strict';
+  const stations = Array.from(document.querySelectorAll('.station'));
+  const intakeApples = Array.from(document.querySelectorAll('.intake-apple'));
+  const intakeWrap = document.querySelector('.intake-apples');
+  const runner = document.getElementById('appleRunner');
+  const stage = document.getElementById('productionStage');
+  const belt = document.querySelector('.belt');
+  const resultIcon = document.getElementById('resultIcon');
+  const resultTitle = document.getElementById('resultTitle');
+  const resultText = document.getElementById('resultText');
+  const playBtn = document.getElementById('playBtn');
+  const pauseBtn = document.getElementById('pauseBtn');
+  const outputs = [
+    document.getElementById('outputUnit1'),
+    document.getElementById('outputUnit2'),
+    document.getElementById('outputUnit3'),
+    document.getElementById('outputUnit4'),
+    document.getElementById('outputUnit5')
+  ];
 
-const el = {
-  start:document.getElementById('startBtn'), sw:document.getElementById('switchBtn'), stop:document.getElementById('stopBtn'), next:document.getElementById('nextBtn'), reset:document.getElementById('resetBtn'), unit02:document.getElementById('unit02Btn'),
-  dot:document.getElementById('liveDot'), status:document.getElementById('cameraStatus'), count:document.getElementById('appleCount'), metricCount:document.getElementById('metricCount'), metricCandidates:document.getElementById('metricCandidates'), metricTime:document.getElementById('metricTime'), metricState:document.getElementById('metricState'),
-  resultCount:document.getElementById('resultCount'), resultNote:document.getElementById('resultNote'), modelState:document.getElementById('modelState'), threshold:document.getElementById('thresholdRange'), thresholdValue:document.getElementById('thresholdValue'), notice:document.getElementById('notice'), scanGuide:document.getElementById('scanGuide')
-};
+  const unitInfo = [
+    {title:'UNIT 01｜蘋果偵測與數量統計', text:'AI 在進料區同時找到 5 顆蘋果，接下來改成單顆依序進站。'},
+    {title:'UNIT 02｜大小量測與建立 Bar Code', text:'單顆進站後量測尺寸，並建立這顆蘋果的唯一產品 ID。'},
+    {title:'UNIT 03｜顏色與飽滿度檢測', text:'沿用同一個產品 ID，加入紅色比例、飽和度與顏色等級。'},
+    {title:'UNIT 04｜瑕疵檢測', text:'檢查蘋果表面瑕疵，並把結果接續寫入同一筆產品履歷。'},
+    {title:'UNIT 05｜智慧選果與分級', text:'整合尺寸、顏色與瑕疵資料，完成這顆蘋果的智慧分級。'}
+  ];
 
-let aiModel = null, stream = null, timer = null, busy = false, aiBusy = false, facing = 'environment';
-let predictions = [], frozenPredictions = [], transitionMode = false, lastAiCheck = 0, lastAiMessage = '載入中', aiCursor = 0, unit02Payload = [];
-
-function buildRollers(){rollers.innerHTML='';for(let i=0;i<10;i++){const r=document.createElement('div');r.className='roller';rollers.appendChild(r)}}
-buildRollers();
-
-function setModelState(state, text){
-  el.modelState.className='model-state'+(state==='ready'?' ready':state==='fail'?' fail':'');
-  el.modelState.textContent=text;
-  if(state==='ready'){el.metricState.textContent='READY'}
-  else if(state==='fail'){el.metricState.textContent='CV 可用'}
-  else{el.metricState.textContent='載入中'}
-}
-
-async function loadAiModel(){
-  try{
-    setModelState('loading','CV READY · AI LOADING');
-    if(!window.tf || !window.cocoSsd) throw new Error('TensorFlow.js / COCO-SSD 載入失敗');
-    await tf.ready();
-    try{await tf.setBackend('webgl');await tf.ready()}catch(_){/* fallback */}
-    aiModel = await cocoSsd.load({base:'lite_mobilenet_v2'});
-    setModelState('ready','CV + AI READY');
-    lastAiMessage='待檢核';
-  }catch(err){
-    console.warn('AI validator unavailable; CV mode continues.',err);
-    aiModel=null;
-    setModelState('fail','CV MODE · AI OFFLINE');
-    lastAiMessage='CV 模式';
+  const phases = [{type:'count', unit:0, apple:null, duration:2200}];
+  for(let apple=0; apple<5; apple++){
+    phases.push({type:'pickup', unit:0, apple, duration:600});
+    phases.push({type:'station', unit:1, apple, duration:1500});
+    phases.push({type:'station', unit:2, apple, duration:1250});
+    phases.push({type:'station', unit:3, apple, duration:1250});
+    phases.push({type:'station', unit:4, apple, duration:1500});
+    phases.push({type:'complete', unit:4, apple, duration:500});
   }
-}
-loadAiModel();
+  phases.push({type:'batchComplete', unit:4, apple:4, duration:2600});
 
-function sensitivityConfig(){
-  const v=Number(el.threshold.value);
-  const table={
-    1:{sat:.24,minArea:.009,texture:14,label:'保守'},
-    2:{sat:.20,minArea:.007,texture:12,label:'稍保守'},
-    3:{sat:.16,minArea:.005,texture:10,label:'標準'},
-    4:{sat:.13,minArea:.0038,texture:8,label:'靈敏'},
-    5:{sat:.10,minArea:.0028,texture:6,label:'高靈敏'}
-  };
-  return table[v]||table[3];
-}
+  let phaseIndex = 0;
+  let timer = null;
+  let paused = false;
 
-function rgbToHsv(r,g,b){
-  r/=255;g/=255;b/=255;const max=Math.max(r,g,b),min=Math.min(r,g,b),d=max-min;let h=0;
-  if(d!==0){if(max===r)h=((g-b)/d)%6;else if(max===g)h=(b-r)/d+2;else h=(r-g)/d+4;h*=60;if(h<0)h+=360}
-  return [h,max===0?0:d/max,max];
-}
+  function layoutIntakeApples(){
+    if(!intakeWrap || !intakeApples.length) return;
+    const wrapRect = intakeWrap.getBoundingClientRect();
+    const wrapW = Math.max(180, wrapRect.width || 220);
+    const wrapH = Math.max(70, wrapRect.height || 98);
+    const mobile = window.matchMedia('(max-width: 640px)').matches;
+    const pad = mobile ? 10 : 12;
+    const minGap = mobile ? 24 : 28;
+    const placed = [];
 
-function morphClose(mask,w,h){
-  const n=w*h,dil=new Uint8Array(n),out=new Uint8Array(n);
-  for(let y=1;y<h-1;y++)for(let x=1;x<w-1;x++){
-    const i=y*w+x;let on=0;
-    for(let yy=-1;yy<=1&&!on;yy++)for(let xx=-1;xx<=1;xx++){if(mask[i+yy*w+xx]){on=1;break}}
-    dil[i]=on;
-  }
-  for(let y=1;y<h-1;y++)for(let x=1;x<w-1;x++){
-    const i=y*w+x;let on=1;
-    for(let yy=-1;yy<=1&&on;yy++)for(let xx=-1;xx<=1;xx++){if(!dil[i+yy*w+xx]){on=0;break}}
-    out[i]=on;
-  }
-  return out;
-}
-
-function findComponents(mask,w,h,imageData){
-  const n=w*h,seen=new Uint8Array(n),queue=new Int32Array(n),items=[];
-  const data=imageData.data;
-  for(let start=0;start<n;start++){
-    if(!mask[start]||seen[start])continue;
-    let qh=0,qt=0;queue[qt++]=start;seen[start]=1;
-    let minX=w,minY=h,maxX=0,maxY=0,area=0,sumV=0,sumV2=0,appleColor=0;
-    while(qh<qt){
-      const idx=queue[qh++],x=idx%w,y=(idx/w)|0;area++;if(x<minX)minX=x;if(x>maxX)maxX=x;if(y<minY)minY=y;if(y>maxY)maxY=y;
-      const p=idx*4,r=data[p],g=data[p+1],b=data[p+2];const [hh,ss,vv]=rgbToHsv(r,g,b);const lum=(r+g+b)/3;sumV+=lum;sumV2+=lum*lum;
-      const appleHue=(hh<=165||hh>=335);if(appleHue&&ss>.14&&vv>.18)appleColor++;
-      const y0=Math.max(0,y-1),y1=Math.min(h-1,y+1),x0=Math.max(0,x-1),x1=Math.min(w-1,x+1);
-      for(let ny=y0;ny<=y1;ny++)for(let nx=x0;nx<=x1;nx++){
-        const ni=ny*w+nx;if(!seen[ni]&&mask[ni]){seen[ni]=1;queue[qt++]=ni}
+    intakeApples.forEach((el,index)=>{
+      const appleW = el.offsetWidth || (mobile ? 25 : 29);
+      const appleH = el.offsetHeight || (mobile ? 23 : 27);
+      let left = pad + appleW/2;
+      let top = pad + appleH/2;
+      let tries = 0;
+      while(tries < 120){
+        left = pad + appleW/2 + Math.random() * Math.max(1, wrapW - pad*2 - appleW);
+        top = pad + appleH/2 + Math.random() * Math.max(1, wrapH - pad*2 - appleH);
+        const ok = placed.every(p => Math.hypot(left - p.left, top - p.top) >= minGap);
+        if(ok) break;
+        tries++;
       }
+      if(tries >= 120){
+        left = pad + appleW/2 + (index % 3) * ((wrapW - pad*2 - appleW) / 2);
+        top = pad + appleH/2 + Math.floor(index / 3) * ((wrapH - pad*2 - appleH) / 1.6);
+      }
+      placed.push({left, top});
+      el.style.left = `${left - appleW/2}px`;
+      el.style.top = `${top - appleH/2}px`;
+    });
+    intakeWrap.classList.add('randomized');
+  }
+
+  function snapRunnerTo(index){
+    runner.style.transition='none';
+    placeRunner(index);
+    void runner.offsetWidth;
+    runner.style.transition='';
+  }
+
+  function placeRunner(index){
+    const target = stations[index];
+    if(!target) return;
+    const stageRect = stage.getBoundingClientRect();
+    const targetRect = target.getBoundingClientRect();
+    const beltRect = belt.getBoundingClientRect();
+    const mobile = window.matchMedia('(max-width: 640px)').matches;
+    if(mobile){
+      const left = beltRect.left - stageRect.left + beltRect.width / 2 - runner.offsetWidth / 2;
+      const top = targetRect.top - stageRect.top + targetRect.height / 2 - runner.offsetHeight / 2;
+      runner.style.left = `${left}px`;
+      runner.style.top = `${top}px`;
+    }else{
+      const left = targetRect.left - stageRect.left + targetRect.width / 2 - runner.offsetWidth / 2;
+      const top = beltRect.top - stageRect.top + beltRect.height / 2 - runner.offsetHeight / 2;
+      runner.style.left = `${left}px`;
+      runner.style.top = `${top}px`;
     }
-    const bw=maxX-minX+1,bh=maxY-minY+1,fill=area/(bw*bh),aspect=bw/bh,mean=sumV/area,variance=Math.max(0,sumV2/area-mean*mean),texture=Math.sqrt(variance),colorRatio=appleColor/area;
-    items.push({x:minX,y:minY,w:bw,h:bh,area,fill,aspect,texture,colorRatio});
   }
-  return items;
-}
 
-function mergeNearby(items){
-  const list=items.map(o=>({...o}));let changed=true;
-  while(changed){changed=false;outer:for(let i=0;i<list.length;i++)for(let j=i+1;j<list.length;j++){
-    const a=list[i],b=list[j];const gapX=Math.max(0,Math.max(a.x,b.x)-Math.min(a.x+a.w,b.x+b.w));const gapY=Math.max(0,Math.max(a.y,b.y)-Math.min(a.y+a.h,b.y+b.h));
-    const close=gapX<Math.min(a.w,b.w)*.16 && gapY<Math.min(a.h,b.h)*.16;
-    const overlap=!(a.x+a.w<b.x||b.x+b.w<a.x||a.y+a.h<b.y||b.y+b.h<a.y);
-    if(close||overlap){
-      const x=Math.min(a.x,b.x),y=Math.min(a.y,b.y),r=Math.max(a.x+a.w,b.x+b.w),bt=Math.max(a.y+a.h,b.y+b.h);const area=a.area+b.area;
-      list[i]={x,y,w:r-x,h:bt-y,area,fill:area/((r-x)*(bt-y)),aspect:(r-x)/(bt-y),texture:Math.max(a.texture,b.texture),colorRatio:(a.colorRatio*a.area+b.colorRatio*b.area)/area};
-      list.splice(j,1);changed=true;break outer;
+  function setStationState(activeUnit, completedThrough=-1){
+    stations.forEach((el,i)=>{
+      el.classList.toggle('active', i===activeUnit);
+      el.classList.toggle('done', i<=completedThrough && i!==activeUnit);
+    });
+  }
+
+  function setQueueState(phase){
+    intakeApples.forEach((el,i)=>{
+      let done=false, processing=false;
+      if(phase.type==='batchComplete'){
+        done=true;
+      }else if(phase.apple!==null){
+        const currentHasLeftUnit1 =
+          (phase.type==='station' && phase.unit>=1) ||
+          phase.type==='complete';
+        done = i < phase.apple || (i===phase.apple && currentHasLeftUnit1);
+        processing = i===phase.apple && phase.type==='pickup';
+      }
+      el.classList.toggle('done',done);
+      el.classList.toggle('processing',processing);
+    });
+  }
+
+  function setOutputs(phase){
+    const n = phase.apple===null ? null : phase.apple+1;
+    let sent = 0;
+    if(phase.type==='batchComplete') sent=5;
+    else if(n!==null && phase.type!=='count') sent=n;
+    outputs[0].textContent = phase.type==='count' ? 'Apple × 5' : `已送出 ${sent} / 5` ;
+    outputs[1].textContent = phase.unit===1 && n ? `第 ${n}/5 顆｜尺寸量測中` : (sent?`已接收 ${Math.min(sent,5)} / 5`:'等待單顆進站');
+    outputs[2].textContent = phase.unit===2 && n ? `第 ${n}/5 顆｜顏色分析中` : 'Color Analysis';
+    outputs[3].textContent = phase.unit===3 && n ? `第 ${n}/5 顆｜瑕疵檢測中` : 'Defect Detection';
+    outputs[4].textContent = phase.type==='batchComplete' ? '5 / 5 完成分級' : (phase.unit===4 && n ? `第 ${n}/5 顆｜智慧分級中` : 'Smart Sorting');
+  }
+
+  function setResult(unit, apple, customText=null){
+    resultIcon.textContent = String(unit+1).padStart(2,'0');
+    resultTitle.textContent = apple===null ? unitInfo[unit].title : `第 ${apple+1}/5 顆｜${unitInfo[unit].title}`;
+    resultText.textContent = customText || unitInfo[unit].text;
+  }
+
+  function renderPhase(phase){
+    setQueueState(phase);
+    setOutputs(phase);
+
+    if(phase.type==='count'){
+      runner.classList.add('hidden');
+      setStationState(0,-1);
+      setResult(0,null,'AI 同時偵測進料區的 5 顆蘋果；完成數量統計後，蘋果會逐一送往 UNIT 02。');
+      return;
+    }
+
+    if(phase.type==='pickup'){
+      setStationState(0,-1);
+      setResult(0,phase.apple,`第 ${phase.apple+1} 顆蘋果離開進料區，準備進入 UNIT 02 單顆檢測。`);
+      runner.classList.remove('hidden');
+      snapRunnerTo(0);
+      return;
+    }
+
+    if(phase.type==='station'){
+      setStationState(phase.unit,phase.unit-1);
+      setResult(phase.unit,phase.apple);
+      runner.classList.remove('hidden');
+      placeRunner(phase.unit);
+      return;
+    }
+
+    if(phase.type==='complete'){
+      setStationState(4,3);
+      setResult(4,phase.apple,`第 ${phase.apple+1} 顆蘋果完成 UNIT 02～UNIT 05 檢測，準備送下一顆進站。`);
+      runner.classList.add('hidden');
+      return;
+    }
+
+    if(phase.type==='batchComplete'){
+      stations.forEach(el=>{el.classList.remove('active');el.classList.add('done');});
+      runner.classList.add('hidden');
+      resultIcon.textContent='✓';
+      resultTitle.textContent='5 顆蘋果完成智慧選果流程';
+      resultText.textContent='UNIT 01 完成批次偵測後，5 顆蘋果已逐一通過 UNIT 02～UNIT 05。';
     }
   }
+
+  function clearTimer(){
+    if(timer){clearTimeout(timer);timer=null;}
   }
-  return list;
-}
 
-function scanWhiteCard(){
-  if(!stream||transitionMode||video.readyState<2)return {items:[],candidates:0,ms:0};
-  const t0=performance.now(),vw=video.videoWidth,vh=video.videoHeight;if(!vw||!vh)return {items:[],candidates:0,ms:0};
-  const pw=PROCESS_WIDTH,ph=Math.max(220,Math.round(pw*vh/vw));processCanvas.width=pw;processCanvas.height=ph;processCtx.drawImage(video,0,0,pw,ph);
-  const im=processCtx.getImageData(0,0,pw,ph),d=im.data,n=pw*ph,mask=new Uint8Array(n),cfg=sensitivityConfig();
-  for(let i=0,p=0;i<n;i++,p+=4){
-    const r=d[p],g=d[p+1],b=d[p+2];const [h,s,v]=rgbToHsv(r,g,b);
-    const brightWhite=(r>205&&g>205&&b>205&&Math.max(r,g,b)-Math.min(r,g,b)<42);
-    const appleHue=(h<=165||h>=332);
-    mask[i]=(!brightWhite && appleHue && s>=cfg.sat && v>.16)?1:0;
+  function schedule(){
+    clearTimer();
+    if(paused) return;
+    const phase=phases[phaseIndex];
+    timer=setTimeout(()=>{
+      phaseIndex=(phaseIndex+1)%phases.length;
+      renderPhase(phases[phaseIndex]);
+      schedule();
+    },phase.duration);
   }
-  const closed=morphClose(mask,pw,ph);let comps=findComponents(closed,pw,ph,im);
-  const minArea=n*cfg.minArea;
-  comps=comps.filter(c=>c.area>=minArea&&c.w>=18&&c.h>=18&&c.w<pw*.52&&c.h<ph*.66&&c.aspect>=.52&&c.aspect<=1.65&&c.fill>=.28&&c.fill<=.96&&c.colorRatio>=.56&&c.texture>=cfg.texture);
-  comps=mergeNearby(comps);
-  const sx=vw/pw,sy=vh/ph;
-  const mapped=comps.map(c=>{
-    const pad=Math.max(3,Math.round(Math.max(c.w,c.h)*.055));const x=Math.max(0,(c.x-pad)*sx),y=Math.max(0,(c.y-pad)*sy),w=Math.min(vw-x,(c.w+pad*2)*sx),h=Math.min(vh-y,(c.h+pad*2)*sy);
-    const shapeScore=Math.max(0,1-Math.abs(1-c.aspect)/.7);const fillScore=Math.min(1,Math.max(0,(c.fill-.28)/.48));const colorScore=Math.min(1,Math.max(0,(c.colorRatio-.5)/.45));const textureScore=Math.min(1,c.texture/28);
-    const visionScore=.34*shapeScore+.20*fillScore+.30*colorScore+.16*textureScore;
-    return {bbox:[x,y,w,h],visionScore,aiScore:null};
-  }).filter(c=>c.visionScore>=.48);
-  return {items:mapped,candidates:comps.length,ms:performance.now()-t0};
-}
 
-function clearBoxes(){boxLayer.innerHTML=''}
-function renderBoxes(items){
-  clearBoxes();if(!video.videoWidth||!video.videoHeight)return;
-  const sw=stage.clientWidth,sh=stage.clientHeight,vw=video.videoWidth,vh=video.videoHeight;const scale=Math.min(sw/vw,sh/vh),rw=vw*scale,rh=vh*scale,ox=(sw-rw)/2,oy=(sh-rh)/2;
-  for(const p of items){
-    const [x,y,w,h]=p.bbox;const div=document.createElement('div');div.className='det-box';let left=ox+x*scale;if(facing==='user')left=sw-(ox+(x+w)*scale);
-    div.style.left=left+'px';div.style.top=(oy+y*scale)+'px';div.style.width=(w*scale)+'px';div.style.height=(h*scale)+'px';
-    const lab=document.createElement('div');lab.className='det-label';lab.textContent='APPLE';div.appendChild(lab);boxLayer.appendChild(div);
+  function restart(){
+    clearTimer();
+    paused=false;
+    pauseBtn.textContent='暫停動畫';
+    phaseIndex=0;
+    renderPhase(phases[0]);
+    schedule();
   }
-}
-function publish(items,candidates,ms){
-  const count=items.length;el.count.textContent=String(count);el.metricCount.textContent=count+' 顆';el.resultCount.textContent=String(count);el.metricCandidates.textContent=String(candidates);el.metricTime.textContent=Number.isFinite(ms)?Math.round(ms)+' ms':'—';
-  if(aiModel)el.metricState.textContent=lastAiMessage;else if(el.modelState.textContent.includes('OFFLINE'))el.metricState.textContent='CV 模式';
-  if(count===0){el.resultNote.textContent='尚未找到符合條件的蘋果。請讓白底教材更靠近鏡頭、減少反光，或把靈敏度提高一級。';el.next.disabled=true}
-  else{el.resultNote.textContent='目前找到 '+count+' 顆蘋果。請確認綠框完整後，再按「下一步」送往大小檢測站。';el.next.disabled=false}
-}
 
-async function runVision(){
-  const r=scanWhiteCard();predictions=r.items;renderBoxes(predictions);publish(predictions,r.candidates,r.ms);
-  const now=performance.now();if(aiModel&&!aiBusy&&predictions.length&&now-lastAiCheck>AI_CHECK_INTERVAL){lastAiCheck=now;const target=predictions[aiCursor%predictions.length];aiCursor++;void validateOne(target);}
-}
-
-async function validateOne(item){
-  if(!aiModel||aiBusy||!stream||transitionMode)return;aiBusy=true;lastAiMessage='CHECKING';el.metricState.textContent='CHECKING';
-  try{
-    const [x,y,w,h]=item.bbox;aiCtx.clearRect(0,0,224,224);aiCtx.fillStyle='#fff';aiCtx.fillRect(0,0,224,224);const scale=Math.min(210/w,210/h),dw=w*scale,dh=h*scale;aiCtx.drawImage(video,x,y,w,h,(224-dw)/2,(224-dh)/2,dw,dh);
-    const out=await aiModel.detect(aiCanvas,5,.12);const apple=out.filter(o=>o.class==='apple').sort((a,b)=>b.score-a.score)[0];
-    if(apple&&apple.score>=.18){lastAiMessage='APPLE '+Math.round(apple.score*100)+'%'}else{lastAiMessage='視覺主判定'}
-    el.metricState.textContent=lastAiMessage;
-  }catch(e){console.warn(e);lastAiMessage='CV 模式';el.metricState.textContent='CV 模式'}finally{aiBusy=false}
-}
-
-function startLoop(){
-  stopLoop();timer=setInterval(()=>{if(busy||transitionMode)return;busy=true;try{runVision()}finally{busy=false}},VISION_INTERVAL);
-}
-function stopLoop(){if(timer){clearInterval(timer);timer=null}}
-
-async function startCamera(){
-  stopCamera(false);transitionMode=false;transitionLayer.classList.remove('show');el.reset.hidden=true;
-  try{
-    stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:facing},width:{ideal:640},height:{ideal:480},frameRate:{ideal:30,max:30}},audio:false});
-    video.srcObject=stream;await video.play();video.classList.toggle('mirror',facing==='user');
-    el.start.disabled=true;el.stop.disabled=false;el.sw.disabled=false;el.next.disabled=true;el.dot.className='dot live';el.status.textContent='即時偵測中';el.scanGuide.textContent='';el.unit02.hidden=true;el.unit02.disabled=true;
-    startLoop();runVision();
-  }catch(err){
-    console.error(err);el.status.textContent='無法開啟攝影機';el.dot.className='dot';el.start.disabled=false;el.stop.disabled=true;el.sw.disabled=true;el.next.disabled=true;
-    el.notice.className='notice warn';el.notice.innerHTML='<b>攝影機啟動失敗。</b><br>請使用 HTTPS 或 localhost 開啟頁面，並允許瀏覽器使用攝影機。';
+  function togglePause(){
+    paused=!paused;
+    pauseBtn.textContent=paused?'繼續動畫':'暫停動畫';
+    if(paused) clearTimer(); else schedule();
   }
-}
 
-function stopCamera(reset=true){
-  stopLoop();if(stream){for(const t of stream.getTracks())t.stop();stream=null}video.srcObject=null;clearBoxes();predictions=[];
-  el.start.disabled=false;el.stop.disabled=true;el.sw.disabled=true;el.next.disabled=true;el.dot.className='dot';el.unit02.hidden=true;el.unit02.disabled=true;
-  if(reset){el.status.textContent='請啟動攝影機';publish([],0,NaN);el.resultNote.textContent='啟動攝影機後，系統會先做白底分割，再找出多顆蘋果。'}
-}
-async function switchCamera(){facing=facing==='environment'?'user':'environment';await startCamera()}
-
-function makeTransparentApple(source,bbox){
-  const [x,y,w,h]=bbox,pad=Math.max(6,Math.round(Math.max(w,h)*.08));const sx=Math.max(0,Math.floor(x-pad)),sy=Math.max(0,Math.floor(y-pad)),ex=Math.min(source.width,Math.ceil(x+w+pad)),ey=Math.min(source.height,Math.ceil(y+h+pad));
-  const cw=Math.max(1,ex-sx),ch=Math.max(1,ey-sy);cropCanvas.width=cw;cropCanvas.height=ch;cropCtx.clearRect(0,0,cw,ch);cropCtx.drawImage(source,sx,sy,cw,ch,0,0,cw,ch);const im=cropCtx.getImageData(0,0,cw,ch),d=im.data;
-  for(let i=0;i<d.length;i+=4){const r=d[i],g=d[i+1],b=d[i+2],mx=Math.max(r,g,b),mn=Math.min(r,g,b);if(r>208&&g>208&&b>208&&(mx-mn)<38){const white=Math.min(r,g,b);d[i+3]=Math.max(0,Math.min(255,(244-white)*12))}}
-  cropCtx.putImageData(im,0,0);return cropCanvas.toDataURL('image/png');
-}
-function displayPositionForBBox(bbox){
-  const sw=stage.clientWidth,sh=stage.clientHeight,vw=video.videoWidth,vh=video.videoHeight,scale=Math.min(sw/vw,sh/vh),rw=vw*scale,rh=vh*scale,ox=(sw-rw)/2,oy=(sh-rh)/2;const [x,y,w,h]=bbox;let left=ox+x*scale;if(facing==='user')left=sw-(ox+(x+w)*scale);return{left,top:oy+y*scale,width:w*scale,height:h*scale};
-}
-async function beginTransition(){
-  if(!stream||predictions.length===0||transitionMode)return;
-  transitionMode=true;stopLoop();frozenPredictions=predictions.map(p=>({bbox:[...p.bbox],visionScore:p.visionScore}));
-  snapshotCanvas.width=video.videoWidth;snapshotCanvas.height=video.videoHeight;snapshotCtx.drawImage(video,0,0,snapshotCanvas.width,snapshotCanvas.height);
-  clearBoxes();transitionLayer.classList.add('show');sizeStation.classList.remove('active');transitionStatus.textContent='① 果實集中：將散落蘋果導入整理區';el.status.textContent='果實整理中';el.dot.className='dot busy';el.next.disabled=true;el.sw.disabled=true;el.stop.disabled=true;el.scanGuide.textContent='';el.unit02.hidden=true;el.unit02.disabled=true;transitionLayer.querySelectorAll('.apple-chip').forEach(n=>n.remove());
-
-  const apples=frozenPredictions.map(p=>({p,pos:displayPositionForBBox(p.bbox),url:makeTransparentApple(snapshotCanvas,p.bbox)})).sort((a,b)=>a.pos.top-b.pos.top||a.pos.left-b.pos.left);
-  unit02Payload = apples.map((a,index)=>({order:index+1,image:a.url,bbox:a.p.bbox,visionScore:a.p.visionScore||null,capturedAt:new Date().toISOString()}));
-  const layerW=stage.clientWidth,layerH=stage.clientHeight,count=apples.length;
-  const chips=apples.map((a,index)=>{
-    const img=document.createElement('img');img.className='apple-chip';img.alt='偵測到的真實蘋果';img.src=a.url;img.dataset.index=String(index);
-    img.style.left=a.pos.left+'px';img.style.top=a.pos.top+'px';img.style.width=Math.max(42,a.pos.width)+'px';img.style.height=Math.max(42,a.pos.height)+'px';transitionLayer.appendChild(img);return img;
+  playBtn.addEventListener('click',restart);
+  pauseBtn.addEventListener('click',togglePause);
+  window.addEventListener('resize',()=>{
+    layoutIntakeApples();
+    const phase=phases[phaseIndex];
+    if(!runner.classList.contains('hidden')) placeRunner(phase.type==='pickup'?0:phase.unit);
+  });
+  document.addEventListener('visibilitychange',()=>{
+    if(document.hidden) clearTimer();
+    else if(!paused) schedule();
   });
 
-  const appleSize=Math.max(42,Math.min(76,layerW/Math.max(8,count+3)));
-  const setChip=(img,x,y,size=appleSize,rot=0)=>{img.style.left=(x-size/2)+'px';img.style.top=(y-size/2)+'px';img.style.width=size+'px';img.style.height=size+'px';img.style.transform='rotate('+rot+'deg)'};
-
-  // Phase 1: scatter is guided into a narrowing collection zone.
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{
-    chips.forEach((img,index)=>{
-      const cols=Math.min(4,Math.max(2,Math.ceil(Math.sqrt(count))));const col=index%cols,row=Math.floor(index/cols);const rows=Math.ceil(count/cols);
-      const x=layerW*(.15+(cols===1?0:(col/(cols-1))*.31));const y=layerH*(.35+(rows===1?0:(row/(rows-1))*.12));
-      setChip(img,x,y,appleSize,index%2?4:-4);
-    });
-  }));
-
-  // Phase 2: apples become a true single-file queue on the conveyor.
-  setTimeout(()=>{
-    transitionStatus.textContent='② 單列排序：果實依序排列，避免重疊';
-    const queueLeft=layerW*.13,queueRight=layerW*.68,usable=Math.max(40,queueRight-queueLeft),gap=usable/Math.max(1,count);
-    chips.forEach((img,index)=>{const x=queueLeft+(index+.5)*gap;const y=layerH*.69;setChip(img,x,y,appleSize,index%2?2:-2)});
-  },1550);
-
-  // Phase 3: only the first apple enters the inspection portal; the rest remain queued.
-  setTimeout(()=>{
-    transitionStatus.textContent='③ 逐顆進站：第一顆進入大小檢測，其餘果實依序等待';sizeStation.classList.add('active');
-    const stationX=layerW*.885,stationY=layerH*.53,queueEnd=layerW*.69,queueStart=layerW*.22;
-    chips.forEach((img,index)=>{
-      if(index===0){img.classList.add('inspecting');setChip(img,stationX,stationY,Math.min(appleSize*1.08,82),0)}
-      else{const waiting=count-1;const frac=waiting<=1?1:(index-1)/(waiting-1);const x=queueEnd-frac*(queueEnd-queueStart);setChip(img,x,layerH*.69,appleSize,index%2?2:-2)}
-    });
-  },3150);
-
-  setTimeout(()=>{
-    transitionStatus.textContent='第一顆已進入大小檢測站｜其餘果實保持單列等待';el.dot.className='dot live';el.status.textContent='已準備進入 UNIT 02';el.reset.hidden=false;el.reset.disabled=false;el.unit02.hidden=false;el.unit02.disabled=false;
-  },4700);
-}
-async function resetDetection(){
-  transitionMode=false;transitionLayer.classList.remove('show');sizeStation.classList.remove('active');transitionLayer.querySelectorAll('.apple-chip').forEach(n=>n.remove());el.reset.hidden=true;el.unit02.hidden=true;el.unit02.disabled=true;el.dot.className=stream?'dot live':'dot';el.status.textContent=stream?'即時偵測中':'請啟動攝影機';el.sw.disabled=!stream;el.stop.disabled=!stream;el.next.disabled=true;el.scanGuide.textContent='';predictions=[];unit02Payload=[];publish([],0,NaN);if(stream){startLoop();runVision()}
-}
-
-
-function goUnit02(){
-  try{
-    const payload={
-      source:'UNIT01',
-      case:'AI選果應用',
-      unit:'UNIT 01',
-      next:'UNIT 02',
-      apples:unit02Payload,
-      total:unit02Payload.length,
-      createdAt:new Date().toISOString()
-    };
-    sessionStorage.setItem('aomoriAppleUnit02Input', JSON.stringify(payload));
-  }catch(err){console.warn('無法寫入 sessionStorage', err)}
-  window.location.href='../unit02/';
-}
-
-el.start.addEventListener('click',startCamera);el.stop.addEventListener('click',()=>stopCamera(true));el.sw.addEventListener('click',switchCamera);el.next.addEventListener('click',beginTransition);el.reset.addEventListener('click',resetDetection);el.unit02.addEventListener('click',goUnit02);
-el.threshold.addEventListener('input',()=>{const cfg=sensitivityConfig();el.thresholdValue.textContent=cfg.label;if(stream)runVision()});
-window.addEventListener('resize',()=>{if(!transitionMode)renderBoxes(predictions)});
-window.addEventListener('pagehide',()=>{stopCamera(false);if(aiModel&&typeof aiModel.dispose==='function')aiModel.dispose()});
-window.addEventListener('beforeunload',()=>stopCamera(false));
-el.dot.className='dot';el.status.textContent='請啟動攝影機';setModelState('loading','CV READY · AI LOADING');
+  layoutIntakeApples();
+  renderPhase(phases[0]);
+  schedule();
 })();
 </script>
 </body>
