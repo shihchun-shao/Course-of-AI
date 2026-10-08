@@ -1,0 +1,608 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>UNIT 02｜AI 視覺量測系統：建置、校正與蘋果量測 v3</title>
+<style>
+:root{
+  --bg:#f4f7fb;--card:#fff;--text:#172033;--muted:#667085;--blue:#2563eb;--red:#dc2626;
+  --green:#15803d;--line:#d9e1ec;--stage:#0b1020;--amber:#b45309;--cyan:#0891b2;--purple:#7c3aed;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,"Noto Sans TC","Microsoft JhengHei",sans-serif;background:var(--bg);color:var(--text)}
+button,input{font:inherit}
+header{padding:22px 6vw;background:#fff;border-bottom:1px solid var(--line)}
+.header-inner{max-width:1240px;margin:0 auto}
+.back{color:#1d4ed8;text-decoration:none;font-weight:800;font-size:14px}
+.badge{display:inline-block;margin-left:10px;border-radius:999px;padding:4px 9px;font-size:12px;font-weight:900;background:#e0f2fe;color:#075985;letter-spacing:.04em}
+h1{margin:8px 0 6px;font-size:clamp(28px,4vw,42px);line-height:1.2}
+header p{margin:0;color:var(--muted);line-height:1.75}
+.course-chip{display:inline-flex;gap:8px;align-items:center;margin-top:13px;padding:8px 11px;border:1px solid #fecaca;border-radius:12px;background:#fff7f7;color:#991b1b;font-size:13px;font-weight:800}
+main{max-width:1240px;margin:24px auto;padding:0 18px}
+.workflow{display:grid;grid-template-columns:1fr 60px 1fr;align-items:center;gap:10px;margin-bottom:20px}
+.flow-card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px 18px;display:flex;align-items:center;gap:13px;min-height:84px;box-shadow:0 8px 28px #00000008}
+.flow-card.active{border-color:#93c5fd;box-shadow:0 0 0 3px #dbeafe}
+.flow-card.done{border-color:#86efac;background:#f7fff9}
+.flow-card.locked{opacity:.58}
+.flow-no{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-weight:950;background:#e2e8f0;color:#475569;flex:0 0 auto}
+.flow-card.active .flow-no{background:var(--blue);color:#fff}.flow-card.done .flow-no{background:var(--green);color:#fff}
+.flow-card b{display:block;font-size:17px}.flow-card span{display:block;color:var(--muted);font-size:13px;margin-top:3px;line-height:1.45}
+.flow-arrow{text-align:center;color:#94a3b8;font-size:26px;font-weight:900}
+.grid{display:grid;grid-template-columns:1.35fr .85fr;gap:20px;align-items:start}
+.card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:0 8px 28px #0000000a}
+.card h2{font-size:20px;margin:0 0 14px}.card h3{font-size:16px;margin:18px 0 10px}
+.stage{position:relative;background:var(--stage);border-radius:16px;overflow:hidden;aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;isolation:isolate}
+video{width:100%;height:100%;object-fit:contain;display:block;background:#0b1020}
+video.mirror{transform:scaleX(-1)}
+#boxLayer{position:absolute;inset:0;pointer-events:none;z-index:3}
+.det-box{position:absolute;border:3px solid;border-radius:10px;box-shadow:0 0 0 2px #0005 inset}
+.det-box.apple{border-color:#22c55e}.det-box.stop{border-color:#38bdf8}
+.det-label{position:absolute;left:-3px;top:-30px;color:#fff;padding:5px 8px;border-radius:8px;font-size:12px;font-weight:900;white-space:nowrap;box-shadow:0 4px 14px #0003}
+.det-box.apple .det-label{background:#16a34a}.det-box.stop .det-label{background:#0284c7}
+.status-pill{position:absolute;top:12px;left:12px;padding:7px 10px;border-radius:999px;background:#111827d9;color:#fff;font-size:12px;font-weight:800;display:flex;gap:7px;align-items:center;z-index:6}
+.mode-pill{position:absolute;left:12px;bottom:12px;padding:7px 10px;border-radius:10px;background:#fff;color:#334155;font-size:11px;font-weight:900;z-index:6;box-shadow:0 5px 18px #0004}
+.dot{width:8px;height:8px;border-radius:50%;background:#94a3b8}.dot.live{background:#22c55e;box-shadow:0 0 0 5px #22c55e20}.dot.busy{background:#f59e0b;box-shadow:0 0 0 5px #f59e0b20}
+.legend{position:absolute;right:12px;top:12px;background:#fffffff2;border-radius:12px;padding:9px 11px;z-index:6;box-shadow:0 8px 24px #0003;font-size:11px;font-weight:850;color:#334155}.legend div{display:flex;align-items:center;gap:6px;margin:2px 0}.swatch{width:10px;height:10px;border-radius:3px}.swatch.apple{background:#22c55e}.swatch.stop{background:#38bdf8}
+.controls{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+button{border:0;border-radius:10px;padding:11px 16px;font-weight:850;background:var(--blue);color:#fff;cursor:pointer;min-height:44px}
+button.stop{background:var(--red)}button.secondary{background:#475569}button.next{background:var(--green)}button.amber{background:var(--amber)}button.purple{background:var(--purple)}button:disabled{opacity:.45;cursor:not-allowed}
+.metric-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}
+.metric{border:1px solid var(--line);border-radius:14px;padding:13px;min-width:0}.metric small{color:var(--muted)}.metric strong{display:block;font-size:19px;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.metric .tiny{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.45}
+.panel{border:1px solid var(--line);border-radius:16px;padding:16px;background:#fbfdff;margin-bottom:14px}
+.panel.locked-panel{opacity:.58;position:relative}.panel.locked-panel:after{content:"完成 PART 1 校正後開放";position:absolute;inset:0;display:grid;place-items:center;background:#f8fafce6;border-radius:16px;font-weight:950;color:#64748b;font-size:15px}
+.panel-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}.panel-head h2{margin:0}.tag{padding:5px 9px;border-radius:999px;font-size:11px;font-weight:950;background:#dbeafe;color:#1d4ed8;white-space:nowrap}.tag.good{background:#dcfce7;color:#166534}.tag.lock{background:#e2e8f0;color:#475569}
+.input-card{border:1px solid var(--line);border-radius:14px;padding:13px;margin-bottom:12px;background:#fff}.input-card label{font-size:13px;font-weight:900;color:#334155;display:block;margin-bottom:8px}.input-row{display:grid;gap:10px}.dimension-row{display:grid;grid-template-columns:minmax(0,1fr) 112px auto;gap:8px;align-items:center}.dimension-row .field-name{font-weight:850;color:#334155}.dimension-row input{width:112px;padding:10px 11px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--text)}.dimension-row .unit{font-weight:850;color:#475569;white-space:nowrap}
+.cal-result{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}.cal-item{border:1px solid var(--line);border-radius:12px;padding:11px;background:#fff}.cal-item small{display:block;color:var(--muted)}.cal-item b{display:block;margin-top:5px;font-size:17px}.cal-item.em b{color:var(--green);font-size:22px}
+.result-panel{border:1px solid #bbf7d0;border-radius:16px;padding:16px;background:#f7fff9}.result-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.result-big small{display:block;color:#166534;font-weight:850}.result-big strong{font-size:34px;color:var(--green);letter-spacing:-.03em;display:block;margin-top:3px}.raw-line{margin-top:9px;color:var(--muted);font-size:13px;line-height:1.6}
+.notice{margin-top:12px;padding:12px 13px;border-radius:13px;background:#eff6ff;border:1px solid #bfdbfe;color:#1e40af;font-size:13px;line-height:1.65}.notice.warn{background:#fffbeb;border-color:#fde68a;color:#92400e}.notice.good{background:#f0fdf4;border-color:#bbf7d0;color:#166534}
+
+.process-card{margin-top:14px;border:1px solid #bfdbfe;border-radius:16px;background:#f8fbff;padding:14px 15px}
+.process-head{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:8px}
+.process-head b{font-size:15px}.process-badge{font-size:11px;font-weight:950;padding:5px 9px;border-radius:999px;background:#dbeafe;color:#1d4ed8;white-space:nowrap}
+.process-main{font-size:16px;font-weight:950;color:#1e3a8a;line-height:1.45}.process-hint{font-size:13px;color:#64748b;margin-top:4px;line-height:1.55}
+.progress-track{height:10px;border-radius:999px;background:#e2e8f0;overflow:hidden;margin-top:10px}.progress-bar{height:100%;width:0%;background:#2563eb;transition:width .25s ease}
+.process-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:11px}.process-step{border:1px solid #e2e8f0;background:#fff;border-radius:10px;padding:8px 6px;text-align:center;font-size:11px;font-weight:850;color:#94a3b8}.process-step.active{border-color:#93c5fd;background:#eff6ff;color:#1d4ed8}.process-step.done{border-color:#86efac;background:#f0fdf4;color:#166534}
+.diag{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.diag div{border:1px solid var(--line);border-radius:12px;padding:10px;background:#fff}.diag small{display:block;color:var(--muted)}.diag b{display:block;margin-top:4px;font-size:14px}
+.formula{padding:11px 12px;border-radius:12px;background:#f8fafc;border:1px dashed #cbd5e1;color:#475569;font-size:13px;line-height:1.7;margin-top:10px}.formula code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-weight:800;color:#1e40af}
+.help{font-size:13px;color:var(--muted);line-height:1.65;margin-top:7px}
+.barcode-wrap{display:none;margin-top:14px;padding:13px;border:1px solid var(--line);border-radius:14px;background:#fff;text-align:center}.barcode-wrap.show{display:block}.barcode-wrap svg{max-width:100%;height:84px}.barcode-id{font-size:12px;color:var(--muted);word-break:break-all;margin-top:5px}.barcode-measure{margin-top:6px;font-size:13px;font-weight:900;color:#166534}
+.barcode-records{margin-top:16px;border:1px solid var(--line);border-radius:14px;background:#fff;overflow:hidden}.records-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 14px;border-bottom:1px solid var(--line);background:#f8fafc}.records-head h3{margin:0;font-size:15px}.record-count{font-size:11px;font-weight:950;color:#1d4ed8;background:#dbeafe;border-radius:999px;padding:5px 9px;white-space:nowrap}.records-help{padding:10px 14px 0;color:var(--muted);font-size:12px;line-height:1.55}.record-table-wrap{overflow-x:auto;padding:10px 14px 14px}.record-table{width:100%;min-width:610px;border-collapse:collapse;font-size:12px}.record-table th,.record-table td{padding:9px 8px;border-bottom:1px solid #e5e7eb;text-align:left;vertical-align:middle}.record-table th{color:#475569;font-weight:900;background:#f8fafc}.record-table tbody tr:last-child td{border-bottom:0}.record-code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;word-break:break-all;color:#334155}.record-empty{text-align:center!important;color:var(--muted);padding:18px!important}
+footer{background:#fff;border-top:1px solid var(--line);margin-top:24px;text-align:center;color:var(--muted);font-size:13px;line-height:1.8;padding:22px}
+@media(max-width:1020px){.metric-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:920px){.grid{grid-template-columns:1fr}.workflow{grid-template-columns:1fr}.flow-arrow{transform:rotate(90deg)}.stage{aspect-ratio:4/3}}
+@media(max-width:560px){header{padding:18px 16px}main{padding:0 12px;margin-top:16px}.card{padding:14px;border-radius:15px}.controls button{flex:1 1 42%}.metric-grid,.cal-result,.result-grid,.diag{grid-template-columns:1fr 1fr}.legend{font-size:10px}.dimension-row{grid-template-columns:1fr 98px auto}.dimension-row input{width:98px}.result-big strong{font-size:29px}}
+</style>
+</head>
+<body>
+<header><div class="header-inner">
+  <a class="back" href="../">← 回 AI選果應用</a><span class="badge">OBJECT DETECTION · SYSTEM CALIBRATION</span>
+  <h1>UNIT 02｜AI 視覺量測系統</h1>
+  <div class="course-chip">03｜青森智慧選果 AI 體驗課程</div>
+  <p>先完成系統建置與現場校正，再使用相同攝影機與檢測環境進行蘋果尺寸量測。AI 負責找出 Apple 與 Stop Sign，工程校正則把模型輸出轉成可用的實際尺寸。</p>
+</div></header>
+
+<main>
+  <div class="workflow">
+    <div id="flowPart1" class="flow-card active"><div class="flow-no">1</div><div><b>PART 1｜建置與校正</b><span>使用已知尺寸的標準件建立 Kw、Kh 校正係數</span></div></div>
+    <div class="flow-arrow">→</div>
+    <div id="flowPart2" class="flow-card locked"><div class="flow-no">2</div><div><b>PART 2｜蘋果大小量測</b><span>套用已校正系統，量測待測蘋果並建立 Bar Code</span></div></div>
+  </div>
+
+  <div class="grid">
+    <section class="card">
+      <div class="stage" id="stage">
+        <video id="video" playsinline autoplay muted></video>
+        <div id="boxLayer"></div>
+        <div class="status-pill"><span id="liveDot" class="dot busy"></span><span id="cameraStatus">AI 模型載入中…</span></div>
+        <div id="modePill" class="mode-pill">PART 1｜系統校正</div>
+        <div class="legend"><div><span class="swatch apple"></span>APPLE</div><div><span class="swatch stop"></span>STOP SIGN</div></div>
+      </div>
+
+      <div class="controls">
+        <button id="startBtn">啟動攝影機</button>
+        <button id="switchBtn" class="secondary" disabled>切換攝影機</button>
+        <button id="stopBtn" class="stop" disabled>停止</button>
+        <button id="resetSamplesBtn" class="amber" disabled>重新取樣</button>
+      </div>
+
+      <div class="metric-grid">
+        <div class="metric"><small>Apple 信心值</small><strong id="metricApple">—</strong><div class="tiny">COCO-SSD 物件偵測</div></div>
+        <div class="metric"><small>Stop Sign 信心值</small><strong id="metricStop">—</strong><div class="tiny">COCO-SSD 物件偵測</div></div>
+        <div class="metric"><small>換算比例</small><strong id="metricScale">—</strong><div class="tiny">X / Y：cm per pixel</div></div>
+        <div class="metric"><small>穩定樣本</small><strong id="metricSamples">0 / 5</strong><div class="tiny">5 次快速取樣</div></div>
+      </div>
+
+      <div class="process-card" aria-live="polite">
+        <div class="process-head"><b>目前系統正在做什麼？</b><span id="processBadge" class="process-badge">準備中</span></div>
+        <div id="processMain" class="process-main">正在載入 AI 物件偵測模型</div>
+        <div id="processHint" class="process-hint">模型就緒後，請啟動攝影機並讓 Apple 與 Stop Sign 同時完整入鏡。</div>
+        <div class="progress-track"><div id="sampleProgressBar" class="progress-bar"></div></div>
+        <div class="process-steps">
+          <div id="step1" class="process-step active">1 AI準備</div>
+          <div id="step2" class="process-step">2 找到物件</div>
+          <div id="step3" class="process-step">3 取樣 5 次</div>
+          <div id="step4" class="process-step">4 建立/量測</div>
+        </div>
+      </div>
+
+      <div class="diag">
+        <div><small>Stop Sign bbox</small><b id="diagStop">—</b></div>
+        <div><small>Apple bbox</small><b id="diagApple">—</b></div>
+        <div><small>即時原始寬度</small><b id="diagRawW">—</b></div>
+        <div><small>即時原始高度</small><b id="diagRawH">—</b></div>
+        <div><small>樣本波動</small><b id="diagVariation">—</b></div>
+        <div><small>離群值排除</small><b id="diagOutliers">0</b></div>
+      </div>
+
+      <div id="cameraNotice" class="notice">攝影機需在 HTTPS 或 localhost 環境使用。可先啟動攝影機，AI 模型載入完成後會自動開始偵測。</div>
+    </section>
+
+    <aside>
+      <section id="part1Panel" class="panel">
+        <div class="panel-head"><h2>PART 1｜系統建置與校正</h2><span id="part1Tag" class="tag">尚未校正</span></div>
+        <div class="input-card">
+          <label>標準件真實尺寸</label>
+          <div class="input-row">
+            <div class="dimension-row"><span class="field-name">Stop Sign 寬度</span><input id="refSize" type="number" min="0.5" max="30" step="0.1" placeholder="請輸入" aria-label="Stop Sign 實際寬度"><span class="unit">cm</span></div>
+            <div class="dimension-row"><span class="field-name">標準蘋果寬度</span><input id="calAppleW" type="number" min="1" max="100" step="0.1" placeholder="請輸入" aria-label="標準蘋果真實寬度"><span class="unit">cm</span></div>
+            <div class="dimension-row"><span class="field-name">標準蘋果高度</span><input id="calAppleH" type="number" min="1" max="100" step="0.1" placeholder="請輸入" aria-label="標準蘋果真實高度"><span class="unit">cm</span></div>
+          </div>
+        </div>
+        <div class="controls">
+          <button id="calibrateBtn" class="next" disabled>建立系統校正係數</button>
+          <button id="redoCalBtn" class="amber" disabled>重新進行系統校正</button>
+          <button id="goPart2Btn" class="purple" disabled>進入 PART 2</button>
+        </div>
+        <div class="cal-result">
+          <div class="cal-item"><small>AI 原始寬度</small><b id="calRawW">—</b></div>
+          <div class="cal-item"><small>AI 原始高度</small><b id="calRawH">—</b></div>
+          <div class="cal-item em"><small>寬度修正係數 Kw</small><b id="calKw">—</b></div>
+          <div class="cal-item em"><small>高度修正係數 Kh</small><b id="calKh">—</b></div>
+        </div>
+        <div id="calNotice" class="notice">先啟動攝影機。AI 找到 Apple + Stop Sign 後，會自動快速收集 5 次穩定樣本；上方「目前系統正在做什麼？」會即時顯示進度。</div>
+      </section>
+
+      <section id="part2Panel" class="panel locked-panel">
+        <div class="panel-head"><h2>PART 2｜蘋果大小量測</h2><span id="part2Tag" class="tag lock">等待校正</span></div>
+        <div class="help">完成 PART 1 後，換上待測蘋果教材。Stop Sign 尺寸、攝影機位置與檢測環境維持不變。每次量測完成後只能建立 1 個 Bar Code；建立後才可進行下一顆量測。</div>
+        <div class="controls">
+          <button id="measureBtn" class="next" disabled>鎖定並量測</button>
+          <button id="newMeasureBtn" class="secondary" disabled>量測下一顆</button>
+          <button id="barcodeBtn" class="purple" disabled>建立 Bar Code</button>
+        </div>
+        <div class="result-panel" style="margin-top:12px">
+          <div class="result-grid">
+            <div class="result-big"><small>校正後寬度</small><strong id="finalW">—</strong></div>
+            <div class="result-big"><small>校正後高度</small><strong id="finalH">—</strong></div>
+          </div>
+          <div id="rawMeasureText" class="raw-line">尚未量測。</div>
+        </div>
+        <div id="measureNotice" class="notice">PART 1 完成後才會開放正式量測。</div>
+        <div id="barcodeWrap" class="barcode-wrap"><svg id="barcodeSvg"></svg><div id="barcodeId" class="barcode-id"></div><div id="barcodeMeasure" class="barcode-measure"></div></div>
+        <div class="barcode-records">
+          <div class="records-head"><h3>Bar Code 量測紀錄</h3><span id="recordCount" class="record-count">0 筆</span></div>
+          <div class="records-help">每筆 Bar Code 對應一顆已完成量測的蘋果，系統會記錄其校正後寬度與高度。</div>
+          <div class="record-table-wrap">
+            <table class="record-table">
+              <thead><tr><th>#</th><th>Bar Code 識別碼</th><th>蘋果寬度</th><th>蘋果高度</th><th>建立時間</th></tr></thead>
+              <tbody id="recordBody"><tr><td class="record-empty" colspan="5">尚無 Bar Code 量測紀錄</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </aside>
+  </div>
+</main>
+
+<footer>AI 工程素養互動教學平台<br>大安高工控制科邵時俊老師製作</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+<script>
+(() => {
+'use strict';
+const DETECT_INTERVAL = 480;
+const REQUIRED_SAMPLES = 5;
+const MAX_BUFFER = 10;
+const MIN_SCORE = 0.28;
+
+const stage = document.getElementById('stage');
+const video = document.getElementById('video');
+const boxLayer = document.getElementById('boxLayer');
+const liveDot = document.getElementById('liveDot');
+const cameraStatus = document.getElementById('cameraStatus');
+const modePill = document.getElementById('modePill');
+const startBtn = document.getElementById('startBtn');
+const switchBtn = document.getElementById('switchBtn');
+const stopBtn = document.getElementById('stopBtn');
+const resetSamplesBtn = document.getElementById('resetSamplesBtn');
+const refSize = document.getElementById('refSize');
+const calAppleW = document.getElementById('calAppleW');
+const calAppleH = document.getElementById('calAppleH');
+const calibrateBtn = document.getElementById('calibrateBtn');
+const redoCalBtn = document.getElementById('redoCalBtn');
+const goPart2Btn = document.getElementById('goPart2Btn');
+const measureBtn = document.getElementById('measureBtn');
+const newMeasureBtn = document.getElementById('newMeasureBtn');
+const barcodeBtn = document.getElementById('barcodeBtn');
+const metricApple = document.getElementById('metricApple');
+const metricStop = document.getElementById('metricStop');
+const metricScale = document.getElementById('metricScale');
+const metricSamples = document.getElementById('metricSamples');
+const processBadge = document.getElementById('processBadge');
+const processMain = document.getElementById('processMain');
+const processHint = document.getElementById('processHint');
+const sampleProgressBar = document.getElementById('sampleProgressBar');
+const processSteps = [1,2,3,4].map(n=>document.getElementById(`step${n}`));
+const diagStop = document.getElementById('diagStop');
+const diagApple = document.getElementById('diagApple');
+const diagRawW = document.getElementById('diagRawW');
+const diagRawH = document.getElementById('diagRawH');
+const diagVariation = document.getElementById('diagVariation');
+const diagOutliers = document.getElementById('diagOutliers');
+const part1Panel = document.getElementById('part1Panel');
+const part2Panel = document.getElementById('part2Panel');
+const flowPart1 = document.getElementById('flowPart1');
+const flowPart2 = document.getElementById('flowPart2');
+const part1Tag = document.getElementById('part1Tag');
+const part2Tag = document.getElementById('part2Tag');
+const calRawW = document.getElementById('calRawW');
+const calRawH = document.getElementById('calRawH');
+const calKw = document.getElementById('calKw');
+const calKh = document.getElementById('calKh');
+const calNotice = document.getElementById('calNotice');
+const finalW = document.getElementById('finalW');
+const finalH = document.getElementById('finalH');
+const rawMeasureText = document.getElementById('rawMeasureText');
+const measureNotice = document.getElementById('measureNotice');
+const barcodeWrap = document.getElementById('barcodeWrap');
+const barcodeSvg = document.getElementById('barcodeSvg');
+const barcodeId = document.getElementById('barcodeId');
+const barcodeMeasure = document.getElementById('barcodeMeasure');
+const recordCount = document.getElementById('recordCount');
+const recordBody = document.getElementById('recordBody');
+
+let model = null;
+let stream = null;
+let timer = null;
+let facing = 'environment';
+let mode = 'calibration';
+let samples = [];
+let lastPair = null;
+let rejectedOnline = 0;
+let detectBusy = false;
+let measurementLocked = false;
+let calibration = null;
+let lastMeasurement = null;
+let barcodeRecords = [];
+
+function median(values){
+  const a = values.filter(Number.isFinite).slice().sort((x,y)=>x-y);
+  if(!a.length) return NaN;
+  const m = Math.floor(a.length/2);
+  return a.length % 2 ? a[m] : (a[m-1] + a[m]) / 2;
+}
+function mean(values){ const a=values.filter(Number.isFinite); return a.length?a.reduce((s,v)=>s+v,0)/a.length:NaN; }
+function std(values){ const a=values.filter(Number.isFinite); if(a.length<2)return 0; const m=mean(a); return Math.sqrt(a.reduce((s,v)=>s+(v-m)*(v-m),0)/(a.length-1)); }
+function cv(values){ const m=mean(values); return Number.isFinite(m)&&m!==0?std(values)/m*100:NaN; }
+function mad(values){ const m=median(values); return median(values.map(v=>Math.abs(v-m))); }
+
+function robustFilter(list){
+  if(list.length < 5) return list.slice();
+  const rw=list.map(s=>s.appleW/s.stopW), rh=list.map(s=>s.appleH/s.stopH);
+  const mw=median(rw), mh=median(rh), mdw=mad(rw), mdh=mad(rh);
+  const tw=Math.max(mw*.04,3*1.4826*mdw), th=Math.max(mh*.04,3*1.4826*mdh);
+  return list.filter((s,i)=>Math.abs(rw[i]-mw)<=tw && Math.abs(rh[i]-mh)<=th);
+}
+function sampleIsStable(s){
+  if(samples.length<3) return true;
+  const rw=s.appleW/s.stopW, rh=s.appleH/s.stopH;
+  const mw=median(samples.map(v=>v.appleW/v.stopW)), mh=median(samples.map(v=>v.appleH/v.stopH));
+  return Math.abs(rw-mw)<=mw*.12 && Math.abs(rh-mh)<=mh*.12;
+}
+function referenceCm(){ const cm=Number(refSize.value); return Number.isFinite(cm)&&cm>0?cm:NaN; }
+function formatRecordTime(iso){
+  const d=new Date(iso);
+  if(Number.isNaN(d.getTime())) return iso||'—';
+  try{return new Intl.DateTimeFormat('zh-TW',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(d);}catch(_){return d.toLocaleString();}
+}
+function resetBarcodeSession(){
+  // Bar Code 量測紀錄只保留在本次頁面操作期間；重新整理或重開 UNIT 02 就清空。
+  barcodeRecords=[];
+  try{
+    localStorage.removeItem('aomori_unit02_barcode_records_v1');
+    localStorage.removeItem('aomori_current_apple');
+  }catch(e){console.warn('無法清除舊的 Bar Code 紀錄',e);}
+  renderBarcodeRecords();
+}
+function resetCalibrationSession(){
+  // 校正只在本次頁面操作期間有效；重新整理或重開 UNIT 02 必須重新校正。
+  calibration=null;
+  try{localStorage.removeItem('aomori_unit02_calibration_v1');}
+  catch(e){console.warn('無法清除舊的校正資料',e);}
+}
+function renderBarcodeRecords(){
+  recordCount.textContent=`${barcodeRecords.length} 筆`;
+  recordBody.innerHTML='';
+  if(!barcodeRecords.length){
+    const tr=document.createElement('tr'),td=document.createElement('td');
+    td.colSpan=5;td.className='record-empty';td.textContent='尚無 Bar Code 量測紀錄';tr.appendChild(td);recordBody.appendChild(tr);return;
+  }
+  const frag=document.createDocumentFragment();
+  barcodeRecords.slice().reverse().forEach((r,i)=>{
+    const tr=document.createElement('tr');
+    const values=[barcodeRecords.length-i,r.id,`${r.widthCm.toFixed(1)} cm`,`${r.heightCm.toFixed(1)} cm`,formatRecordTime(r.createdAt)];
+    values.forEach((value,idx)=>{const td=document.createElement('td');td.textContent=String(value);if(idx===1)td.className='record-code';tr.appendChild(td);});
+    frag.appendChild(tr);
+  });
+  recordBody.appendChild(frag);
+}
+function clearBoxes(){ boxLayer.innerHTML=''; }
+function stopLoop(){ if(timer){clearInterval(timer);timer=null;} }
+function setProcess(step,badge,main,hint,progress=null){
+  processBadge.textContent=badge; processMain.textContent=main; processHint.textContent=hint;
+  processSteps.forEach((el,i)=>{
+    el.classList.toggle('done',i+1<step);
+    el.classList.toggle('active',i+1===step);
+  });
+  if(progress!==null) sampleProgressBar.style.width=`${Math.max(0,Math.min(100,progress))}%`;
+}
+function updateSamplingProcess(){
+  const count=Math.min(samples.length,REQUIRED_SAMPLES);
+  const progress=count/REQUIRED_SAMPLES*100;
+  if(!stream){setProcess(1,'等待攝影機','請先啟動攝影機','啟動後，AI 會尋找 Apple 與 Stop Sign。',0);return;}
+  if(!model){setProcess(1,'AI載入中','攝影機已啟動，AI 模型仍在載入','模型完成後會自動開始物件偵測，不需要再按其他按鈕。',0);return;}
+  if(!lastPair){setProcess(2,'尋找物件','正在尋找 Apple 與 Stop Sign','請讓兩個物件都完整出現在畫面中。',0);return;}
+  if(count<REQUIRED_SAMPLES){setProcess(3,`取樣 ${count}/${REQUIRED_SAMPLES}`,`正在收集穩定樣本 ${count}/${REQUIRED_SAMPLES}`, '請保持攝影機與教材不動，約數秒即可完成。',progress);return;}
+  if(mode==='calibration'){setProcess(4,'取樣完成','5 次穩定取樣完成','請按「建立系統校正係數」，系統會計算 Kw、Kh。',100);}
+  else{setProcess(4,'可以量測','5 次穩定取樣完成','請按「鎖定並量測」，系統會套用已儲存的 Kw、Kh。',100);}
+}
+function resetSampling(message='重新等待 Apple 與 Stop Sign。'){
+  samples=[]; lastPair=null; rejectedOnline=0; measurementLocked=false;
+  metricSamples.textContent=`0 / ${REQUIRED_SAMPLES}`; diagVariation.textContent='—'; diagOutliers.textContent='0';
+  diagRawW.textContent='—'; diagRawH.textContent='—'; resetSamplesBtn.disabled=!stream;
+  calibrateBtn.disabled=true; measureBtn.disabled=true;
+  if(mode==='measurement'){
+    finalW.textContent='—'; finalH.textContent='—'; rawMeasureText.textContent=message;
+    barcodeBtn.disabled=true; newMeasureBtn.disabled=true; barcodeWrap.classList.remove('show'); barcodeSvg.innerHTML=''; barcodeId.textContent=''; barcodeMeasure.textContent=''; lastMeasurement=null;
+  }
+  updateSamplingProcess();
+}
+function stopCamera(resetUi=true){
+  stopLoop();
+  if(stream){ for(const t of stream.getTracks()) t.stop(); stream=null; }
+  video.srcObject=null; clearBoxes(); detectBusy=false; lastPair=null;
+  startBtn.disabled=false; switchBtn.disabled=true; stopBtn.disabled=true; resetSamplesBtn.disabled=true;
+  calibrateBtn.disabled=true; measureBtn.disabled=true;
+  if(resetUi){
+    liveDot.className='dot'; cameraStatus.textContent=model?'請啟動攝影機':'AI 模型載入中…';
+    metricApple.textContent='—'; metricStop.textContent='—'; metricScale.textContent='—';
+    resetSampling('攝影機已停止。');
+    setProcess(1,'等待攝影機','攝影機已停止','按「啟動攝影機」後重新開始。',0);
+  }
+}
+function displayRect(bbox){
+  const sw=stage.clientWidth,sh=stage.clientHeight,vw=video.videoWidth,vh=video.videoHeight;
+  const scale=Math.min(sw/vw,sh/vh),rw=vw*scale,rh=vh*scale,ox=(sw-rw)/2,oy=(sh-rh)/2;
+  let [x,y,w,h]=bbox; let left=ox+x*scale;
+  if(facing==='user') left=sw-(ox+(x+w)*scale);
+  return {left,top:oy+y*scale,width:w*scale,height:h*scale};
+}
+function drawBox(pred,type){
+  const r=displayRect(pred.bbox),box=document.createElement('div'); box.className=`det-box ${type}`;
+  box.style.left=`${r.left}px`;box.style.top=`${r.top}px`;box.style.width=`${r.width}px`;box.style.height=`${r.height}px`;
+  const label=document.createElement('div');label.className='det-label';label.textContent=`${type==='apple'?'APPLE':'STOP SIGN'} ${Math.round(pred.score*100)}%`;box.appendChild(label);boxLayer.appendChild(box);
+}
+function updateLive(pair){
+  const rcm=referenceCm(); if(!Number.isFinite(rcm)) return;
+  const a=pair.apple,s=pair.stop,aw=a.bbox[2],ah=a.bbox[3],sw=s.bbox[2],sh=s.bbox[3];
+  const cmx=rcm/sw,cmy=rcm/sh,rawW=aw*cmx,rawH=ah*cmy;
+  metricApple.textContent=`${Math.round(a.score*100)}%`;metricStop.textContent=`${Math.round(s.score*100)}%`;metricScale.textContent=`${cmx.toFixed(4)} / ${cmy.toFixed(4)}`;
+  diagStop.textContent=`${Math.round(sw)} × ${Math.round(sh)} px`;diagApple.textContent=`${Math.round(aw)} × ${Math.round(ah)} px`;diagRawW.textContent=`${rawW.toFixed(1)} cm`;diagRawH.textContent=`${rawH.toFixed(1)} cm`;
+}
+function pushSample(pair){
+  const s={appleW:pair.apple.bbox[2],appleH:pair.apple.bbox[3],stopW:pair.stop.bbox[2],stopH:pair.stop.bbox[3],appleScore:pair.apple.score,stopScore:pair.stop.score};
+  if(!sampleIsStable(s)){rejectedOnline++;diagOutliers.textContent=String(rejectedOnline);return;}
+  samples.push(s);if(samples.length>MAX_BUFFER)samples.shift();
+  metricSamples.textContent=`${Math.min(samples.length,REQUIRED_SAMPLES)} / ${REQUIRED_SAMPLES}`;
+  const cW=cv(samples.map(v=>v.appleW/v.stopW)),cH=cv(samples.map(v=>v.appleH/v.stopH));
+  if(Number.isFinite(cW)&&Number.isFinite(cH))diagVariation.textContent=`寬 ${cW.toFixed(1)}% / 高 ${cH.toFixed(1)}%`;
+  const ready=samples.length>=REQUIRED_SAMPLES;
+  if(mode==='calibration')calibrateBtn.disabled=!ready;
+  else measureBtn.disabled=!ready||!calibration||measurementLocked;
+  updateSamplingProcess();
+}
+async function detectFrame(){
+  // 即使校正或量測結果已鎖定，仍持續執行物件偵測，讓框線反映目前畫面。
+  // measurementLocked 只負責停止新增取樣，不再停止 AI 偵測迴圈。
+  if(!model||!stream||video.readyState<2||detectBusy)return;
+  detectBusy=true;
+  try{
+    cameraStatus.textContent='物件偵測中';liveDot.className='dot busy';
+    const preds=await model.detect(video,20,MIN_SCORE);
+    const apple=preds.filter(p=>p.class==='apple').sort((a,b)=>b.score-a.score)[0]||null;
+    const stop=preds.filter(p=>p.class==='stop sign').sort((a,b)=>b.score-a.score)[0]||null;
+
+    // 每一輪都先清除上一幀框線，再依本幀偵測結果重畫。
+    clearBoxes();if(apple)drawBox(apple,'apple');if(stop)drawBox(stop,'stop');
+
+    if(apple&&stop){
+      lastPair={apple,stop};
+      updateLive(lastPair);
+      if(!measurementLocked) pushSample(lastPair);
+      cameraStatus.textContent=measurementLocked?'即時物件偵測中｜結果已鎖定':'APPLE + STOP SIGN';
+      liveDot.className='dot live';
+    } else {
+      lastPair=null;
+      metricApple.textContent=apple?`${Math.round(apple.score*100)}%`:'未偵測';
+      metricStop.textContent=stop?`${Math.round(stop.score*100)}%`:'未偵測';
+      cameraStatus.textContent=measurementLocked?'即時物件偵測中｜物件已離開':'等待兩個物件';
+      liveDot.className='dot busy';
+
+      // 已鎖定的校正/量測結果不被即時偵測狀態覆寫；未鎖定時才更新取樣流程提示。
+      if(!measurementLocked){
+        if(apple&&!stop) setProcess(2,'缺少 STOP SIGN','已找到 Apple，還缺 Stop Sign','請把 Stop Sign 完整放入鏡頭，並盡量與蘋果保持同一平面。',0);
+        else if(!apple&&stop) setProcess(2,'缺少 APPLE','已找到 Stop Sign，還缺 Apple','請讓整顆蘋果完整出現在畫面中。',0);
+        else setProcess(2,'尋找物件','正在尋找 Apple 與 Stop Sign','請讓兩個物件同時完整入鏡。',0);
+      }
+    }
+  }catch(err){console.warn(err);cameraStatus.textContent='偵測發生錯誤';liveDot.className='dot';}
+  finally{detectBusy=false;}
+}
+function startLoop(){stopLoop();detectFrame();timer=setInterval(detectFrame,DETECT_INTERVAL);}
+async function startCamera(){
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){cameraStatus.textContent='瀏覽器不支援攝影機';return;}
+  stopCamera(false);cameraStatus.textContent='正在開啟攝影機…';liveDot.className='dot busy';
+  try{
+    try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:facing},width:{ideal:640},height:{ideal:480},frameRate:{ideal:30,max:30}},audio:false});}
+    catch(e){console.warn('指定條件失敗，改用一般攝影機。',e);stream=await navigator.mediaDevices.getUserMedia({video:true,audio:false});}
+    video.srcObject=stream;await video.play();video.classList.toggle('mirror',facing==='user');
+    startBtn.disabled=true;switchBtn.disabled=false;stopBtn.disabled=false;resetSamplesBtn.disabled=false;liveDot.className='dot live';
+    cameraStatus.textContent=model?'攝影機已啟動':'攝影機已啟動｜AI 模型載入中';
+    resetSampling();updateSamplingProcess();if(model)startLoop();
+  }catch(err){
+    console.error(err);liveDot.className='dot';cameraStatus.textContent='無法開啟攝影機';startBtn.disabled=false;
+    const name=err&&err.name?err.name:'';
+    const msg=name==='NotAllowedError'||name==='SecurityError'?'攝影機權限被阻擋。請使用 HTTPS 或 localhost，並允許攝影機權限。':name==='NotFoundError'?'找不到攝影機。':name==='NotReadableError'?'攝影機可能被其他程式占用。':`攝影機啟動失敗${name?'（'+name+'）':''}。`;
+    document.getElementById('cameraNotice').className='notice warn';document.getElementById('cameraNotice').textContent=msg;
+  }
+}
+async function switchCamera(){
+  facing=facing==='environment'?'user':'environment';
+  if(calibration){
+    calibration=null;
+    mode='calibration';measurementLocked=false;refSize.disabled=false;calAppleW.disabled=false;calAppleH.disabled=false;
+    modePill.textContent='PART 1｜系統校正';barcodeWrap.classList.remove('show');lastMeasurement=null;
+    finalW.textContent='—';finalH.textContent='—';rawMeasureText.textContent='尚未量測。';
+    applyCalibrationUi();
+    calNotice.className='notice warn';calNotice.innerHTML='<b>攝影機已切換，原校正已失效。</b><br>不同鏡頭需重新完成 PART 1 校正。';
+  }
+  await startCamera();
+}
+function stableSummary(){
+  if(samples.length<REQUIRED_SAMPLES)return null;
+  const source=samples.slice(-MAX_BUFFER),kept=robustFilter(source);
+  if(kept.length<Math.max(3,Math.ceil(REQUIRED_SAMPLES*.6)))return null;
+  const rcm=referenceCm(); if(!Number.isFinite(rcm))return null;
+  const ratioW=kept.map(s=>s.appleW/s.stopW),ratioH=kept.map(s=>s.appleH/s.stopH);
+  return {
+    kept,rawW:median(ratioW)*rcm,rawH:median(ratioH)*rcm,
+    appleW:median(kept.map(s=>s.appleW)),appleH:median(kept.map(s=>s.appleH)),
+    stopW:median(kept.map(s=>s.stopW)),stopH:median(kept.map(s=>s.stopH)),
+    cvW:cv(ratioW),cvH:cv(ratioH),rejected:rejectedOnline+(source.length-kept.length)
+  };
+}
+function applyCalibrationUi(){
+  const ok=!!calibration;
+  part1Tag.textContent=ok?'校正完成':'尚未校正';part1Tag.className=ok?'tag good':'tag';
+  part2Tag.textContent=ok?'可開始量測':'等待校正';part2Tag.className=ok?'tag good':'tag lock';
+  flowPart1.classList.toggle('done',ok);flowPart1.classList.toggle('active',!ok&&mode==='calibration');
+  flowPart2.classList.toggle('locked',!ok);flowPart2.classList.toggle('active',ok&&mode==='measurement');
+  part2Panel.classList.toggle('locked-panel',!ok);
+  redoCalBtn.disabled=!ok;goPart2Btn.disabled=!ok;
+  if(ok){
+    calRawW.textContent=`${calibration.rawW.toFixed(1)} cm`;calRawH.textContent=`${calibration.rawH.toFixed(1)} cm`;calKw.textContent=calibration.kw.toFixed(3);calKh.textContent=calibration.kh.toFixed(3);
+    calNotice.className='notice good';calNotice.innerHTML=`<b>系統校正完成。</b><br>本次操作使用 Kw = ${calibration.kw.toFixed(3)}、Kh = ${calibration.kh.toFixed(3)}。重新整理或重開網頁後需重新校正。`;
+    measureNotice.className='notice good';measureNotice.textContent='校正資料已就緒。進入 PART 2 後，換上待測蘋果，系統會自動收集 5 次穩定樣本。';
+  }else{
+    calRawW.textContent='—';calRawH.textContent='—';calKw.textContent='—';calKh.textContent='—';
+    measureNotice.className='notice';measureNotice.textContent='PART 1 完成後才會開放正式量測。';
+  }
+}
+function performCalibration(){
+  const sw=Number(calAppleW.value),sh=Number(calAppleH.value),rcm=referenceCm();
+  if(!Number.isFinite(sw)||sw<=0||!Number.isFinite(sh)||sh<=0||!Number.isFinite(rcm)){calNotice.className='notice warn';calNotice.textContent='請確認三個標準件尺寸皆輸入正確。';return;}
+  const summary=stableSummary();
+  if(!summary){calNotice.className='notice warn';calNotice.textContent='樣本仍不夠穩定，請固定攝影機與教材後重新取樣。';return;}
+  calibration={
+    kw:sw/summary.rawW,kh:sh/summary.rawH,rawW:summary.rawW,rawH:summary.rawH,
+    referenceCm:rcm,standardWidthCm:sw,standardHeightCm:sh,createdAt:new Date().toISOString()
+  };
+  applyCalibrationUi();
+  diagOutliers.textContent=String(summary.rejected);diagVariation.textContent=`寬 ${summary.cvW.toFixed(1)}% / 高 ${summary.cvH.toFixed(1)}%`;
+  measurementLocked=true;cameraStatus.textContent='系統校正完成｜持續即時偵測';liveDot.className='dot live';calibrateBtn.disabled=true;setProcess(4,'校正完成','系統校正完成',`Kw ${calibration.kw.toFixed(3)} / Kh ${calibration.kh.toFixed(3)} 已建立，可進入 PART 2。`,100);
+}
+function enterPart2(){
+  if(!calibration)return;
+  mode='measurement';measurementLocked=false;modePill.textContent='PART 2｜正式量測';
+  flowPart1.classList.remove('active');flowPart1.classList.add('done');flowPart2.classList.remove('locked');flowPart2.classList.add('active');
+  refSize.value=calibration.referenceCm.toFixed(1);refSize.disabled=true;calAppleW.disabled=true;calAppleH.disabled=true;
+  resetSampling('請換上待測蘋果教材，系統會自動收集 5 次穩定樣本。');newMeasureBtn.disabled=true;
+  measureNotice.className='notice';measureNotice.innerHTML=`目前使用校正係數：<b>Kw ${calibration.kw.toFixed(3)} / Kh ${calibration.kh.toFixed(3)}</b>。請保持相同攝影機、距離與檢測環境。`;
+  if(stream&&model)startLoop();
+  part2Panel.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function redoCalibration(){
+  calibration=null;mode='calibration';measurementLocked=false;refSize.disabled=false;calAppleW.disabled=false;calAppleH.disabled=false;
+  modePill.textContent='PART 1｜系統校正';barcodeWrap.classList.remove('show');lastMeasurement=null;finalW.textContent='—';finalH.textContent='—';rawMeasureText.textContent='尚未量測。';
+  applyCalibrationUi();resetSampling();
+  calNotice.className='notice';calNotice.textContent='請使用標準校正教材。AI 找到兩個物件後會自動收集 5 次穩定樣本。';
+  if(stream&&model)startLoop();
+}
+function performMeasurement(){
+  if(!calibration)return;
+  const summary=stableSummary();
+  if(!summary){measureNotice.className='notice warn';measureNotice.textContent='樣本仍不夠穩定，請固定攝影機與教材後重新取樣。';return;}
+  const correctedW=summary.rawW*calibration.kw,correctedH=summary.rawH*calibration.kh;
+  lastMeasurement={rawW:summary.rawW,rawH:summary.rawH,widthCm:correctedW,heightCm:correctedH,createdAt:new Date().toISOString(),barcodeId:null};
+  finalW.textContent=`${correctedW.toFixed(1)} cm`;finalH.textContent=`${correctedH.toFixed(1)} cm`;
+  rawMeasureText.textContent=`AI 原始量測：${summary.rawW.toFixed(1)} × ${summary.rawH.toFixed(1)} cm｜套用 Kw ${calibration.kw.toFixed(3)} / Kh ${calibration.kh.toFixed(3)}｜有效樣本 ${summary.kept.length} 筆。`;
+  diagOutliers.textContent=String(summary.rejected);diagVariation.textContent=`寬 ${summary.cvW.toFixed(1)}% / 高 ${summary.cvH.toFixed(1)}%`;
+  measurementLocked=true;measureBtn.disabled=true;barcodeBtn.disabled=false;newMeasureBtn.disabled=true;barcodeWrap.classList.remove('show');barcodeSvg.innerHTML='';barcodeId.textContent='';barcodeMeasure.textContent='';cameraStatus.textContent='正式量測完成｜持續即時偵測';setProcess(4,'量測完成','蘋果尺寸量測完成',`校正後：${correctedW.toFixed(1)} × ${correctedH.toFixed(1)} cm。`,100);
+  measureNotice.className='notice good';measureNotice.innerHTML='<b>量測完成。</b><br>請按「建立 Bar Code」完成本筆紀錄。每次量測只能建立 1 個 Bar Code，建立後才可量測下一顆。';
+}
+function nextMeasurement(){
+  if(!calibration)return;
+  if(lastMeasurement&&!lastMeasurement.barcodeId){measureNotice.className='notice warn';measureNotice.textContent='請先為目前這筆量測建立 Bar Code，完成紀錄後才能量測下一顆。';return;}
+  measurementLocked=false;resetSampling('請放入下一顆待測蘋果，系統會自動收集 5 次穩定樣本。');barcodeWrap.classList.remove('show');
+  if(stream&&model)startLoop();
+}
+function createBarcode(){
+  if(!lastMeasurement||lastMeasurement.barcodeId)return;
+  barcodeBtn.disabled=true;
+  const createdAt=new Date();
+  const stamp=createdAt.toISOString().replace(/\D/g,'').slice(0,17);
+  const id=`AOMORI-${stamp}-W${lastMeasurement.widthCm.toFixed(1)}-H${lastMeasurement.heightCm.toFixed(1)}`;
+  lastMeasurement.barcodeId=id;
+  barcodeId.textContent=id;barcodeMeasure.textContent=`蘋果尺寸：${lastMeasurement.widthCm.toFixed(1)} cm × ${lastMeasurement.heightCm.toFixed(1)} cm`;barcodeWrap.classList.add('show');
+  if(window.JsBarcode){JsBarcode(barcodeSvg,id,{format:'CODE128',displayValue:false,height:62,margin:6});}
+  else{barcodeId.textContent=id+'（Bar Code 函式庫未載入，先保留識別碼）';}
+  const record={id,widthCm:lastMeasurement.widthCm,heightCm:lastMeasurement.heightCm,createdAt:createdAt.toISOString()};
+  barcodeRecords.push(record);renderBarcodeRecords();
+  newMeasureBtn.disabled=false;
+  measureNotice.className='notice good';measureNotice.innerHTML=`<b>Bar Code 已建立並完成紀錄。</b><br>${id}<br>蘋果寬度 ${lastMeasurement.widthCm.toFixed(1)} cm｜高度 ${lastMeasurement.heightCm.toFixed(1)} cm。此筆量測不可再建立第二個 Bar Code。`;
+  try{localStorage.setItem('aomori_current_apple',JSON.stringify({id,...lastMeasurement}));}catch(e){console.warn(e);}
+}
+async function loadModel(){
+  try{
+    if(!window.tf||!window.cocoSsd)throw new Error('TensorFlow.js / COCO-SSD 載入失敗');
+    await tf.ready();try{await tf.setBackend('webgl');await tf.ready();}catch(_){/* fallback */}
+    model=await cocoSsd.load({base:'lite_mobilenet_v2'});cameraStatus.textContent=stream?'攝影機已啟動':'AI 模型已就緒';liveDot.className='dot';updateSamplingProcess();
+    if(stream)startLoop();
+  }catch(err){console.error(err);cameraStatus.textContent='AI 模型載入失敗';document.getElementById('cameraNotice').className='notice warn';document.getElementById('cameraNotice').textContent='COCO-SSD 模型載入失敗。請確認網路連線後重新整理。';}
+}
+
+startBtn.addEventListener('click',startCamera);
+switchBtn.addEventListener('click',switchCamera);
+stopBtn.addEventListener('click',()=>stopCamera(true));
+resetSamplesBtn.addEventListener('click',()=>{measurementLocked=false;resetSampling();if(stream&&model)startLoop();});
+calibrateBtn.addEventListener('click',performCalibration);
+redoCalBtn.addEventListener('click',redoCalibration);
+goPart2Btn.addEventListener('click',enterPart2);
+measureBtn.addEventListener('click',performMeasurement);
+newMeasureBtn.addEventListener('click',nextMeasurement);
+barcodeBtn.addEventListener('click',createBarcode);
+window.addEventListener('resize',()=>{if(lastPair){clearBoxes();drawBox(lastPair.apple,'apple');drawBox(lastPair.stop,'stop');}});
+window.addEventListener('pagehide',()=>{stopCamera(false);if(model&&typeof model.dispose==='function')model.dispose();});
+window.addEventListener('beforeunload',()=>stopCamera(false));
+
+resetBarcodeSession();
+resetCalibrationSession();
+applyCalibrationUi();
+loadModel();
+})();
+</script>
+</body>
+</html>
