@@ -170,6 +170,7 @@ footer{background:#fff;border-top:1px solid var(--line);margin-top:24px;text-ali
           <button id="measureBtn" class="next" disabled>鎖定並量測</button>
           <button id="newMeasureBtn" class="secondary" disabled>量測下一顆</button>
           <button id="barcodeBtn" class="purple" disabled>建立 Bar Code</button>
+          <button id="goUnit3Btn" class="next" disabled>前往 UNIT 03｜顏色與飽滿度檢測 →</button>
         </div>
         <div class="result-panel" style="margin-top:12px">
           <div class="result-grid">
@@ -227,6 +228,7 @@ const goPart2Btn = document.getElementById('goPart2Btn');
 const measureBtn = document.getElementById('measureBtn');
 const newMeasureBtn = document.getElementById('newMeasureBtn');
 const barcodeBtn = document.getElementById('barcodeBtn');
+const goUnit3Btn = document.getElementById('goUnit3Btn');
 const metricApple = document.getElementById('metricApple');
 const metricStop = document.getElementById('metricStop');
 const metricScale = document.getElementById('metricScale');
@@ -366,7 +368,7 @@ function resetSampling(message='重新等待 Apple 與 Stop Sign。'){
   calibrateBtn.disabled=true; measureBtn.disabled=true;
   if(mode==='measurement'){
     finalW.textContent='—'; finalH.textContent='—'; rawMeasureText.textContent=message;
-    barcodeBtn.disabled=true; newMeasureBtn.disabled=true; barcodeWrap.classList.remove('show'); barcodeSvg.innerHTML=''; barcodeId.textContent=''; barcodeMeasure.textContent=''; lastMeasurement=null;
+    barcodeBtn.disabled=true; newMeasureBtn.disabled=true; goUnit3Btn.disabled=true; barcodeWrap.classList.remove('show'); barcodeSvg.innerHTML=''; barcodeId.textContent=''; barcodeMeasure.textContent=''; lastMeasurement=null;
   }
   updateSamplingProcess();
 }
@@ -572,6 +574,7 @@ function createBarcode(){
   const record={id,widthCm:lastMeasurement.widthCm,heightCm:lastMeasurement.heightCm,createdAt:createdAt.toISOString()};
   barcodeRecords.push(record);renderBarcodeRecords();
   newMeasureBtn.disabled=false;
+  goUnit3Btn.disabled=false;
   measureNotice.className='notice good';measureNotice.innerHTML=`<b>Bar Code 已建立並完成紀錄。</b><br>${id}<br>蘋果寬度 ${lastMeasurement.widthCm.toFixed(1)} cm｜高度 ${lastMeasurement.heightCm.toFixed(1)} cm。此筆量測不可再建立第二個 Bar Code。`;
   try{localStorage.setItem('aomori_current_apple',JSON.stringify({id,...lastMeasurement}));}catch(e){console.warn(e);}
 }
@@ -594,6 +597,7 @@ goPart2Btn.addEventListener('click',enterPart2);
 measureBtn.addEventListener('click',performMeasurement);
 newMeasureBtn.addEventListener('click',nextMeasurement);
 barcodeBtn.addEventListener('click',createBarcode);
+goUnit3Btn.addEventListener('click',()=>{ window.location.href='../unit03/'; });
 window.addEventListener('resize',()=>{if(lastPair){clearBoxes();drawBox(lastPair.apple,'apple');drawBox(lastPair.stop,'stop');}});
 window.addEventListener('pagehide',()=>{stopCamera(false);if(model&&typeof model.dispose==='function')model.dispose();});
 window.addEventListener('beforeunload',()=>stopCamera(false));
