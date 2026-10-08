@@ -1,0 +1,466 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>UNIT 03｜顏色與飽滿度檢測</title>
+<style>
+:root{
+  --bg:#f4f7fb;--card:#fff;--text:#172033;--muted:#667085;--blue:#2563eb;--red:#dc2626;
+  --green:#15803d;--line:#d9e1ec;--stage:#0b1020;--amber:#b45309;--purple:#7c3aed;--cyan:#0891b2;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,"Noto Sans TC","Microsoft JhengHei",sans-serif;background:var(--bg);color:var(--text)}
+button{font:inherit}
+header{padding:22px 6vw;background:#fff;border-bottom:1px solid var(--line)}
+.header-inner{max-width:1240px;margin:0 auto}
+.back{color:#1d4ed8;text-decoration:none;font-weight:800;font-size:14px}
+.badge{display:inline-block;margin-left:10px;border-radius:999px;padding:4px 9px;font-size:12px;font-weight:900;background:#fef3c7;color:#92400e;letter-spacing:.04em}
+h1{margin:8px 0 6px;font-size:clamp(28px,4vw,42px);line-height:1.2}
+header p{margin:0;color:var(--muted);line-height:1.75}
+.course-chip{display:inline-flex;gap:8px;align-items:center;margin-top:13px;padding:8px 11px;border:1px solid #fecaca;border-radius:12px;background:#fff7f7;color:#991b1b;font-size:13px;font-weight:800}
+main{max-width:1240px;margin:24px auto;padding:0 18px}
+.mode-select{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+.mode-card{border:1px solid var(--line);background:#fff;border-radius:16px;padding:15px 16px;display:flex;gap:12px;align-items:center;cursor:pointer;box-shadow:0 8px 28px #00000008;text-align:left;color:var(--text)}
+.mode-card:hover{border-color:#93c5fd}.mode-card.active{border-color:#60a5fa;box-shadow:0 0 0 3px #dbeafe;background:#f8fbff}.mode-icon{width:42px;height:42px;border-radius:13px;background:#eff6ff;color:#1d4ed8;display:grid;place-items:center;font-weight:950;flex:0 0 auto}.mode-card b{display:block;font-size:16px}.mode-card span{display:block;color:var(--muted);font-size:12px;margin-top:3px;line-height:1.45}
+.grid{display:grid;grid-template-columns:1.35fr .85fr;gap:20px;align-items:start}.card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:0 8px 28px #0000000a}.card h2{font-size:20px;margin:0 0 14px}
+.stage{position:relative;background:var(--stage);border-radius:16px;overflow:hidden;aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;isolation:isolate}
+video{width:100%;height:100%;object-fit:contain;display:block;background:var(--stage)}video.mirror{transform:scaleX(-1)}
+#boxLayer{position:absolute;inset:0;pointer-events:none;z-index:3}.det-box{position:absolute;border:3px solid #22c55e;border-radius:10px;box-shadow:0 0 0 2px #0005 inset}.det-label{position:absolute;left:-3px;top:-30px;color:#fff;background:#16a34a;padding:5px 8px;border-radius:8px;font-size:12px;font-weight:900;white-space:nowrap;box-shadow:0 4px 14px #0003}
+.status-pill{position:absolute;top:12px;left:12px;padding:7px 10px;border-radius:999px;background:#111827d9;color:#fff;font-size:12px;font-weight:800;display:flex;gap:7px;align-items:center;z-index:6}.mode-pill{position:absolute;left:12px;bottom:12px;padding:7px 10px;border-radius:10px;background:#fff;color:#334155;font-size:11px;font-weight:900;z-index:6;box-shadow:0 5px 18px #0004}.legend{position:absolute;right:12px;top:12px;background:#fffffff2;border-radius:12px;padding:9px 11px;z-index:6;box-shadow:0 8px 24px #0003;font-size:11px;font-weight:850;color:#334155;display:flex;align-items:center;gap:7px}.swatch{width:10px;height:10px;border-radius:3px;background:#22c55e}.dot{width:8px;height:8px;border-radius:50%;background:#94a3b8}.dot.live{background:#22c55e;box-shadow:0 0 0 5px #22c55e20}.dot.busy{background:#f59e0b;box-shadow:0 0 0 5px #f59e0b20}
+.controls{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}button{border:0;border-radius:10px;padding:11px 16px;font-weight:850;background:var(--blue);color:#fff;cursor:pointer;min-height:44px}button.stop{background:var(--red)}button.secondary{background:#475569}button.next{background:var(--green)}button.amber{background:var(--amber)}button.purple{background:var(--purple)}button:disabled{opacity:.45;cursor:not-allowed}.next-unit-link{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:11px 16px;border-radius:10px;background:var(--green);color:#fff;text-decoration:none;font-weight:850}.next-unit-link.disabled{opacity:.45;pointer-events:none;cursor:not-allowed}
+.metric-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}.metric{border:1px solid var(--line);border-radius:14px;padding:13px;min-width:0}.metric small{color:var(--muted)}.metric strong{display:block;font-size:19px;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.metric .tiny{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.45}
+.process-card{margin-top:14px;border:1px solid #bfdbfe;border-radius:16px;background:#f8fbff;padding:14px 15px}.process-head{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:8px}.process-head b{font-size:15px}.process-badge{font-size:11px;font-weight:950;padding:5px 9px;border-radius:999px;background:#dbeafe;color:#1d4ed8;white-space:nowrap}.process-main{font-size:16px;font-weight:950;color:#1e3a8a;line-height:1.45}.process-hint{font-size:13px;color:#64748b;margin-top:4px;line-height:1.55}.progress-track{height:10px;border-radius:999px;background:#e2e8f0;overflow:hidden;margin-top:10px}.progress-bar{height:100%;width:0%;background:#2563eb;transition:width .25s ease}.process-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:11px}.process-step{border:1px solid #e2e8f0;background:#fff;border-radius:10px;padding:8px 6px;text-align:center;font-size:11px;font-weight:850;color:#94a3b8}.process-step.active{border-color:#93c5fd;background:#eff6ff;color:#1d4ed8}.process-step.done{border-color:#86efac;background:#f0fdf4;color:#166534}
+.notice{margin-top:12px;padding:12px 13px;border-radius:13px;background:#eff6ff;border:1px solid #bfdbfe;color:#1e40af;font-size:13px;line-height:1.65}.notice.warn{background:#fffbeb;border-color:#fde68a;color:#92400e}.notice.good{background:#f0fdf4;border-color:#bbf7d0;color:#166534}
+.panel{border:1px solid var(--line);border-radius:16px;padding:16px;background:#fbfdff;margin-bottom:14px}.panel-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}.panel-head h2{margin:0;font-size:20px}.tag{padding:5px 9px;border-radius:999px;font-size:11px;font-weight:950;background:#dbeafe;color:#1d4ed8;white-space:nowrap}.tag.good{background:#dcfce7;color:#166534}.tag.warn{background:#fef3c7;color:#92400e}
+.product-card{border:1px solid #c4b5fd;background:#faf8ff;border-radius:15px;padding:14px;margin-bottom:14px}.product-card.hidden{display:none}.product-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.product-head b{font-size:14px;color:#5b21b6}.product-id{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;color:#475569;word-break:break-all;margin-top:5px}.product-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.product-item{border:1px solid #ede9fe;background:#fff;border-radius:11px;padding:10px}.product-item small{display:block;color:var(--muted)}.product-item strong{display:block;margin-top:4px;font-size:16px}.barcode-mini{text-align:center;margin-top:10px;padding-top:10px;border-top:1px solid #ede9fe}.barcode-mini svg{max-width:100%;height:58px}
+.result-panel{border:1px solid #bbf7d0;border-radius:16px;padding:16px;background:#f7fff9}.result-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.result-big small{display:block;color:#166534;font-weight:850}.result-big strong{font-size:31px;color:var(--green);letter-spacing:-.03em;display:block;margin-top:3px}.grade-box{margin-top:12px;border:1px solid #d1fae5;background:#fff;border-radius:13px;padding:12px;transition:background .2s ease,border-color .2s ease}.grade-box small{color:var(--muted)}.grade-box strong{display:block;font-size:23px;margin-top:4px;color:#166534}.grade-box.grade-a{border-color:#86efac;background:#f0fdf4}.grade-box.grade-a strong{color:#166534}.grade-box.grade-b{border-color:#fcd34d;background:#fffbeb}.grade-box.grade-b strong{color:#b45309}.grade-box.grade-c{border-color:#fecaca;background:#fff7f7}.grade-box.grade-c strong{color:#991b1b}.help{font-size:13px;color:var(--muted);line-height:1.65;margin-top:7px}.formula{padding:11px 12px;border-radius:12px;background:#f8fafc;border:1px dashed #cbd5e1;color:#475569;font-size:13px;line-height:1.7;margin-top:10px}.formula b{color:#334155}
+.color-scale{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}.scale-box{border-radius:12px;padding:10px;text-align:center;font-size:11px;font-weight:900;border:1px solid var(--line)}.scale-box.low{background:#fff7ed;color:#9a3412}.scale-box.mid{background:#fef2f2;color:#b91c1c}.scale-box.high{background:#7f1d1d;color:#fff;border-color:#7f1d1d}
+footer{background:#fff;border-top:1px solid var(--line);margin-top:24px;text-align:center;color:var(--muted);font-size:13px;line-height:1.8;padding:22px}
+#analysisCanvas{display:none}
+@media(max-width:1020px){.metric-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:920px){.grid{grid-template-columns:1fr}.stage{aspect-ratio:4/3}}
+@media(max-width:640px){.mode-select{grid-template-columns:1fr}.product-grid,.result-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){header{padding:18px 16px}main{padding:0 12px;margin-top:16px}.card{padding:14px;border-radius:15px}.controls button{flex:1 1 42%}.metric-grid,.product-grid,.result-grid{grid-template-columns:1fr 1fr}.result-big strong{font-size:27px}.process-steps{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<header><div class="header-inner">
+  <a class="back" href="../">← 回 AI選果應用</a><span class="badge">OBJECT DETECTION · HSV COLOR ANALYSIS</span>
+  <h1>UNIT 03｜顏色與飽滿度檢測</h1>
+  <div class="course-chip">03｜青森智慧選果 AI 體驗課程</div>
+  <p>AI 先以物件偵測找到 Apple，再分析蘋果區域的紅色比例與 HSV 飽和度。可獨立進行單站測試，也可讀取 UNIT 02 的 Bar Code 產品資料並把顏色結果寫入同一筆產品履歷。</p>
+</div></header>
+
+<main>
+  <div class="mode-select" aria-label="UNIT 03 檢測模式">
+    <button id="standaloneModeBtn" class="mode-card active" type="button">
+      <span class="mode-icon">01</span><span><b>單站測試</b><span>不需要 Bar Code，直接進行 Apple 顏色與飽滿度檢測。</span></span>
+    </button>
+    <button id="pipelineModeBtn" class="mode-card" type="button">
+      <span class="mode-icon">02</span><span><b>延續產線 Bar Code</b><span>讀取 UNIT 02 的產品 ID、寬度與高度，再追加顏色檢測資料。</span></span>
+    </button>
+  </div>
+
+  <div class="grid">
+    <section class="card">
+      <div class="stage" id="stage">
+        <video id="video" playsinline autoplay muted></video>
+        <div id="boxLayer"></div>
+        <div class="status-pill"><span id="liveDot" class="dot busy"></span><span id="cameraStatus">AI 模型載入中…</span></div>
+        <div id="modePill" class="mode-pill">單站測試</div>
+        <div class="legend"><span class="swatch"></span>APPLE</div>
+      </div>
+
+      <div class="controls">
+        <button id="startBtn">啟動攝影機</button>
+        <button id="switchBtn" class="secondary" disabled>切換攝影機</button>
+        <button id="stopBtn" class="stop" disabled>停止</button>
+        <button id="resetBtn" class="amber" disabled>重新取樣</button>
+      </div>
+
+      <div class="metric-grid">
+        <div class="metric"><small>Apple 信心值</small><strong id="metricApple">—</strong><div class="tiny">COCO-SSD 物件偵測</div></div>
+        <div class="metric"><small>紅色比例</small><strong id="metricRed">—</strong><div class="tiny">Apple ROI 中的紅色像素比例</div></div>
+        <div class="metric"><small>顏色飽滿度</small><strong id="metricSat">—</strong><div class="tiny">HSV 平均 Saturation</div></div>
+        <div class="metric"><small>紅色主導度</small><strong id="metricDominance">—</strong><div class="tiny">R ÷ (R+G+B)，降低亮度影響</div></div>
+        <div class="metric"><small>穩定樣本</small><strong id="metricSamples">0 / 5</strong><div class="tiny">5 次快速取樣</div></div>
+      </div>
+
+      <div class="process-card" aria-live="polite">
+        <div class="process-head"><b>目前系統正在做什麼？</b><span id="processBadge" class="process-badge">準備中</span></div>
+        <div id="processMain" class="process-main">正在載入 AI 物件偵測模型</div>
+        <div id="processHint" class="process-hint">模型就緒後，請啟動攝影機並讓單顆蘋果完整入鏡。</div>
+        <div class="progress-track"><div id="sampleProgressBar" class="progress-bar"></div></div>
+        <div class="process-steps">
+          <div id="step1" class="process-step active">1 AI 找到 Apple</div>
+          <div id="step2" class="process-step">2 擷取 Apple ROI</div>
+          <div id="step3" class="process-step">3 HSV 顏色分析</div>
+          <div id="step4" class="process-step">4 鎖定 / 寫入履歷</div>
+        </div>
+      </div>
+      <div id="cameraNotice" class="notice">攝影機需在 HTTPS 或 localhost 環境使用。為了讓三張教材比較公平，請盡量維持相同光線、相同攝影機與相同拍攝距離。</div>
+      <canvas id="analysisCanvas"></canvas>
+    </section>
+
+    <aside>
+      <section class="panel">
+        <div class="panel-head"><h2>檢測模式</h2><span id="modeTag" class="tag">單站測試</span></div>
+        <div id="pipelineProductCard" class="product-card hidden">
+          <div class="product-head"><div><b>目前產品履歷</b><div id="pipelineId" class="product-id">—</div></div><span id="pipelineState" class="tag good">已讀取</span></div>
+          <div class="product-grid">
+            <div class="product-item"><small>UNIT 02 蘋果寬度</small><strong id="pipelineW">—</strong></div>
+            <div class="product-item"><small>UNIT 02 蘋果高度</small><strong id="pipelineH">—</strong></div>
+            <div class="product-item"><small>UNIT 03 紅色比例</small><strong id="pipelineRed">尚未記錄</strong></div>
+            <div class="product-item"><small>UNIT 03 顏色飽滿度</small><strong id="pipelineSat">尚未記錄</strong></div>
+          </div>
+          <div class="barcode-mini"><svg id="pipelineBarcode"></svg></div>
+        </div>
+        <div id="modeNotice" class="notice">目前為單站測試模式，不需要 Bar Code。完成檢測後只顯示本次結果，不會修改產品履歷。</div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head"><h2>顏色與飽滿度結果</h2><span id="resultTag" class="tag warn">等待取樣</span></div>
+        <div class="controls" style="margin-top:0">
+          <button id="lockBtn" class="next" disabled>鎖定檢測結果</button>
+          <button id="writeBtn" class="purple" disabled>寫入 Bar Code 履歷</button>
+          <a id="nextUnitBtn" class="next-unit-link disabled" href="../unit04/" aria-disabled="true">前往 UNIT 04｜瑕疵檢測 →</a>
+        </div>
+        <div class="result-panel" style="margin-top:12px">
+          <div class="result-grid">
+            <div class="result-big"><small>紅色比例</small><strong id="finalRed">—</strong></div>
+            <div class="result-big"><small>顏色飽滿度</small><strong id="finalSat">—</strong></div>
+            <div class="result-big"><small>紅色鮮豔度</small><strong id="finalVivid">—</strong></div>
+            <div class="result-big"><small>紅色主導度</small><strong id="finalDominance">—</strong></div>
+            <div class="result-big"><small>有效樣本</small><strong id="finalSamples">—</strong></div>
+          </div>
+          <div class="grade-box"><small>顏色判定</small><strong id="finalGrade">尚未檢測</strong></div>
+        </div>
+        <div class="color-scale">
+          <div class="scale-box low">偏淡</div><div class="scale-box mid">中等</div><div class="scale-box high">鮮明</div>
+        </div>
+        <div class="formula"><b>本單元的「飽滿度」指 HSV 色彩空間中的 Saturation（飽和度）</b>，數值越高代表顏色越濃、越鮮明；不是果實重量、成熟度或含水量。<br><b>紅色主導度：</b>使用 R ÷ (R+G+B) 表示紅色在像素三色中的相對占比，作為輔助判斷。<br><b>顏色等級：</b>A 級改採多條件判斷：高紅色覆蓋率 + 適中的飽和度 + 足夠鮮豔度，或符合高紅色主導度／深紅覆蓋條件；B 級維持紅黃均衡判斷；其餘為 C 級。</div>
+        <div id="resultNotice" class="notice">AI 找到 Apple 後會自動收集 5 次顏色樣本。取樣完成後即可鎖定結果。</div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head"><h2>工程流程</h2><span class="tag">INPUT → OUTPUT</span></div>
+        <div class="help"><b>1. Object Detection：</b>先找到 Apple 的 Bounding Box。<br><b>2. ROI：</b>只分析蘋果所在區域，排除大部分背景。<br><b>3. HSV：</b>把影像轉成色相 Hue、飽和度 Saturation、亮度 Value。<br><b>4. Result：</b>輸出紅色比例、顏色飽滿度與紅色鮮豔度。<br><b>5. Traceability：</b>產線模式下，把 UNIT 03 結果追加到同一筆 Bar Code 產品履歷。</div>
+        <div class="notice warn">顏色門檻為本課程的教學示範，用於比較三張不同紅色程度的蘋果教材，不代表青森實際商業選果標準。</div>
+      </section>
+    </aside>
+  </div>
+</main>
+
+<footer>AI 工程素養互動教學平台<br>大安高工控制科邵時俊老師製作</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+<script>
+(() => {
+'use strict';
+const DETECT_INTERVAL = 520;
+const REQUIRED_SAMPLES = 5;
+const MIN_SCORE = 0.28;
+const PRODUCT_KEY = 'aomori_current_apple';
+
+const stage = document.getElementById('stage');
+const video = document.getElementById('video');
+const boxLayer = document.getElementById('boxLayer');
+const analysisCanvas = document.getElementById('analysisCanvas');
+const actx = analysisCanvas.getContext('2d',{willReadFrequently:true});
+const startBtn = document.getElementById('startBtn');
+const switchBtn = document.getElementById('switchBtn');
+const stopBtn = document.getElementById('stopBtn');
+const resetBtn = document.getElementById('resetBtn');
+const lockBtn = document.getElementById('lockBtn');
+const writeBtn = document.getElementById('writeBtn');
+const standaloneModeBtn = document.getElementById('standaloneModeBtn');
+const pipelineModeBtn = document.getElementById('pipelineModeBtn');
+const liveDot = document.getElementById('liveDot');
+const cameraStatus = document.getElementById('cameraStatus');
+const modePill = document.getElementById('modePill');
+const modeTag = document.getElementById('modeTag');
+const modeNotice = document.getElementById('modeNotice');
+const pipelineProductCard = document.getElementById('pipelineProductCard');
+const pipelineId = document.getElementById('pipelineId');
+const pipelineW = document.getElementById('pipelineW');
+const pipelineH = document.getElementById('pipelineH');
+const pipelineRed = document.getElementById('pipelineRed');
+const pipelineSat = document.getElementById('pipelineSat');
+const pipelineState = document.getElementById('pipelineState');
+const pipelineBarcode = document.getElementById('pipelineBarcode');
+const metricApple = document.getElementById('metricApple');
+const metricRed = document.getElementById('metricRed');
+const metricSat = document.getElementById('metricSat');
+const metricDominance = document.getElementById('metricDominance');
+const metricSamples = document.getElementById('metricSamples');
+const processBadge = document.getElementById('processBadge');
+const processMain = document.getElementById('processMain');
+const processHint = document.getElementById('processHint');
+const sampleProgressBar = document.getElementById('sampleProgressBar');
+const processSteps = [1,2,3,4].map(n=>document.getElementById(`step${n}`));
+const finalRed = document.getElementById('finalRed');
+const finalSat = document.getElementById('finalSat');
+const finalVivid = document.getElementById('finalVivid');
+const finalDominance = document.getElementById('finalDominance');
+const finalSamples = document.getElementById('finalSamples');
+const finalGrade = document.getElementById('finalGrade');
+const resultTag = document.getElementById('resultTag');
+const resultNotice = document.getElementById('resultNotice');
+const nextUnitBtn = document.getElementById('nextUnitBtn');
+
+let model = null;
+let stream = null;
+let timer = null;
+let facing = 'environment';
+let detectBusy = false;
+let mode = 'standalone';
+let samples = [];
+let analysisLocked = false;
+let lockedResult = null;
+let pipelineRecord = null;
+let recordWritten = false;
+
+function clamp(v,min,max){ return Math.max(min,Math.min(max,v)); }
+function median(values){ const a=values.filter(Number.isFinite).slice().sort((x,y)=>x-y); if(!a.length)return NaN; const m=Math.floor(a.length/2); return a.length%2?a[m]:(a[m-1]+a[m])/2; }
+function rgbToHsv(r,g,b){
+  r/=255;g/=255;b/=255;
+  const max=Math.max(r,g,b),min=Math.min(r,g,b),d=max-min;
+  let h=0;
+  if(d){ if(max===r) h=60*(((g-b)/d)%6); else if(max===g) h=60*((b-r)/d+2); else h=60*((r-g)/d+4); }
+  if(h<0) h+=360;
+  return [h,max===0?0:d/max,max];
+}
+function gradeFromColor(redRatio,saturation,vividness,deepRedRatio,redDominance){
+  // A 級採「多條件判斷」，避免單靠紅色主導度被攝影機曝光與白平衡拉低。
+  // 實測 A 級教材呈現「紅色覆蓋率高、鮮豔度達標，但平均飽和度屬中等」的特徵。
+  const highRedCoverageA = redRatio>=72 && saturation>=35 && saturation<=55 && vividness>=60;
+  const exposureRobustA = redDominance>=68 && saturation>=45;
+  const strongDeepRed = redDominance>=64 && deepRedRatio>=42 && saturation>=45;
+  if(highRedCoverageA || exposureRobustA || strongDeepRed) return 'A｜深紅飽滿';
+  if(redRatio>=45 && saturation>=38) return 'B｜紅黃均衡';
+  return 'C｜紅色偏淡';
+}
+function applyGradeStyle(grade){
+  const box=finalGrade.closest('.grade-box');
+  if(!box) return;
+  box.classList.remove('grade-a','grade-b','grade-c');
+  if(!grade || grade==='尚未檢測') return;
+  if(grade.startsWith('A｜')) box.classList.add('grade-a');
+  else if(grade.startsWith('B｜')) box.classList.add('grade-b');
+  else if(grade.startsWith('C｜')) box.classList.add('grade-c');
+}
+function clearBoxes(){ boxLayer.innerHTML=''; }
+function stopLoop(){ if(timer){clearInterval(timer);timer=null;} }
+function displayRect(bbox){
+  const sw=stage.clientWidth,sh=stage.clientHeight,vw=video.videoWidth,vh=video.videoHeight;
+  const scale=Math.min(sw/vw,sh/vh),rw=vw*scale,rh=vh*scale,ox=(sw-rw)/2,oy=(sh-rh)/2;
+  let [x,y,w,h]=bbox; let left=ox+x*scale;
+  if(facing==='user') left=sw-(ox+(x+w)*scale);
+  return {left,top:oy+y*scale,width:w*scale,height:h*scale};
+}
+function drawBox(pred){
+  const r=displayRect(pred.bbox),box=document.createElement('div');box.className='det-box';
+  box.style.left=`${r.left}px`;box.style.top=`${r.top}px`;box.style.width=`${r.width}px`;box.style.height=`${r.height}px`;
+  const label=document.createElement('div');label.className='det-label';label.textContent=`APPLE ${Math.round(pred.score*100)}%`;box.appendChild(label);boxLayer.appendChild(box);
+}
+function setProcess(step,badge,main,hint,progress=0){
+  processBadge.textContent=badge;processMain.textContent=main;processHint.textContent=hint;sampleProgressBar.style.width=`${clamp(progress,0,100)}%`;
+  processSteps.forEach((el,i)=>{el.classList.toggle('done',i+1<step);el.classList.toggle('active',i+1===step);});
+}
+function updateProcess(found=false){
+  if(!stream){setProcess(1,'等待攝影機','請先啟動攝影機','啟動後，AI 會先尋找 Apple。',0);return;}
+  if(!model){setProcess(1,'AI載入中','攝影機已啟動，AI 模型仍在載入','模型完成後會自動開始偵測。',0);return;}
+  if(analysisLocked){setProcess(4,'結果已鎖定','顏色與飽滿度檢測完成',mode==='pipeline'&&!recordWritten?'請按「寫入 Bar Code 履歷」完成 UNIT 03 紀錄。':'可重新取樣或進行下一步。',100);return;}
+  if(!found){setProcess(1,'尋找 Apple','AI 正在尋找單顆蘋果','請讓完整蘋果進入畫面，並避免其他物件遮擋。',0);return;}
+  const count=Math.min(samples.length,REQUIRED_SAMPLES),progress=count/REQUIRED_SAMPLES*100;
+  if(count<REQUIRED_SAMPLES){setProcess(3,`取樣 ${count}/${REQUIRED_SAMPLES}`,'正在分析 Apple ROI 的 HSV 顏色資料','請保持蘋果與攝影機穩定，系統會自動完成 5 次取樣。',progress);return;}
+  setProcess(4,'取樣完成','5 次顏色樣本已完成','請按「鎖定檢測結果」。',100);
+}
+function setNextUnitEnabled(enabled){
+  nextUnitBtn.classList.toggle('disabled',!enabled);
+  nextUnitBtn.setAttribute('aria-disabled',enabled?'false':'true');
+}
+function resetAnalysis(message='請讓單顆蘋果完整入鏡。'){
+  samples=[];analysisLocked=false;lockedResult=null;recordWritten=false;
+  metricSamples.textContent=`0 / ${REQUIRED_SAMPLES}`;metricRed.textContent='—';metricSat.textContent='—';metricDominance.textContent='—';
+  finalRed.textContent='—';finalSat.textContent='—';finalVivid.textContent='—';finalDominance.textContent='—';finalSamples.textContent='—';finalGrade.textContent='尚未檢測';applyGradeStyle('尚未檢測');
+  resultTag.textContent='等待取樣';resultTag.className='tag warn';lockBtn.disabled=true;writeBtn.disabled=true;setNextUnitEnabled(false);
+  resultNotice.className='notice';resultNotice.textContent=message;
+  updateProcess(false);
+}
+function stopCamera(resetUi=true){
+  stopLoop();if(stream){for(const t of stream.getTracks())t.stop();stream=null;}video.srcObject=null;clearBoxes();detectBusy=false;
+  startBtn.disabled=false;switchBtn.disabled=true;stopBtn.disabled=true;resetBtn.disabled=true;lockBtn.disabled=true;
+  if(resetUi){liveDot.className='dot';cameraStatus.textContent=model?'請啟動攝影機':'AI 模型載入中…';metricApple.textContent='—';resetAnalysis('攝影機已停止。');}
+}
+function analyzeApple(pred){
+  const [bx,by,bw,bh]=pred.bbox;
+  const vw=video.videoWidth,vh=video.videoHeight;
+  const x=clamp(Math.floor(bx),0,vw-1),y=clamp(Math.floor(by),0,vh-1);
+  const w=clamp(Math.floor(bw),1,vw-x),h=clamp(Math.floor(bh),1,vh-y);
+  const targetW=Math.min(240,Math.max(80,w));
+  const targetH=Math.max(60,Math.round(targetW*h/w));
+  analysisCanvas.width=targetW;analysisCanvas.height=targetH;
+  actx.drawImage(video,x,y,w,h,0,0,targetW,targetH);
+  const data=actx.getImageData(0,0,targetW,targetH).data;
+  let fruit=0,red=0,deepRed=0,satSum=0,redDominanceSum=0;
+  for(let i=0;i<data.length;i+=4){
+    const r=data[i],g=data[i+1],b=data[i+2];
+    const mx=Math.max(r,g,b),mn=Math.min(r,g,b);
+    const nearWhite=r>210&&g>210&&b>210&&(mx-mn)<45;
+    if(nearWhite) continue;
+    const [hue,sat,val]=rgbToHsv(r,g,b);
+    const plausibleFruit=(hue<=90||hue>=330)&&val>.14;
+    if(!plausibleFruit) continue;
+    fruit++;satSum+=sat;
+    const rgbSum=r+g+b;
+    if(rgbSum>0) redDominanceSum+=r/rgbSum;
+    if((hue<=20||hue>=340)&&sat>=.24) red++;
+    // 深紅覆蓋率：用較高飽和度 + 較低亮度捕捉深紅區，
+    // 讓深紅教材在經過螢幕/攝影機曝光後仍能和紅黃樣本拉開差異。
+    if((hue<=35||hue>=330)&&sat>=.40&&val<=.82) deepRed++;
+  }
+  if(fruit<Math.max(350,targetW*targetH*.08)) return null;
+  const redRatio=red/fruit*100;
+  const saturation=satSum/fruit*100;
+  const vividness=clamp(redRatio*.65+saturation*.35,0,100);
+  const deepRedRatio=deepRed/fruit*100;
+  const redDominance=redDominanceSum/fruit*100;
+  return {redRatio,saturation,vividness,deepRedRatio,redDominance,fruitPixels:fruit};
+}
+function pushSample(a){
+  if(analysisLocked||samples.length>=REQUIRED_SAMPLES)return;
+  samples.push(a);
+  metricSamples.textContent=`${samples.length} / ${REQUIRED_SAMPLES}`;
+  if(samples.length>=REQUIRED_SAMPLES)lockBtn.disabled=false;
+}
+function updateLive(pred,a){
+  metricApple.textContent=`${Math.round(pred.score*100)}%`;
+  metricRed.textContent=`${a.redRatio.toFixed(1)}%`;
+  metricSat.textContent=`${a.saturation.toFixed(1)}%`;
+  metricDominance.textContent=`${a.redDominance.toFixed(1)}%`;
+}
+async function detectFrame(){
+  if(!model||!stream||video.readyState<2||detectBusy)return;
+  detectBusy=true;
+  try{
+    cameraStatus.textContent='Apple 偵測與顏色分析中';liveDot.className='dot busy';
+    const preds=await model.detect(video,20,MIN_SCORE);
+    const apple=preds.filter(p=>p.class==='apple').sort((a,b)=>b.score-a.score)[0]||null;
+    clearBoxes();
+    if(!apple){metricApple.textContent='未偵測';cameraStatus.textContent='等待 Apple';liveDot.className='dot busy';updateProcess(false);return;}
+    drawBox(apple);
+    const analysis=analyzeApple(apple);
+    if(!analysis){metricApple.textContent=`${Math.round(apple.score*100)}%`;metricRed.textContent='分析不足';metricSat.textContent='分析不足';cameraStatus.textContent='Apple 已找到｜顏色區域不足';updateProcess(true);return;}
+    updateLive(apple,analysis);pushSample(analysis);cameraStatus.textContent='APPLE｜COLOR ANALYSIS';liveDot.className='dot live';updateProcess(true);
+  }catch(err){console.warn(err);cameraStatus.textContent='偵測發生錯誤';liveDot.className='dot';}
+  finally{detectBusy=false;}
+}
+function startLoop(){stopLoop();detectFrame();timer=setInterval(detectFrame,DETECT_INTERVAL);}
+async function startCamera(){
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){cameraStatus.textContent='瀏覽器不支援攝影機';return;}
+  stopCamera(false);cameraStatus.textContent='正在開啟攝影機…';liveDot.className='dot busy';
+  try{
+    try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:facing},width:{ideal:640},height:{ideal:480},frameRate:{ideal:30,max:30}},audio:false});}
+    catch(e){console.warn(e);stream=await navigator.mediaDevices.getUserMedia({video:true,audio:false});}
+    video.srcObject=stream;await video.play();video.classList.toggle('mirror',facing==='user');
+    startBtn.disabled=true;switchBtn.disabled=false;stopBtn.disabled=false;resetBtn.disabled=false;cameraStatus.textContent=model?'攝影機已啟動':'攝影機已啟動｜AI 模型載入中';liveDot.className='dot live';resetAnalysis();if(model)startLoop();
+  }catch(err){console.error(err);cameraStatus.textContent='無法開啟攝影機';liveDot.className='dot';startBtn.disabled=false;document.getElementById('cameraNotice').className='notice warn';document.getElementById('cameraNotice').textContent='攝影機啟動失敗。請確認 HTTPS / localhost 與瀏覽器攝影機權限。';}
+}
+async function switchCamera(){facing=facing==='environment'?'user':'environment';await startCamera();}
+function lockResult(){
+  if(samples.length<REQUIRED_SAMPLES)return;
+  const redRatio=median(samples.map(s=>s.redRatio)),saturation=median(samples.map(s=>s.saturation)),vividness=median(samples.map(s=>s.vividness));
+  const deepRedRatio=median(samples.map(s=>Number.isFinite(s.deepRedRatio)?s.deepRedRatio:0));
+  const redDominance=median(samples.map(s=>Number.isFinite(s.redDominance)?s.redDominance:0));
+  lockedResult={redRatio,saturation,vividness,deepRedRatio,redDominance,grade:gradeFromColor(redRatio,saturation,vividness,deepRedRatio,redDominance),samples:samples.length,measuredAt:new Date().toISOString()};
+  analysisLocked=true;lockBtn.disabled=true;
+  finalRed.textContent=`${redRatio.toFixed(1)}%`;finalSat.textContent=`${saturation.toFixed(1)}%`;finalVivid.textContent=vividness.toFixed(1);finalDominance.textContent=`${redDominance.toFixed(1)}%`;finalSamples.textContent=String(samples.length);finalGrade.textContent=lockedResult.grade;applyGradeStyle(lockedResult.grade);
+  resultTag.textContent='檢測完成';resultTag.className='tag good';
+  if(mode==='pipeline'&&pipelineRecord){
+    writeBtn.disabled=recordWritten;
+    setNextUnitEnabled(recordWritten);
+    resultNotice.className='notice good';
+    resultNotice.textContent=recordWritten?'這筆 Bar Code 已有 UNIT 03 顏色紀錄，可前往 UNIT 04。':'結果已鎖定，請先按「寫入 Bar Code 履歷」，再前往 UNIT 04。';
+  }
+  else{
+    writeBtn.disabled=true;
+    setNextUnitEnabled(true);
+    resultNotice.className='notice good';
+    resultNotice.textContent=`單站測試完成。紅色主導度 ${redDominance.toFixed(1)}%，本次結果不會寫入任何 Bar Code 產品履歷，可直接前往 UNIT 04。`;
+  }
+  updateProcess(true);
+}
+function normalizeRecord(raw){
+  if(!raw||typeof raw!=='object')return null;
+  const id=raw.id||raw.barcodeId;
+  if(!id)return null;
+  return {...raw,id};
+}
+function loadPipelineRecord(){
+  try{pipelineRecord=normalizeRecord(JSON.parse(localStorage.getItem(PRODUCT_KEY)||'null'));}
+  catch(e){pipelineRecord=null;console.warn(e);}
+  return pipelineRecord;
+}
+function renderPipelineCard(){
+  if(mode!=='pipeline'){pipelineProductCard.classList.add('hidden');return;}
+  pipelineProductCard.classList.remove('hidden');
+  if(!pipelineRecord){
+    pipelineId.textContent='找不到 UNIT 02 Bar Code 資料';pipelineW.textContent='—';pipelineH.textContent='—';pipelineRed.textContent='—';pipelineSat.textContent='—';pipelineState.textContent='未讀取';pipelineState.className='tag warn';pipelineBarcode.innerHTML='';return;
+  }
+  pipelineId.textContent=pipelineRecord.id;
+  pipelineW.textContent=Number.isFinite(Number(pipelineRecord.widthCm))?`${Number(pipelineRecord.widthCm).toFixed(1)} cm`:'—';
+  pipelineH.textContent=Number.isFinite(Number(pipelineRecord.heightCm))?`${Number(pipelineRecord.heightCm).toFixed(1)} cm`:'—';
+  const c=pipelineRecord.color;
+  pipelineRed.textContent=c&&Number.isFinite(Number(c.redRatio))?`${Number(c.redRatio).toFixed(1)}%`:'尚未記錄';
+  pipelineSat.textContent=c&&Number.isFinite(Number(c.saturation))?`${Number(c.saturation).toFixed(1)}%`:'尚未記錄';
+  pipelineState.textContent=c?'已有 UNIT 03 紀錄':'已讀取';pipelineState.className='tag good';
+  if(window.JsBarcode){try{JsBarcode(pipelineBarcode,pipelineRecord.id,{format:'CODE128',displayValue:false,height:42,margin:4});}catch(e){console.warn(e);}}
+}
+function setMode(next){
+  mode=next;standaloneModeBtn.classList.toggle('active',mode==='standalone');pipelineModeBtn.classList.toggle('active',mode==='pipeline');
+  modePill.textContent=mode==='standalone'?'單站測試':'延續產線 Bar Code';modeTag.textContent=mode==='standalone'?'單站測試':'產線延續';
+  if(mode==='pipeline'){
+    loadPipelineRecord();recordWritten=!!(pipelineRecord&&pipelineRecord.color);renderPipelineCard();
+    if(pipelineRecord){modeNotice.className='notice good';modeNotice.innerHTML=`已讀取 <b>${pipelineRecord.id}</b>。完成 UNIT 03 後，可把紅色比例、飽和度與顏色等級追加到同一筆產品履歷。`;}
+    else{modeNotice.className='notice warn';modeNotice.innerHTML='目前找不到 UNIT 02 的 Bar Code 產品資料。你仍可做顏色測試，但必須先回 UNIT 02 建立 Bar Code 才能寫入產線履歷。 <a href="../unit02/" style="color:inherit;font-weight:900">前往 UNIT 02</a>';}
+  }else{
+    pipelineProductCard.classList.add('hidden');recordWritten=false;modeNotice.className='notice';modeNotice.textContent='目前為單站測試模式，不需要 Bar Code。完成檢測後只顯示本次結果，不會修改產品履歷。';
+  }
+  resetAnalysis();
+}
+function writeToBarcode(){
+  if(mode!=='pipeline'||!pipelineRecord||!lockedResult||recordWritten)return;
+  pipelineRecord.color={redRatio:lockedResult.redRatio,saturation:lockedResult.saturation,vividness:lockedResult.vividness,deepRedRatio:lockedResult.deepRedRatio,redDominance:lockedResult.redDominance,grade:lockedResult.grade,measuredAt:lockedResult.measuredAt};
+  try{localStorage.setItem(PRODUCT_KEY,JSON.stringify(pipelineRecord));recordWritten=true;writeBtn.disabled=true;setNextUnitEnabled(true);renderPipelineCard();resultNotice.className='notice good';resultNotice.innerHTML=`<b>UNIT 03 已寫入產品履歷。</b><br>${pipelineRecord.id} 已新增紅色比例 ${lockedResult.redRatio.toFixed(1)}%、顏色飽滿度 ${lockedResult.saturation.toFixed(1)}%、${lockedResult.grade}。現在可前往 UNIT 04。`;updateProcess(true);}
+  catch(e){console.warn(e);resultNotice.className='notice warn';resultNotice.textContent='無法寫入瀏覽器產品履歷，請確認瀏覽器儲存空間設定。';}
+}
+async function loadModel(){
+  try{
+    if(!window.tf||!window.cocoSsd)throw new Error('TensorFlow.js / COCO-SSD 載入失敗');
+    await tf.ready();try{await tf.setBackend('webgl');await tf.ready();}catch(_){/* fallback */}
+    model=await cocoSsd.load({base:'lite_mobilenet_v2'});cameraStatus.textContent=stream?'攝影機已啟動':'AI 模型已就緒';liveDot.className='dot';updateProcess(false);if(stream)startLoop();
+  }catch(err){console.error(err);cameraStatus.textContent='AI 模型載入失敗';document.getElementById('cameraNotice').className='notice warn';document.getElementById('cameraNotice').textContent='COCO-SSD 模型載入失敗。請確認網路連線後重新整理。';}
+}
+
+startBtn.addEventListener('click',startCamera);
+switchBtn.addEventListener('click',switchCamera);
+stopBtn.addEventListener('click',()=>stopCamera(true));
+resetBtn.addEventListener('click',()=>{resetAnalysis();if(stream&&model)startLoop();});
+lockBtn.addEventListener('click',lockResult);
+writeBtn.addEventListener('click',writeToBarcode);
+standaloneModeBtn.addEventListener('click',()=>setMode('standalone'));
+pipelineModeBtn.addEventListener('click',()=>setMode('pipeline'));
+window.addEventListener('resize',()=>{if(boxLayer.firstChild)clearBoxes();});
+window.addEventListener('pagehide',()=>{stopCamera(false);if(model&&typeof model.dispose==='function')model.dispose();});
+window.addEventListener('beforeunload',()=>stopCamera(false));
+
+if(loadPipelineRecord()) setMode('pipeline'); else setMode('standalone');
+loadModel();
+})();
+</script>
+</body>
+</html>
