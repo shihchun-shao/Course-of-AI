@@ -208,6 +208,7 @@ const DETECT_INTERVAL = 480;
 const REQUIRED_SAMPLES = 5;
 const MAX_BUFFER = 10;
 const MIN_SCORE = 0.28;
+const PIPELINE_RECORDS_KEY = 'aomori_pipeline_barcode_records_v1';
 
 const stage = document.getElementById('stage');
 const video = document.getElementById('video');
@@ -315,6 +316,7 @@ function resetBarcodeSession(){
   barcodeRecords=[];
   try{
     localStorage.removeItem('aomori_unit02_barcode_records_v1');
+    localStorage.removeItem(PIPELINE_RECORDS_KEY);
     localStorage.removeItem('aomori_current_apple');
   }catch(e){console.warn('無法清除舊的 Bar Code 紀錄',e);}
   renderBarcodeRecords();
@@ -325,6 +327,19 @@ function resetCalibrationSession(){
   try{localStorage.removeItem('aomori_unit02_calibration_v1');}
   catch(e){console.warn('無法清除舊的校正資料',e);}
 }
+function savePipelineRecords(){
+  // 跨站只保存 Bar Code ID、UNIT 02 尺寸與 UNIT 03 顏色等級。
+  // UNIT 02 階段 colorGrade 尚未建立，因此先保留為空值。
+  const shared=barcodeRecords.map(r=>({
+    id:r.id,
+    widthCm:Number(r.widthCm),
+    heightCm:Number(r.heightCm),
+    colorGrade:r.colorGrade||null
+  }));
+  try{localStorage.setItem(PIPELINE_RECORDS_KEY,JSON.stringify(shared));}
+  catch(e){console.warn('無法保存跨站 Bar Code 清單',e);}
+}
+
 function renderBarcodeRecords(){
   recordCount.textContent=`${barcodeRecords.length} 筆`;
   recordBody.innerHTML='';
@@ -572,11 +587,11 @@ function createBarcode(){
   if(window.JsBarcode){JsBarcode(barcodeSvg,id,{format:'CODE128',displayValue:false,height:62,margin:6});}
   else{barcodeId.textContent=id+'（Bar Code 函式庫未載入，先保留識別碼）';}
   const record={id,widthCm:lastMeasurement.widthCm,heightCm:lastMeasurement.heightCm,createdAt:createdAt.toISOString()};
-  barcodeRecords.push(record);renderBarcodeRecords();
+  barcodeRecords.push(record);renderBarcodeRecords();savePipelineRecords();
   newMeasureBtn.disabled=false;
   goUnit3Btn.disabled=false;
-  measureNotice.className='notice good';measureNotice.innerHTML=`<b>Bar Code 已建立並完成紀錄。</b><br>${id}<br>蘋果寬度 ${lastMeasurement.widthCm.toFixed(1)} cm｜高度 ${lastMeasurement.heightCm.toFixed(1)} cm。此筆量測不可再建立第二個 Bar Code。`;
-  try{localStorage.setItem('aomori_current_apple',JSON.stringify({id,...lastMeasurement}));}catch(e){console.warn(e);}
+  measureNotice.className='notice good';measureNotice.innerHTML=`<b>Bar Code 已建立並完成紀錄。</b><br>${id}<br>蘋果寬度 ${lastMeasurement.widthCm.toFixed(1)} cm｜高度 ${lastMeasurement.heightCm.toFixed(1)} cm。此筆量測不可再建立第二個 Bar Code。<br>目前共 ${barcodeRecords.length} 筆 Bar Code，進入 UNIT 03 後會全部帶入。`;
+  try{localStorage.setItem('aomori_current_apple',JSON.stringify({id,widthCm:lastMeasurement.widthCm,heightCm:lastMeasurement.heightCm}));}catch(e){console.warn(e);}
 }
 async function loadModel(){
   try{
