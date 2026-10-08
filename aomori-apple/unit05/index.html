@@ -1,0 +1,463 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>UNIT 05｜智慧選果與分級</title>
+<style>
+:root{
+  --bg:#f4f7fb;--card:#fff;--text:#172033;--muted:#667085;--blue:#2563eb;--red:#dc2626;
+  --green:#15803d;--line:#d9e1ec;--amber:#b45309;--purple:#7c3aed;--cyan:#0891b2;--dark:#0b1020;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:system-ui,-apple-system,"Noto Sans TC","Microsoft JhengHei",sans-serif;background:var(--bg);color:var(--text)}
+button,input,select{font:inherit}
+header{padding:22px 6vw;background:#fff;border-bottom:1px solid var(--line)}
+.header-inner{max-width:1240px;margin:0 auto}
+.back{color:#1d4ed8;text-decoration:none;font-weight:800;font-size:14px}
+.badge{display:inline-block;margin-left:10px;border-radius:999px;padding:4px 9px;font-size:12px;font-weight:900;background:#dcfce7;color:#166534;letter-spacing:.04em}
+h1{margin:8px 0 6px;font-size:clamp(28px,4vw,42px);line-height:1.2}
+header p{margin:0;color:var(--muted);line-height:1.75;max-width:930px}
+.course-chip{display:inline-flex;gap:8px;align-items:center;margin-top:13px;padding:8px 11px;border:1px solid #fecaca;border-radius:12px;background:#fff7f7;color:#991b1b;font-size:13px;font-weight:800}
+main{max-width:1240px;margin:24px auto;padding:0 18px 10px}
+.mode-select{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}.mode-card{border:1px solid var(--line);background:#fff;border-radius:16px;padding:15px 16px;display:flex;gap:12px;align-items:center;cursor:pointer;box-shadow:0 8px 28px #00000008;text-align:left;color:var(--text)}.mode-card:hover{border-color:#93c5fd}.mode-card.active{border-color:#60a5fa;box-shadow:0 0 0 3px #dbeafe;background:#f8fbff}.mode-icon{width:42px;height:42px;border-radius:13px;background:#eff6ff;color:#1d4ed8;display:grid;place-items:center;font-weight:950;flex:0 0 auto}.mode-card b{display:block;font-size:16px}.mode-card span{display:block;color:var(--muted);font-size:12px;margin-top:3px;line-height:1.45}
+.grid{display:grid;grid-template-columns:1.3fr .9fr;gap:20px;align-items:start}
+.card,.panel{background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:0 8px 28px #0000000a}
+.card{padding:18px}.panel{padding:16px;margin-bottom:14px}
+.card h2,.panel h2{margin:0;font-size:20px}
+.panel-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
+.tag{padding:5px 9px;border-radius:999px;font-size:11px;font-weight:950;background:#dbeafe;color:#1d4ed8;white-space:nowrap}.tag.good{background:#dcfce7;color:#166534}.tag.warn{background:#fef3c7;color:#92400e}
+.stage{position:relative;background:linear-gradient(180deg,#f8fbff 0%,#eef5ff 60%,#e7edf5 60%,#e7edf5 100%);border:1px solid #cbd5e1;border-radius:16px;overflow:hidden;min-height:700px}
+.factory-grid{position:absolute;inset:0 0 40% 0;background-image:linear-gradient(#ffffff80 1px,transparent 1px),linear-gradient(90deg,#ffffff80 1px,transparent 1px);background-size:42px 42px;opacity:.55}
+.belt{position:absolute;left:5%;right:5%;top:38%;height:76px;background:#334155;border-radius:15px;box-shadow:inset 0 -13px 0 #1e293b,inset 0 13px 0 #475569}
+.belt:before,.belt:after{content:"";position:absolute;left:22px;right:22px;height:12px;border-radius:999px;background:repeating-linear-gradient(90deg,#94a3b8 0 34px,#64748b 34px 48px)}
+.belt:before{top:10px}.belt:after{bottom:10px}
+.station{position:absolute;top:28px;width:22%;min-width:132px;background:#fff;border:2px solid #cbd5e1;border-radius:15px;padding:12px;text-align:center;box-shadow:0 8px 24px #0000000a;z-index:2}.station.active{border-color:#60a5fa;box-shadow:0 0 0 4px #dbeafe}.station.done{border-color:#86efac;background:#f7fff9}
+.station b{display:block;font-size:13px}.station small{display:block;color:var(--muted);font-size:10px;margin-top:5px;line-height:1.4}.station .icon{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;margin:0 auto 7px;background:#e2e8f0;color:#475569;font-weight:950}.station.active .icon{background:var(--blue);color:#fff}.station.done .icon{background:var(--green);color:#fff}
+.s1{left:10%}.s2{left:39%}.s3{left:68%;width:22%}
+
+.queue-area{position:absolute;left:12px;top:47%;width:116px;z-index:8;background:#fffffff0;border:1px solid #cbd5e1;border-radius:13px;padding:8px;box-shadow:0 6px 18px #0002}.queue-area b{display:block;font-size:10px;color:#475569;margin-bottom:6px}.queue-apples{display:flex;flex-wrap:wrap;gap:5px;min-height:24px}.queue-apple{position:relative;width:21px;height:20px;border-radius:50% 50% 47% 47%/46% 46% 54% 54%;background:radial-gradient(circle at 35% 28%,#ff9d9d 0 8%,#ef4444 20%,#c81e1e 78%,#991b1b 100%);border:1px solid #8b1d1d;transition:opacity .25s ease,transform .25s ease}.queue-apple:before{content:"";position:absolute;width:3px;height:7px;left:9px;top:-5px;background:#6b4f2a;border-radius:3px}.queue-apple.leaving,.queue-apple.done{opacity:.18;transform:scale(.75)}.queue-count{margin-top:5px;font-size:10px;color:var(--muted);font-weight:800}
+.apple-runner{position:absolute;width:56px;height:56px;left:8%;top:39%;z-index:10;opacity:0;transition:left .72s cubic-bezier(.2,.8,.2,1),top .72s cubic-bezier(.2,.8,.2,1),opacity .2s ease,transform .2s ease;filter:drop-shadow(0 8px 8px #0004)}
+.apple-runner.show{opacity:1}.apple-body,.held-apple,.box-apple{border-radius:50% 50% 47% 47%/46% 46% 54% 54%;background:radial-gradient(circle at 35% 28%,#ff9d9d 0 8%,#ef4444 20%,#c81e1e 78%,#991b1b 100%);border:1px solid #8b1d1d}.apple-body{position:absolute;left:8px;top:10px;width:40px;height:38px}.apple-body:before,.held-apple:before,.box-apple:before{content:"";position:absolute;background:#6b4f2a;border-radius:4px;transform:rotate(8deg)}.apple-body:before{width:6px;height:16px;left:18px;top:-12px}.apple-body:after,.held-apple:after,.box-apple:after{content:"";position:absolute;border-radius:100% 0 100% 0;background:#16a34a;transform:rotate(-24deg)}.apple-body:after{width:15px;height:8px;left:22px;top:-7px}
+.robot-rail{position:absolute;left:5%;right:5%;top:30%;height:10px;border-radius:999px;background:#64748b;box-shadow:inset 0 -3px 0 #475569,0 4px 10px #0002;z-index:7}.robot-rail:before,.robot-rail:after{content:"";position:absolute;top:-7px;width:16px;height:24px;border-radius:5px;background:#475569}.robot-rail:before{left:-4px}.robot-rail:after{right:-4px}
+.robot-carriage{position:absolute;left:86%;top:-14px;width:52px;height:38px;transform:translateX(-50%);transition:left .72s cubic-bezier(.2,.8,.2,1);z-index:9}.robot-head{position:absolute;inset:0;border-radius:9px;background:#f59e0b;border:2px solid #92400e;box-shadow:0 4px 10px #0002}.robot-head:after{content:"";position:absolute;width:12px;height:12px;border-radius:50%;background:#fde68a;border:2px solid #92400e;left:18px;top:11px}.robot-shaft{position:absolute;left:22px;top:34px;width:8px;height:54px;border-radius:6px;background:#94a3b8;border:1px solid #475569;transition:height .45s ease}.robot-joint{position:absolute;left:-7px;bottom:-9px;width:20px;height:20px;border-radius:50%;background:#64748b;border:2px solid #334155}.robot-gripper{position:absolute;left:-15px;bottom:-28px;width:38px;height:25px}.robot-gripper:before,.robot-gripper:after{content:"";position:absolute;top:0;width:7px;height:24px;background:#475569;border-radius:4px}.robot-gripper:before{left:4px;transform:rotate(12deg)}.robot-gripper:after{right:4px;transform:rotate(-12deg)}.held-apple{position:absolute;width:28px;height:26px;left:5px;top:12px;opacity:0;transition:opacity .18s ease;filter:drop-shadow(0 3px 4px #0003)}.held-apple.show{opacity:1}.held-apple:before{width:4px;height:9px;left:12px;top:-7px}.held-apple:after{width:9px;height:5px;left:15px;top:-4px}
+.exit-row{position:absolute;left:5%;right:5%;bottom:18px;display:grid;grid-template-columns:repeat(4,1fr);gap:10px;z-index:5}
+.exit{position:relative;border:3px solid #94a3b8;background:#fff;border-radius:10px 10px 16px 16px;padding:10px 8px 8px;text-align:center;font-size:12px;font-weight:900;min-height:92px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:6px;transition:.2s;overflow:hidden}.exit:before{content:"";position:absolute;left:-3px;right:-3px;top:-3px;height:13px;border-radius:9px 9px 3px 3px;background:#64748b}.exit.active{transform:translateY(-5px);box-shadow:0 0 0 4px #dbeafe}.exit.special{border-color:#f59e0b;background:#fffbeb;color:#92400e}.exit.premium{border-color:#60a5fa;background:#eff6ff;color:#1d4ed8}.exit.normal{border-color:#86efac;background:#f0fdf4;color:#166534}.exit.process{border-color:#fca5a5;background:#fff1f2;color:#be123c}.box-title{margin-top:7px;font-weight:950}.box-apples{height:28px;display:flex;align-items:flex-end;justify-content:center;gap:2px;min-width:56px}.box-apple{position:relative;width:17px;height:16px;flex:0 0 auto}.box-apple:before{width:3px;height:6px;left:7px;top:-5px}.box-apple:after{width:6px;height:3px;left:9px;top:-3px}.box-count{font-size:10px;font-weight:850;opacity:.8}
+.stage-status{position:absolute;left:18px;bottom:124px;right:18px;background:#fffffff4;border:1px solid #cbd5e1;border-radius:13px;padding:10px 12px;z-index:6;box-shadow:0 8px 24px #0002}.stage-status small{color:var(--muted);font-size:11px}.stage-status strong{display:block;margin-top:3px;font-size:15px}.stage-status span{display:block;margin-top:3px;color:#475569;font-size:12px;line-height:1.5}
+.controls{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}button{border:0;border-radius:10px;padding:11px 16px;font-weight:850;background:var(--blue);color:#fff;cursor:pointer;min-height:44px}button.secondary{background:#475569}button.green{background:var(--green)}button.amber{background:var(--amber)}button:disabled{opacity:.45;cursor:not-allowed}
+.metric-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}.metric{border:1px solid var(--line);border-radius:14px;padding:13px;min-width:0}.metric small{color:var(--muted)}.metric strong{display:block;font-size:20px;margin-top:4px}.metric .tiny{font-size:11px;color:var(--muted);margin-top:4px}
+.rule-grid{display:grid;grid-template-columns:1fr;gap:10px}.field{border:1px solid var(--line);border-radius:13px;padding:12px;background:#fff;min-width:0}.field label{display:block;color:#475569;font-size:13px;font-weight:900;margin-bottom:8px}.field-row{position:relative;width:100%;min-width:0}.field input{width:100%;min-width:0;padding:12px 52px 12px 13px;border:1px solid var(--line);border-radius:9px;font-size:16px}.unit{position:absolute;right:14px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:13px;font-weight:800;white-space:nowrap;pointer-events:none}.manual-rows{display:grid;gap:10px}.manual-record{border:1px solid var(--line);border-radius:13px;padding:11px;background:#fff}.manual-record-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:9px}.manual-record-head b{font-size:13px}.manual-remove{min-height:32px;padding:5px 9px;border-radius:8px;background:#64748b;font-size:11px}.manual-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.manual-field{min-width:0}.manual-field.span-2{grid-column:1/-1}.manual-field label{display:block;color:#475569;font-size:11px;font-weight:900;margin-bottom:6px}.manual-field input,.manual-field select{width:100%;min-width:0;padding:10px 11px;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--text);font-size:14px}.manual-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:12px}.manual-actions button{flex:1 1 150px}.source-panel.hidden{display:none}.help{font-size:13px;color:var(--muted);line-height:1.65;margin-top:8px}.notice{margin-top:12px;padding:12px 13px;border-radius:13px;background:#eff6ff;border:1px solid #bfdbfe;color:#1e40af;font-size:13px;line-height:1.65}.notice.warn{background:#fffbeb;border-color:#fde68a;color:#92400e}.notice.good{background:#f0fdf4;border-color:#bbf7d0;color:#166534}
+.decision-tree{display:grid;gap:8px;margin-top:10px}.decision{border:1px solid var(--line);border-radius:12px;padding:10px;background:#fff;font-size:12px;line-height:1.55}.decision b{display:block;color:#334155;margin-bottom:2px}.decision em{font-style:normal;font-weight:900;color:#1d4ed8}
+.records{margin-top:18px;border:1px solid var(--line);border-radius:15px;background:#fff;overflow:hidden}.records-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 14px;border-bottom:1px solid var(--line);background:#f8fafc}.records-head h3{margin:0;font-size:15px}.record-count{font-size:11px;font-weight:950;color:#1d4ed8;background:#dbeafe;border-radius:999px;padding:5px 9px;white-space:nowrap}.table-wrap{overflow-x:auto;padding:10px 14px 14px}.record-table{width:100%;min-width:980px;border-collapse:collapse;font-size:12px}.record-table th,.record-table td{padding:9px 8px;border-bottom:1px solid #e5e7eb;text-align:left;vertical-align:middle}.record-table th{color:#475569;font-weight:900;background:#f8fafc}.record-table tr.current{background:#eff6ff}.record-code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;word-break:break-all;color:#334155}.grade-chip{display:inline-flex;padding:4px 7px;border-radius:999px;font-size:11px;font-weight:900}.g-special{background:#fef3c7;color:#92400e}.g-premium{background:#dbeafe;color:#1d4ed8}.g-normal{background:#dcfce7;color:#166534}.g-process{background:#ffe4e6;color:#be123c}.g-pending{background:#e2e8f0;color:#64748b}.status-chip{display:inline-flex;padding:4px 7px;border-radius:999px;font-size:11px;font-weight:900;white-space:nowrap}.s-wait{background:#e2e8f0;color:#64748b}.s-processing{background:#fef3c7;color:#92400e}.s-done{background:#dcfce7;color:#166534}
+.summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-top:12px}.summary-box{border:1px solid var(--line);border-radius:12px;padding:12px;text-align:center;background:#fff}.summary-box strong{display:block;font-size:26px;margin-top:3px}.summary-box small{color:var(--muted);font-weight:800}
+footer{background:#fff;border-top:1px solid var(--line);margin-top:28px;text-align:center;color:var(--muted);font-size:13px;line-height:1.8;padding:22px}
+@media(max-width:1020px){.metric-grid{grid-template-columns:1fr 1fr}.grid{grid-template-columns:1fr}.stage{min-height:680px}}
+@media(max-width:720px){.mode-select{grid-template-columns:1fr}.station{top:18px;padding:8px 5px;min-width:0}.station b{font-size:10px}.station small{display:none}.station .icon{width:29px;height:29px}.stage{min-height:760px}.belt{top:34%}.apple-runner{top:35%}.robot-rail{top:28%}.stage-status{bottom:226px}.exit-row{grid-template-columns:1fr 1fr;bottom:18px}.exit{min-height:88px}.metric-grid,.summary-grid{grid-template-columns:1fr 1fr}.rule-grid{grid-template-columns:1fr}}
+@media(max-width:520px){header{padding:18px 16px}main{padding:0 12px}.manual-grid{grid-template-columns:1fr}.manual-field.span-2{grid-column:auto}.card{padding:14px}.stage{min-height:800px}.s1{left:5%}.s2{left:36%}.s3{left:67%;width:28%}.station{width:28%}.queue-area{left:8px;top:45%;width:92px;padding:7px}.queue-apple{width:18px;height:17px}.controls button{flex:1 1 45%}.metric-grid,.summary-grid{grid-template-columns:1fr 1fr}.rule-grid{grid-template-columns:1fr}.stage-status{bottom:232px}.exit-row{gap:7px}.exit{font-size:11px;padding-left:4px;padding-right:4px}}
+</style>
+</head>
+<body>
+<header><div class="header-inner">
+  <a class="back" href="../">← 回 AI選果應用</a><span class="badge">SYSTEM INTEGRATION · DECISION LOGIC</span>
+  <h1>UNIT 05｜智慧選果與分級</h1>
+  <div class="course-chip">03｜青森智慧選果 AI 體驗課程</div>
+  <p>本單元分成「手動分級測試」與「延續產線 Bar Code」兩部分。可手動輸入最多五筆 Bar Code 資料測試分級邏輯，也可延續 UNIT 02～04 的整批產品履歷進行智慧分流。此處為課程模擬規則，不代表青森實際商業選果標準。</p>
+</div></header>
+<main>
+  <div class="mode-select" aria-label="UNIT 05 操作模式">
+    <button id="manualModeBtn" class="mode-card active" type="button">
+      <span class="mode-icon">01</span><span><b>PART 1｜手動分級測試</b><span>手動輸入最多五筆 Bar Code 的尺寸、顏色與瑕疵資料，逐筆測試智慧分級規則。</span></span>
+    </button>
+    <button id="pipelineModeBtn" class="mode-card" type="button">
+      <span class="mode-icon">02</span><span><b>PART 2｜延續產線 Bar Code</b><span>讀取 UNIT 02～04 已完成的全部 Bar Code，再依同一套分級標準進行整批分流。</span></span>
+    </button>
+  </div>
+  <div class="grid">
+    <section class="card">
+      <div class="panel-head"><h2>智慧選果產線</h2><span id="runTag" class="tag">等待開始</span></div>
+      <div id="stage" class="stage">
+        <div class="factory-grid"></div><div class="belt"></div>
+        <div class="station s1" data-step="0"><div class="icon">1</div><b>讀取 Bar Code</b><small>載入尺寸、顏色、瑕疵資料</small></div>
+        <div class="station s2" data-step="1"><div class="icon">2</div><b>分級決策</b><small>尺寸 × 顏色 × 瑕疵</small></div>
+        <div class="station s3" data-step="2"><div class="icon">3</div><b>機械手臂分流</b><small>抓取並放入對應等級箱</small></div>
+        <div id="queueArea" class="queue-area"><b>待分流蘋果</b><div id="queueApples" class="queue-apples"></div><div id="queueCount" class="queue-count">0 顆待處理</div></div>
+        <div id="appleRunner" class="apple-runner"><div class="apple-body"></div></div>
+        <div id="robotRail" class="robot-rail" aria-hidden="true">
+          <div id="robotCarriage" class="robot-carriage">
+            <div class="robot-head"></div>
+            <div id="robotShaft" class="robot-shaft"><div class="robot-joint"></div><div class="robot-gripper"><div id="heldApple" class="held-apple"></div></div></div>
+          </div>
+        </div>
+        <div id="stageStatus" class="stage-status"><small>目前狀態</small><strong id="stageTitle">等待智慧分級</strong><span id="stageText">系統會先依 Bar Code 筆數顯示待分流蘋果，再逐顆完成讀取、分級決策與機械手臂分流。</span></div>
+        <div class="exit-row">
+          <div id="exitSpecial" class="exit special"><div class="box-title">特選</div><div id="binSpecial" class="box-apples"></div><div id="countSpecial" class="box-count">0 顆</div></div>
+          <div id="exitPremium" class="exit premium"><div class="box-title">優選</div><div id="binPremium" class="box-apples"></div><div id="countPremium" class="box-count">0 顆</div></div>
+          <div id="exitNormal" class="exit normal"><div class="box-title">一般</div><div id="binNormal" class="box-apples"></div><div id="countNormal" class="box-count">0 顆</div></div>
+          <div id="exitProcess" class="exit process"><div class="box-title">淘汰</div><div id="binProcess" class="box-apples"></div><div id="countProcess" class="box-count">0 顆</div></div>
+        </div>
+      </div>
+      <div class="controls">
+        <button id="startSortBtn" class="green" disabled>開始手動分級測試</button>
+        <button id="pauseBtn" class="secondary" disabled>暫停</button>
+        <button id="reloadBtn" class="amber" style="display:none">重新讀取 UNIT 04 資料</button>
+      </div>
+      <div class="metric-grid">
+        <div class="metric"><small>Bar Code 總數</small><strong id="metricTotal">0</strong><div class="tiny">本次載入資料</div></div>
+        <div class="metric"><small>已完成分級</small><strong id="metricDone">0</strong><div class="tiny">finalGrade 已寫入</div></div>
+        <div class="metric"><small>目前蘋果</small><strong id="metricCurrent">—</strong><div class="tiny">處理順序</div></div>
+        <div class="metric"><small>目前結果</small><strong id="metricGrade">—</strong><div class="tiny">最終分級</div></div>
+      </div>
+      <div class="records">
+        <div class="records-head"><h3 id="recordsTitle">手動 Bar Code 分級測試</h3><span id="recordCount" class="record-count">0 筆</span></div>
+        <div class="table-wrap"><table class="record-table"><thead><tr><th>#</th><th>Bar Code</th><th>尺寸</th><th>代表尺寸</th><th>顏色</th><th>瑕疵</th><th>狀態</th><th>最終分級</th><th>判定原因</th></tr></thead><tbody id="recordBody"><tr><td colspan="9">尚未讀取資料</td></tr></tbody></table></div>
+      </div>
+    </section>
+
+    <aside>
+      <section id="manualSourcePanel" class="panel source-panel">
+        <div class="panel-head"><h2>PART 1｜手動輸入 Bar Code 資料</h2><span id="manualTag" class="tag warn">0 / 5</span></div>
+        <div id="manualRows" class="manual-rows">
+          <div class="manual-record" data-manual-row>
+            <div class="manual-record-head"><b>輸入下一筆測試資料</b><span id="manualInputCount" class="record-count">0 / 5</span></div>
+            <div class="manual-grid">
+              <div class="manual-field span-2"><label>Bar Code ID</label><input data-field="id" type="text" value="TEST-001" placeholder="例如 TEST-001"></div>
+              <div class="manual-field"><label>蘋果寬度（cm）</label><input data-field="width" type="number" min="1" max="20" step="0.1" value="7.2"></div>
+              <div class="manual-field"><label>蘋果高度（cm）</label><input data-field="height" type="number" min="1" max="20" step="0.1" value="7.0"></div>
+              <div class="manual-field span-2"><label>UNIT 03 顏色等級</label><select data-field="color"><option value="A｜深紅飽滿">A｜深紅飽滿</option><option value="B｜紅黃均衡">B｜紅黃均衡</option><option value="C｜紅色偏淡">C｜紅色偏淡</option></select></div>
+              <div class="manual-field span-2"><label>UNIT 04 瑕疵判定</label><select data-field="defect"><option value="良好｜無明顯瑕疵">良好｜無明顯瑕疵</option><option value="輕微瑕疵">輕微瑕疵</option><option value="明顯瑕疵">明顯瑕疵</option></select></div>
+            </div>
+          </div>
+        </div>
+        <div class="manual-actions">
+          <button id="addManualBtn" type="button">＋ 新增一筆</button>
+        </div>
+        <div id="manualNotice" class="notice">輸入一筆資料後按「＋ 新增一筆」，該筆 Bar Code 會立即匯入左側測試清單；最多五筆，不會寫入 UNIT 02～04 的產品履歷。</div>
+      </section>
+
+      <section id="pipelineSourcePanel" class="panel source-panel hidden">
+        <div class="panel-head"><h2>PART 2｜延續產線 Bar Code</h2><span id="pipelineTag" class="tag">等待讀取</span></div>
+        <div id="pipelineNotice" class="notice">讀取 UNIT 04 完成後的全部 Bar Code，並沿用尺寸、顏色等級與瑕疵判定進行整批智慧分級。</div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head"><h2>分級規則設定</h2><span id="ruleTag" class="tag warn">尚未鎖定</span></div>
+        <div class="rule-grid">
+          <div class="field"><label>大果門檻</label><div class="field-row"><input id="largeThreshold" type="number" min="1" max="20" step="0.1" value="7.5"><span class="unit">cm</span></div></div>
+          <div class="field"><label>中果門檻</label><div class="field-row"><input id="mediumThreshold" type="number" min="1" max="20" step="0.1" value="6.5"><span class="unit">cm</span></div></div>
+        </div>
+        <div class="help">代表尺寸 = (寬度 + 高度) ÷ 2。開始智慧分級後，規則會鎖定，避免同一批蘋果使用不同門檻。</div>
+        <div class="decision-tree">
+          <div class="decision"><b>第一關｜瑕疵</b><em>明顯瑕疵</em> → 淘汰；<em>輕微瑕疵</em> → 最高只能到一般。</div>
+          <div class="decision"><b>第二關｜顏色</b>A｜深紅飽滿可進特選；A/B 可進優選；C 會降為一般。</div>
+          <div class="decision"><b>第三關｜尺寸</b>良好蘋果中，大果＋A → 特選；中果以上＋A/B → 優選；其他 → 一般。</div>
+        </div>
+        <div id="ruleNotice" class="notice">此門檻只用於教學模擬。可以在開始分級前調整大果與中果的尺寸門檻。</div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head"><h2>工程流程</h2><span class="tag">INPUT → DECISION → OUTPUT</span></div>
+        <div class="help"><b>INPUT：</b>Bar Code ID、尺寸、顏色等級、瑕疵判定。<br><b>DECISION：</b>利用條件式決策規則整合尺寸、顏色與瑕疵，一次完成分級決策。<br><b>OUTPUT：</b>特選、優選、一般、淘汰。<br><b>TRACEABILITY：</b>只新增 finalGrade，保留完整產品履歷。</div>
+        <div class="notice warn">本單元刻意使用可解釋的條件式決策，而不是再加入新的黑箱模型，讓學生理解「AI 感測結果如何進入工程決策」。</div>
+      </section>
+    </aside>
+  </div>
+</main>
+<footer>AI 工程素養互動教學平台<br>大安高工控制科邵時俊老師製作</footer>
+<script>
+(()=>{
+'use strict';
+const PIPELINE_RECORDS_KEY='aomori_pipeline_barcode_records_v1';
+const stations=[...document.querySelectorAll('.station')];
+const runner=document.getElementById('appleRunner');
+const stage=document.getElementById('stage');
+const robotRail=document.getElementById('robotRail');
+const robotCarriage=document.getElementById('robotCarriage');
+const robotShaft=document.getElementById('robotShaft');
+const heldApple=document.getElementById('heldApple');
+const startSortBtn=document.getElementById('startSortBtn');
+const pauseBtn=document.getElementById('pauseBtn');
+const reloadBtn=document.getElementById('reloadBtn');
+const largeThreshold=document.getElementById('largeThreshold');
+const mediumThreshold=document.getElementById('mediumThreshold');
+const ruleTag=document.getElementById('ruleTag');
+const ruleNotice=document.getElementById('ruleNotice');
+const runTag=document.getElementById('runTag');
+const stageTitle=document.getElementById('stageTitle');
+const stageText=document.getElementById('stageText');
+const metricTotal=document.getElementById('metricTotal');
+const metricDone=document.getElementById('metricDone');
+const metricCurrent=document.getElementById('metricCurrent');
+const metricGrade=document.getElementById('metricGrade');
+const recordBody=document.getElementById('recordBody');
+const recordCount=document.getElementById('recordCount');
+const recordsTitle=document.getElementById('recordsTitle');
+const manualModeBtn=document.getElementById('manualModeBtn');
+const pipelineModeBtn=document.getElementById('pipelineModeBtn');
+const manualSourcePanel=document.getElementById('manualSourcePanel');
+const pipelineSourcePanel=document.getElementById('pipelineSourcePanel');
+const manualRows=document.getElementById('manualRows');
+const addManualBtn=document.getElementById('addManualBtn');
+const manualInputCount=document.getElementById('manualInputCount');
+const queueApples=document.getElementById('queueApples');
+const queueCount=document.getElementById('queueCount');
+const manualTag=document.getElementById('manualTag');
+const manualNotice=document.getElementById('manualNotice');
+const pipelineTag=document.getElementById('pipelineTag');
+const pipelineNotice=document.getElementById('pipelineNotice');
+const exits={
+  '特選':document.getElementById('exitSpecial'),
+  '優選':document.getElementById('exitPremium'),
+  '一般':document.getElementById('exitNormal'),
+  '淘汰':document.getElementById('exitProcess')
+};
+const bins={
+  '特選':{box:exits['特選'],bin:document.getElementById('binSpecial'),count:document.getElementById('countSpecial')},
+  '優選':{box:exits['優選'],bin:document.getElementById('binPremium'),count:document.getElementById('countPremium')},
+  '一般':{box:exits['一般'],bin:document.getElementById('binNormal'),count:document.getElementById('countNormal')},
+  '淘汰':{box:exits['淘汰'],bin:document.getElementById('binProcess'),count:document.getElementById('countProcess')}
+};
+let mode='manual';
+let records=[];let queue=[];let currentQueuePos=-1;let timer=null;let paused=false;let running=false;let rulesLocked=false;
+
+function manualInputRow(){return manualRows.querySelector('[data-manual-row]')}
+function resetManualInput(){
+  const row=manualInputRow();if(!row)return;
+  const nextNo=Math.min(records.length+1,5);
+  row.querySelector('[data-field="id"]').value=`TEST-${String(nextNo).padStart(3,'0')}`;
+  row.querySelector('[data-field="width"]').value='7.2';
+  row.querySelector('[data-field="height"]').value='7.0';
+  row.querySelector('[data-field="color"]').value='A｜深紅飽滿';
+  row.querySelector('[data-field="defect"]').value='良好｜無明顯瑕疵';
+}
+function syncManualInput(){
+  const count=records.length;
+  if(manualInputCount)manualInputCount.textContent=`${count} / 5`;
+  addManualBtn.disabled=running||count>=5;
+  const row=manualInputRow();
+  if(row){row.querySelectorAll('input,select').forEach(el=>{el.disabled=running||count>=5})}
+}
+function addManualRecord(){
+  if(running)return;
+  if(records.length>=5){manualNotice.className='notice warn';manualNotice.textContent='手動測試最多五筆資料。';syncManualInput();return}
+  const row=manualInputRow();if(!row)return;
+  const id=row.querySelector('[data-field="id"]').value.trim();
+  const w=Number(row.querySelector('[data-field="width"]').value);
+  const h=Number(row.querySelector('[data-field="height"]').value);
+  const color=row.querySelector('[data-field="color"]').value;
+  const defect=row.querySelector('[data-field="defect"]').value;
+  if(!id||!Number.isFinite(w)||w<=0||!Number.isFinite(h)||h<=0){manualNotice.className='notice warn';manualNotice.textContent='資料不完整，請確認 Bar Code ID、寬度與高度。';return}
+  if(records.some(r=>r.id===id)){manualNotice.className='notice warn';manualNotice.textContent=`Bar Code ID「${id}」已存在，請使用不同 ID。`;return}
+  records.push({id,widthCm:w,heightCm:h,colorGrade:color,defectGrade:defect,finalGrade:null});
+  setRuleUnlocked();
+  resetRunState(`已匯入 ${records.length} 筆手動測試資料。可繼續新增，最多五筆；完成後按「開始手動分級測試」。`);
+  manualTag.textContent=`已匯入 ${records.length} / 5`;manualTag.className='tag good';
+  manualNotice.className='notice good';manualNotice.textContent=`Bar Code「${id}」已直接匯入左側測試清單。目前 ${records.length} / 5 筆，動畫待分流區會與清單中的「待處理」狀態同步。`;
+  renderTable();updateSummary();renderQueueApples();
+  resetManualInput();syncManualInput();updateStartButton();
+}
+function pendingRecordIndexes(){return records.map((r,i)=>readiness(r)&&!r.finalGrade?i:-1).filter(i=>i>=0)}
+function waitingRecordIndexes(processingIndex=-1){
+  return records.map((r,i)=>readiness(r)&&!r.finalGrade&&i!==processingIndex?i:-1).filter(i=>i>=0);
+}
+function renderQueueApples(processingIndex=-1){
+  const waiting=waitingRecordIndexes(processingIndex);
+  queueApples.innerHTML='';
+  waiting.forEach((recordIndex,i)=>{
+    const a=document.createElement('span');a.className='queue-apple';
+    a.setAttribute('aria-label',`${records[recordIndex].id}｜待處理`);
+    a.title=records[recordIndex].id;
+    queueApples.appendChild(a);
+  });
+  queueCount.textContent=`${waiting.length} 顆待處理`;
+}
+
+function normalizeRecord(raw){
+  if(!raw||typeof raw!=='object'||!raw.id)return null;
+  const w=Number(raw.widthCm),h=Number(raw.heightCm);
+  const fg=typeof raw.finalGrade==='string'&&raw.finalGrade?raw.finalGrade:null;return {id:String(raw.id),widthCm:Number.isFinite(w)?w:null,heightCm:Number.isFinite(h)?h:null,colorGrade:typeof raw.colorGrade==='string'&&raw.colorGrade?raw.colorGrade:null,defectGrade:typeof raw.defectGrade==='string'&&raw.defectGrade?raw.defectGrade:null,finalGrade:fg==='加工／淘汰'?'淘汰':fg};
+}
+function saveRecords(){
+  if(mode!=='pipeline')return;
+  const minimal=records.map(r=>({id:r.id,widthCm:r.widthCm,heightCm:r.heightCm,colorGrade:r.colorGrade||null,defectGrade:r.defectGrade||null,finalGrade:r.finalGrade||null}));
+  localStorage.setItem(PIPELINE_RECORDS_KEY,JSON.stringify(minimal));
+}
+function sizeValue(r){return Number.isFinite(r.widthCm)&&Number.isFinite(r.heightCm)?(r.widthCm+r.heightCm)/2:NaN}
+function sizeClass(r){const v=sizeValue(r),lg=Number(largeThreshold.value),md=Number(mediumThreshold.value);if(!Number.isFinite(v))return '尺寸不足';if(v>=lg)return '大果';if(v>=md)return '中果';return '小果'}
+function colorClass(r){const c=r.colorGrade||'';if(c.startsWith('A｜'))return 'A';if(c.startsWith('B｜'))return 'B';if(c.startsWith('C｜'))return 'C';return '?'}
+function gradeRecord(r){
+  const defect=(r.defectGrade||'').trim(),color=colorClass(r),sz=sizeClass(r),v=sizeValue(r),lg=Number(largeThreshold.value),md=Number(mediumThreshold.value);
+  if(!Number.isFinite(v)||!r.colorGrade||!r.defectGrade)return {grade:null,reason:'資料不完整'};
+  const isGood=defect.startsWith('良好');
+  const isMinor=defect.startsWith('輕微');
+  const isMajor=defect.startsWith('明顯');
+  if(isMajor)return {grade:'淘汰',reason:'明顯瑕疵 → 直接進入淘汰'};
+  if(isMinor)return {grade:'一般',reason:`輕微瑕疵 → 最高分級為一般（${sz}、顏色 ${color}）`};
+  if(isGood){
+    if(v>=lg&&color==='A')return {grade:'特選',reason:`良好 + 大果 ${v.toFixed(1)} cm + A 級顏色 → 特選`};
+    if(v>=md&&(color==='A'||color==='B'))return {grade:'優選',reason:`良好 + ${sz} ${v.toFixed(1)} cm + ${color} 級顏色 → 優選`};
+    return {grade:'一般',reason:`良好，但尺寸／顏色未達較高分級條件（${sz} ${v.toFixed(1)} cm、顏色 ${color}）`};
+  }
+  return {grade:'一般',reason:'瑕疵資料格式未符合既定條件，保守分為一般'};
+}
+function gradeClass(g){return g==='特選'?'g-special':g==='優選'?'g-premium':g==='一般'?'g-normal':g==='淘汰'?'g-process':'g-pending'}
+function readiness(r){return Number.isFinite(r.widthCm)&&Number.isFinite(r.heightCm)&&!!r.colorGrade&&!!r.defectGrade}
+function validateRules(){const lg=Number(largeThreshold.value),md=Number(mediumThreshold.value);return Number.isFinite(lg)&&Number.isFinite(md)&&lg>md&&md>0}
+
+function renderTable(currentIndex=-1){
+  recordBody.innerHTML='';recordCount.textContent=`${records.length} 筆`;
+  if(!records.length){
+    const tr=document.createElement('tr'),td=document.createElement('td');td.colSpan=9;
+    td.textContent=mode==='manual'?'尚未新增手動測試資料':'找不到 UNIT 04 完成資料';tr.appendChild(td);recordBody.appendChild(tr);return;
+  }
+  records.forEach((r,i)=>{
+    const tr=document.createElement('tr');if(i===currentIndex)tr.classList.add('current');
+    const sv=sizeValue(r),ruleResult=gradeRecord(r),displayGrade=r.finalGrade||ruleResult.grade;
+    const values=[String(i+1),r.id,`${Number.isFinite(r.widthCm)?r.widthCm.toFixed(1):'—'} × ${Number.isFinite(r.heightCm)?r.heightCm.toFixed(1):'—'} cm`,Number.isFinite(sv)?`${sv.toFixed(1)} cm｜${sizeClass(r)}`:'—',r.colorGrade||'缺 UNIT 03',r.defectGrade||'缺 UNIT 04'];
+    values.forEach((v,idx)=>{const td=document.createElement('td');td.textContent=v;if(idx===1)td.className='record-code';tr.appendChild(td)});
+    const tdStatus=document.createElement('td'),statusChip=document.createElement('span');
+    const isProcessing=running&&i===currentIndex&&!r.finalGrade;
+    const statusText=r.finalGrade?'已分流':isProcessing?'處理中':'待處理';
+    statusChip.className=`status-chip ${r.finalGrade?'s-done':isProcessing?'s-processing':'s-wait'}`;statusChip.textContent=statusText;tdStatus.appendChild(statusChip);tr.appendChild(tdStatus);
+    const tdGrade=document.createElement('td'),chip=document.createElement('span');chip.className=`grade-chip ${gradeClass(displayGrade)}`;chip.textContent=displayGrade||'待分級';tdGrade.appendChild(chip);tr.appendChild(tdGrade);
+    const tdReason=document.createElement('td');tdReason.textContent=readiness(r)?ruleResult.reason:'資料不完整';tr.appendChild(tdReason);recordBody.appendChild(tr);
+  });
+}
+function updateSummary(){
+  const done=records.filter(r=>r.finalGrade).length;
+  metricDone.textContent=String(done);
+  metricTotal.textContent=String(records.length);
+}
+function clearTimer(){if(timer){clearTimeout(timer);timer=null}}
+function setStations(active=-1,doneThrough=-1){stations.forEach((el,i)=>{el.classList.toggle('active',i===active);el.classList.toggle('done',i<=doneThrough&&i!==active)})}
+function clearExit(){Object.values(exits).forEach(e=>e.classList.remove('active'))}
+function runnerTo(step){const target=stations[step];if(!target)return;const sr=stage.getBoundingClientRect(),tr=target.getBoundingClientRect();const left=tr.left-sr.left+tr.width/2-runner.offsetWidth/2;runner.style.left=`${left}px`;runner.classList.add('show')}
+function robotXForElement(el){const rr=robotRail.getBoundingClientRect(),er=el.getBoundingClientRect();return er.left+er.width/2-rr.left}
+function robotSetX(x){const rr=robotRail.getBoundingClientRect();const clamped=Math.max(26,Math.min(rr.width-26,x));robotCarriage.style.left=`${clamped}px`}
+function robotSetReachToElement(el,extra=0){const rr=robotRail.getBoundingClientRect(),er=el.getBoundingClientRect();const targetY=er.top+er.height/2-rr.top+extra;robotShaft.style.height=`${Math.max(54,Math.min(390,targetY-34))}px`}
+function robotRetract(){robotShaft.style.height='54px'}
+function resetRobot(){heldApple.classList.remove('show');robotRetract();if(robotRail&&stage){const robotStation=stations[2];if(robotStation)robotSetX(robotXForElement(robotStation))}}
+function renderBoxContents(){
+  const counts={'特選':0,'優選':0,'一般':0,'淘汰':0};
+  records.forEach(r=>{if(counts[r.finalGrade]!==undefined)counts[r.finalGrade]++});
+  Object.entries(bins).forEach(([grade,obj])=>{
+    obj.bin.innerHTML='';const n=counts[grade];const shown=Math.min(n,7);
+    for(let i=0;i<shown;i++){const a=document.createElement('span');a.className='box-apple';obj.bin.appendChild(a)}
+    obj.count.textContent=`${n} 顆`;
+  });
+}
+function setRuleUnlocked(){
+  rulesLocked=false;largeThreshold.disabled=false;mediumThreshold.disabled=false;ruleTag.textContent='尚未鎖定';ruleTag.className='tag warn';ruleNotice.className='notice';ruleNotice.textContent='此門檻只用於教學模擬。可以在開始分級前調整大果與中果的尺寸門檻。';
+}
+function lockRules(){rulesLocked=true;largeThreshold.disabled=true;mediumThreshold.disabled=true;ruleTag.textContent='規則已鎖定';ruleTag.className='tag good';ruleNotice.className='notice good';ruleNotice.textContent=`本次分級規則已鎖定：大果 ≥ ${Number(largeThreshold.value).toFixed(1)} cm；中果 ≥ ${Number(mediumThreshold.value).toFixed(1)} cm。`}
+function resetRunState(message){
+  clearTimer();running=false;paused=false;pauseBtn.disabled=true;pauseBtn.textContent='暫停';currentQueuePos=-1;queue=[];runner.classList.remove('show');clearExit();setStations(-1,-1);resetRobot();renderBoxContents();metricCurrent.textContent='—';metricGrade.textContent='—';stageTitle.textContent='等待智慧分級';stageText.textContent=message;runTag.textContent='等待開始';runTag.className='tag';renderQueueApples();
+}
+function updateStartButton(){
+  const incomplete=records.filter(r=>!readiness(r)).length;
+  const pending=records.filter(r=>readiness(r)&&!r.finalGrade).length;
+  startSortBtn.disabled=!records.length||!pending||incomplete>0||!validateRules()||running;
+  if(mode==='manual')syncManualInput();
+}
+
+function loadPipelineRecords(){
+  if(running)return;
+  resetRunState('讀取 UNIT 04 完成後的 Bar Code 資料，再按「開始整批智慧分級」。');
+  try{records=(JSON.parse(localStorage.getItem(PIPELINE_RECORDS_KEY)||'[]')||[]).map(normalizeRecord).filter(Boolean)}catch(e){records=[];console.warn(e)}
+  const incomplete=records.filter(r=>!readiness(r)).length;const pending=records.filter(r=>readiness(r)&&!r.finalGrade).length;const hasFinal=records.some(r=>r.finalGrade);
+  if(hasFinal){
+    rulesLocked=true;largeThreshold.disabled=true;mediumThreshold.disabled=true;ruleTag.textContent='既有分級資料';ruleTag.className='tag good';ruleNotice.className='notice warn';ruleNotice.textContent='偵測到既有 finalGrade。為維持產品履歷一致性，本頁不重算已鎖定的最終分級。';
+  }else setRuleUnlocked();
+  if(!records.length){stageText.textContent='找不到 UNIT 04 資料，請先完成 UNIT 02～04。';pipelineTag.textContent='無資料';pipelineTag.className='tag warn';pipelineNotice.className='notice warn';pipelineNotice.textContent='目前找不到可延續的 Bar Code 資料，請先完成 UNIT 02～04。'}
+  else if(incomplete>0){stageText.textContent=`共有 ${incomplete} 筆資料不完整，請先完成 UNIT 02～04 後再進行最終分級。`;pipelineTag.textContent='資料不完整';pipelineTag.className='tag warn';pipelineNotice.className='notice warn';pipelineNotice.textContent=`已讀取 ${records.length} 筆資料，其中 ${incomplete} 筆缺少尺寸、顏色或瑕疵結果。`}
+  else if(!pending){stageTitle.textContent='整批已完成分級';stageText.textContent='所有 Bar Code 都已具有 finalGrade。';runTag.textContent='已完成';runTag.className='tag good';pipelineTag.textContent='已完成';pipelineTag.className='tag good';pipelineNotice.className='notice good';pipelineNotice.textContent=`已讀取 ${records.length} 筆 Bar Code，全部都已完成最終分級。`}
+  else{pipelineTag.textContent='已讀取';pipelineTag.className='tag good';pipelineNotice.className='notice good';pipelineNotice.textContent=`已讀取 ${records.length} 筆 Bar Code，其中 ${pending} 筆等待最終分級。`}
+  renderTable();updateSummary();renderQueueApples();updateStartButton();
+}
+function setMode(next){
+  if(running)return;
+  mode=next;
+  manualModeBtn.classList.toggle('active',mode==='manual');pipelineModeBtn.classList.toggle('active',mode==='pipeline');
+  manualSourcePanel.classList.toggle('hidden',mode!=='manual');pipelineSourcePanel.classList.toggle('hidden',mode!=='pipeline');
+  reloadBtn.style.display=mode==='pipeline'?'inline-flex':'none';
+  startSortBtn.textContent=mode==='manual'?'開始手動分級測試':'開始整批智慧分級';
+  recordsTitle.textContent=mode==='manual'?'手動 Bar Code 分級測試':'整批 Bar Code 智慧分級紀錄';
+  records=[];setRuleUnlocked();
+  if(mode==='manual'){
+    resetRunState('請在 PART 1 輸入一筆 Bar Code 資料後按「＋ 新增一筆」，資料會立即匯入左側測試清單。');
+    manualTag.textContent='0 / 5';manualTag.className='tag warn';manualNotice.className='notice';manualNotice.textContent='輸入一筆資料後按「＋ 新增一筆」，該筆 Bar Code 會立即匯入左側測試清單；最多五筆，不會寫入 UNIT 02～04 的產品履歷。';resetManualInput();syncManualInput();renderTable();updateSummary();updateStartButton();
+  }else loadPipelineRecords();
+}
+function schedule(fn,ms){clearTimer();timer=setTimeout(()=>{timer=null;if(!paused)fn()},ms)}
+function processCurrent(){
+  if(paused||currentQueuePos<0||currentQueuePos>=queue.length){finishBatch();return}
+  const idx=queue[currentQueuePos],r=records[idx],result=gradeRecord(r);if(!result.grade){currentQueuePos++;processCurrent();return}
+  renderTable(idx);renderQueueApples(idx);metricCurrent.textContent=`${currentQueuePos+1} / ${queue.length}`;metricGrade.textContent='判定中';runTag.textContent='智慧分級中';runTag.className='tag';clearExit();resetRobot();
+  setStations(0,-1);runnerTo(0);stageTitle.textContent=`第 ${currentQueuePos+1} 顆｜讀取 Bar Code`;stageText.textContent=`${r.id}｜尺寸 ${r.widthCm.toFixed(1)} × ${r.heightCm.toFixed(1)} cm｜顏色 ${colorClass(r)}｜瑕疵 ${r.defectGrade}。`;
+  schedule(()=>{
+    setStations(1,0);runnerTo(1);metricGrade.textContent=result.grade;stageTitle.textContent=`分級決策：${result.grade}`;stageText.textContent=`代表尺寸 ${sizeValue(r).toFixed(1)} cm（${sizeClass(r)}）｜顏色 ${colorClass(r)}｜瑕疵 ${r.defectGrade}。${result.reason}。`;
+    schedule(()=>{
+      setStations(2,1);runnerTo(2);stageTitle.textContent='機械手臂分流';stageText.textContent=`分級結果為「${result.grade}」，蘋果已到達機械手臂取料位置。`;exits[result.grade].classList.add('active');
+      schedule(()=>{
+        const pickupX=robotXForElement(runner);robotSetX(pickupX);stageTitle.textContent='機械手臂取料';stageText.textContent=`機械手臂移動到第 ${currentQueuePos+1} 顆蘋果上方，準備抓取。`;
+        schedule(()=>{
+          robotSetReachToElement(runner,8);
+          schedule(()=>{
+            runner.classList.remove('show');heldApple.classList.add('show');stageText.textContent=`機械手臂已抓取蘋果，準備移往「${result.grade}」箱。`;
+            schedule(()=>{
+              robotRetract();
+              schedule(()=>{
+                const target=bins[result.grade].box;robotSetX(robotXForElement(target));stageTitle.textContent=`搬運至 ${result.grade} 箱`;
+                schedule(()=>{
+                  robotSetReachToElement(target,-18);
+                  schedule(()=>{
+                    heldApple.classList.remove('show');r.finalGrade=result.grade;records[idx]=r;try{saveRecords()}catch(e){console.warn(e)}renderTable(idx);updateSummary();renderBoxContents();renderQueueApples();
+                    stageTitle.textContent=`已放入 ${result.grade} 箱`;stageText.textContent=`第 ${currentQueuePos+1} 顆蘋果完成分流，機械手臂將返回取料位置。`;
+                    schedule(()=>{robotRetract();schedule(()=>{currentQueuePos++;processCurrent()},500)},450);
+                  },500);
+                },760);
+              },420);
+            },450);
+          },450);
+        },650);
+      },850);
+    },950);
+  },950);
+}
+function startSorting(){
+  if(running)return;if(!validateRules()){ruleNotice.className='notice warn';ruleNotice.textContent='請確認門檻：大果門檻必須高於中果門檻。';return}
+  queue=pendingRecordIndexes();if(!queue.length){if(mode==='pipeline')loadPipelineRecords();else{manualNotice.className='notice warn';manualNotice.textContent='目前沒有等待分級的手動 Bar Code，請先新增一筆資料。'}return}renderQueueApples()
+  lockRules();running=true;paused=false;currentQueuePos=0;startSortBtn.disabled=true;pauseBtn.disabled=false;processCurrent();
+}
+function finishBatch(){
+  clearTimer();running=false;paused=false;pauseBtn.disabled=true;pauseBtn.textContent='暫停';runner.classList.remove('show');clearExit();setStations(-1,2);resetRobot();renderBoxContents();metricCurrent.textContent='完成';metricGrade.textContent='—';runTag.textContent=mode==='manual'?'測試完成':'整批完成';runTag.className='tag good';
+  if(mode==='manual'){
+    stageTitle.textContent='手動智慧分級測試完成';stageText.textContent=`本次 ${records.length} 筆 Bar Code 已全部完成分級。可調整尺寸門檻；若尚未達五筆，也可再新增 Bar Code 測試資料。`;
+    rulesLocked=false;largeThreshold.disabled=false;mediumThreshold.disabled=false;ruleTag.textContent='可重新調整';ruleTag.className='tag';ruleNotice.className='notice';ruleNotice.textContent='手動測試已完成，可調整門檻；若尚未達五筆，也可再新增測試資料。測試結果不會寫入產線履歷。';
+  }else{
+    stageTitle.textContent='整批智慧分級完成';stageText.textContent='每一筆 Bar Code 都已新增 finalGrade，完成智慧選果資料流程。';
+  }
+  renderTable();updateSummary();updateStartButton();
+}
+function togglePause(){
+  if(!running)return;paused=!paused;pauseBtn.textContent=paused?'繼續':'暫停';runTag.textContent=paused?'已暫停':'智慧分級中';if(paused){clearTimer();stageText.textContent='流程已暫停，可按「繼續」從目前這顆重新執行。'}else{processCurrent()}
+}
+function pipelineAvailable(){
+  try{const arr=JSON.parse(localStorage.getItem(PIPELINE_RECORDS_KEY)||'[]');return Array.isArray(arr)&&arr.length>0}catch(_){return false}
+}
+
+startSortBtn.addEventListener('click',startSorting);
+pauseBtn.addEventListener('click',togglePause);
+reloadBtn.addEventListener('click',loadPipelineRecords);
+addManualBtn.addEventListener('click',addManualRecord);
+manualModeBtn.addEventListener('click',()=>setMode('manual'));
+pipelineModeBtn.addEventListener('click',()=>setMode('pipeline'));
+[largeThreshold,mediumThreshold].forEach(el=>el.addEventListener('input',()=>{if(!rulesLocked){updateStartButton();renderTable()}}));
+window.addEventListener('resize',()=>{if(runner.classList.contains('show')){const active=stations.findIndex(s=>s.classList.contains('active'));if(active>=0)runnerTo(active)}if(!heldApple.classList.contains('show'))resetRobot()});
+setMode(pipelineAvailable()?'pipeline':'manual');
+renderBoxContents();
+resetRobot();
+})();
+</script>
+</body>
+</html>
