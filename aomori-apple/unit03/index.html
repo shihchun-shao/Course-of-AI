@@ -237,6 +237,7 @@ let pipelineRecords = [];
 let pipelineRecord = null;
 let currentRecordIndex = -1;
 let recordWritten = false;
+let autoAdvanceTimer = null;
 
 function clamp(v,min,max){ return Math.max(min,Math.min(max,v)); }
 function median(values){ const a=values.filter(Number.isFinite).slice().sort((x,y)=>x-y); if(!a.length)return NaN; const m=Math.floor(a.length/2); return a.length%2?a[m]:(a[m-1]+a[m])/2; }
@@ -298,12 +299,19 @@ function setNextUnitEnabled(enabled){
   nextUnitBtn.classList.toggle('disabled',!enabled);
   nextUnitBtn.setAttribute('aria-disabled',enabled?'false':'true');
 }
+function currentRecordLocked(){
+  return mode==='pipeline' && !!(pipelineRecord && pipelineRecord.colorGrade);
+}
+function hasPendingBarcode(exceptIndex=-1){
+  return pipelineRecords.some((r,idx)=>idx!==exceptIndex && !r.colorGrade);
+}
 function resetAnalysis(message='請讓單顆蘋果完整入鏡。'){
-  samples=[];analysisLocked=false;lockedResult=null;recordWritten=false;
+  samples=[];analysisLocked=false;lockedResult=null;recordWritten=currentRecordLocked();
   metricSamples.textContent=`0 / ${REQUIRED_SAMPLES}`;metricRed.textContent='—';metricSat.textContent='—';metricDominance.textContent='—';
   finalRed.textContent='—';finalSat.textContent='—';finalVivid.textContent='—';finalDominance.textContent='—';finalSamples.textContent='—';finalGrade.textContent='尚未檢測';applyGradeStyle('尚未檢測');
   resultTag.textContent='等待取樣';resultTag.className='tag warn';lockBtn.disabled=true;writeBtn.disabled=true;nextBarcodeBtn.disabled=true;setNextUnitEnabled(mode==='pipeline'?allPipelineGradesDone():false);
-  resultNotice.className='notice';resultNotice.textContent=message;
+  resultNotice.className=currentRecordLocked()?'notice warn':'notice';
+  resultNotice.textContent=currentRecordLocked()?'這筆 Bar Code 已完成顏色等級寫入，資料已鎖定，不能再異動。請改選下一筆尚未判定的 Bar Code。':message;
   updateProcess(false);
 }
 function stopCamera(resetUi=true){
@@ -474,8 +482,15 @@ function renderPipelineRecords(){
     ];
     cells.forEach((v,idx)=>{const td=document.createElement('td');td.textContent=v;if(idx===1)td.className='pipeline-code';if(idx===3)td.className=r.colorGrade?'grade-done':'grade-pending';tr.appendChild(td);});
     const td=document.createElement('td');
-    const btn=document.createElement('button');btn.type='button';btn.className='select-record-btn';btn.textContent=i===currentRecordIndex?'目前檢測':'選擇';btn.disabled=i===currentRecordIndex;
-    btn.addEventListener('click',()=>selectPipelineRecord(i));
+    const btn=document.createElement('button');btn.type='button';btn.className='select-record-btn';
+    if(r.colorGrade){
+      btn.textContent='已鎖定';
+      btn.disabled=true;
+    }else{
+      btn.textContent=i===currentRecordIndex?'目前檢測':'選擇';
+      btn.disabled=i===currentRecordIndex;
+      if(!btn.disabled) btn.addEventListener('click',()=>selectPipelineRecord(i));
+    }
     td.appendChild(btn);tr.appendChild(td);pipelineRecordBody.appendChild(tr);
   });
 }
@@ -494,17 +509,29 @@ function renderPipelineCard(){
   if(window.JsBarcode){try{JsBarcode(pipelineBarcode,pipelineRecord.id,{format:'CODE128',displayValue:false,height:42,margin:4});}catch(e){console.warn(e);}}
   renderPipelineRecords();
 }
+function clearAutoAdvance(){
+  if(autoAdvanceTimer){clearTimeout(autoAdvanceTimer);autoAdvanceTimer=null;}
+}
 function selectPipelineRecord(index){
+  clearAutoAdvance();
   if(index<0||index>=pipelineRecords.length)return;
   currentRecordIndex=index;
   pipelineRecord=pipelineRecords[index];
   recordWritten=!!pipelineRecord.colorGrade;
   renderPipelineCard();
-  resetAnalysis(`目前檢測第 ${index+1} / ${pipelineRecords.length} 筆 Bar Code。請放入對應蘋果並開始取樣。`);
-  modeNotice.className='notice good';
-  modeNotice.innerHTML=`目前選擇 <b>${pipelineRecord.id}</b>。尺寸 ${Number.isFinite(pipelineRecord.widthCm)?pipelineRecord.widthCm.toFixed(1):'—'} × ${Number.isFinite(pipelineRecord.heightCm)?pipelineRecord.heightCm.toFixed(1):'—'} cm。`;
+  if(pipelineRecord.colorGrade){
+    resetAnalysis('這筆 Bar Code 已完成顏色等級寫入，資料已鎖定，不能再異動。');
+    nextBarcodeBtn.disabled=!hasPendingBarcode(index);
+    modeNotice.className='notice warn';
+    modeNotice.innerHTML=`目前選擇 <b>${pipelineRecord.id}</b>。這筆資料已鎖定，顏色等級為 <b>${pipelineRecord.colorGrade}</b>，不可重新寫入。`;
+  }else{
+    resetAnalysis(`目前檢測第 ${index+1} / ${pipelineRecords.length} 筆 Bar Code。請放入對應蘋果並開始取樣。`);
+    modeNotice.className='notice good';
+    modeNotice.innerHTML=`目前選擇 <b>${pipelineRecord.id}</b>。尺寸 ${Number.isFinite(pipelineRecord.widthCm)?pipelineRecord.widthCm.toFixed(1):'—'} × ${Number.isFinite(pipelineRecord.heightCm)?pipelineRecord.heightCm.toFixed(1):'—'} cm。`;
+  }
 }
 function selectNextPendingBarcode(){
+  clearAutoAdvance();
   if(!pipelineRecords.length)return;
   let next=-1;
   for(let step=1;step<=pipelineRecords.length;step++){
@@ -526,7 +553,11 @@ function setMode(next){
     loadPipelineRecords();renderPipelineCard();
     if(pipelineRecords.length){
       const completed=pipelineRecords.filter(r=>!!r.colorGrade).length;
-      modeNotice.className='notice good';modeNotice.innerHTML=`已讀取 UNIT 02 的 <b>${pipelineRecords.length} 筆 Bar Code</b>。請逐筆選擇對應蘋果完成顏色判定；目前已完成 ${completed} 筆。`;
+      if(allPipelineGradesDone()){
+        modeNotice.className='notice good';modeNotice.innerHTML=`已讀取 UNIT 02 的 <b>${pipelineRecords.length} 筆 Bar Code</b>，而且全部都已完成顏色判定並鎖定。現在可直接前往 UNIT 04。`;
+      }else{
+        modeNotice.className='notice good';modeNotice.innerHTML=`已讀取 UNIT 02 的 <b>${pipelineRecords.length} 筆 Bar Code</b>。請逐筆選擇對應蘋果完成顏色判定；目前已完成 ${completed} 筆。`;
+      }
     }else{
       modeNotice.className='notice warn';modeNotice.innerHTML='目前找不到 UNIT 02 的 Bar Code 清單。請使用更新後的 UNIT 02 建立一筆以上 Bar Code。 <a href="../unit02/" style="color:inherit;font-weight:900">前往 UNIT 02</a>';
     }
@@ -536,7 +567,7 @@ function setMode(next){
   resetAnalysis();
 }
 function writeToBarcode(){
-  if(mode!=='pipeline'||!pipelineRecord||!lockedResult)return;
+  if(mode!=='pipeline'||!pipelineRecord||!lockedResult||pipelineRecord.colorGrade)return;
   // 只記錄顏色判定等級；不保存紅色比例、飽和度、鮮豔度、主導度或量測時間。
   pipelineRecord.colorGrade=lockedResult.grade;
   pipelineRecords[currentRecordIndex]=pipelineRecord;
@@ -549,9 +580,16 @@ function writeToBarcode(){
     nextBarcodeBtn.disabled=allDone;
     resultNotice.className='notice good';
     resultNotice.innerHTML=allDone
-      ? `<b>全部 ${pipelineRecords.length} 筆 Bar Code 已完成。</b><br>目前這筆只新增顏色等級：${lockedResult.grade}。所有 Bar Code 現在都具有尺寸大小與顏色等級，可前往 UNIT 04。`
-      : `<b>第 ${currentRecordIndex+1} / ${pipelineRecords.length} 筆已完成。</b><br>${pipelineRecord.id}<br>只新增顏色等級：${lockedResult.grade}。目前完成 ${completed} / ${pipelineRecords.length} 筆，請按「下一個 Bar Code」。`;
+      ? `<b>全部 ${pipelineRecords.length} 筆 Bar Code 已完成。</b><br>目前這筆已寫入顏色等級：${lockedResult.grade}，且資料已鎖定不能再異動。所有 Bar Code 現在都具有尺寸大小與顏色等級，可前往 UNIT 04。`
+      : `<b>第 ${currentRecordIndex+1} / ${pipelineRecords.length} 筆已完成。</b><br>${pipelineRecord.id}<br>已寫入顏色等級：${lockedResult.grade}，且這筆資料已鎖定不能再異動。目前完成 ${completed} / ${pipelineRecords.length} 筆。系統將自動切換到下一筆尚未判定的 Bar Code。`;
     updateProcess(true);
+    if(!allDone){
+      clearAutoAdvance();
+      autoAdvanceTimer=setTimeout(()=>{
+        autoAdvanceTimer=null;
+        selectNextPendingBarcode();
+      },1000);
+    }
   }catch(e){console.warn(e);resultNotice.className='notice warn';resultNotice.textContent='無法寫入瀏覽器產品履歷，請確認瀏覽器儲存空間設定。';}
 }
 async function loadModel(){
@@ -572,8 +610,8 @@ nextBarcodeBtn.addEventListener('click',selectNextPendingBarcode);
 standaloneModeBtn.addEventListener('click',()=>setMode('standalone'));
 pipelineModeBtn.addEventListener('click',()=>setMode('pipeline'));
 window.addEventListener('resize',()=>{if(boxLayer.firstChild)clearBoxes();});
-window.addEventListener('pagehide',()=>{stopCamera(false);if(model&&typeof model.dispose==='function')model.dispose();});
-window.addEventListener('beforeunload',()=>stopCamera(false));
+window.addEventListener('pagehide',()=>{clearAutoAdvance();stopCamera(false);if(model&&typeof model.dispose==='function')model.dispose();});
+window.addEventListener('beforeunload',()=>{clearAutoAdvance();stopCamera(false);});
 
 if(loadPipelineRecords()) setMode('pipeline'); else setMode('standalone');
 loadModel();
