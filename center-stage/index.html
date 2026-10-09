@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="iPhone 17 Center Stage 智慧取景工程應用互動體驗">
+<title>03｜iPhone 17 Center Stage 智慧取景</title>
+<style>
+:root{
+  --bg:#f4f7fb;--card:#fff;--text:#172033;--muted:#667085;--blue:#2563eb;
+  --green:#15803d;--red:#dc2626;--amber:#b45309;--purple:#7c3aed;--cyan:#0891b2;
+  --line:#d9e1ec;--dark:#0b1020;--teal:#0f766e;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:system-ui,-apple-system,"Noto Sans TC","Microsoft JhengHei",sans-serif;background:var(--bg);color:var(--text)}
+a{color:inherit}
+header{background:#fff;border-bottom:1px solid var(--line);padding:22px 6vw 24px}
+.header-inner{max-width:1240px;margin:0 auto}
+.back{font-size:14px;font-weight:850;color:#1d4ed8;text-decoration:none}
+.badge{display:inline-flex;margin-left:10px;padding:5px 10px;border-radius:999px;background:#ccfbf1;color:#115e59;font-size:12px;font-weight:950;letter-spacing:.04em}
+h1{font-size:clamp(30px,4vw,46px);margin:11px 0 8px;line-height:1.15}
+header p{margin:0;color:var(--muted);font-size:15px;line-height:1.8;max-width:980px}
+main{max-width:1240px;margin:24px auto;padding:0 18px 10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:20px;box-shadow:0 8px 28px #0000000a}
+.hero{padding:20px}
+.hero-top{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:14px}
+.hero-top h2{margin:0;font-size:22px}.hero-top p{margin:5px 0 0;color:var(--muted);line-height:1.65;font-size:14px}
+.demo-badge{white-space:nowrap;background:#eef2ff;color:#4338ca;border:1px solid #c7d2fe;padding:7px 10px;border-radius:999px;font-size:12px;font-weight:900}
+.stages{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+.stage-card{min-width:0}
+.stage-title{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;min-height:34px;box-sizing:border-box;font-size:13px;font-weight:900;color:#334155}
+.stage-title span:last-child{font-size:11px;color:#64748b;font-weight:800}
+#ratioLabel{font-size:13px;font-weight:950;padding:5px 11px;border-radius:999px;background:#dcfce7;color:#166534;border:1px solid #86efac}
+#ratioLabel.zoom-wide{background:#dbeafe;color:#1d4ed8;border-color:#93c5fd}
+.camera-stage,.smart-stage{position:relative;background:var(--dark);border-radius:16px;overflow:hidden;border:1px solid #1e293b;display:grid;place-items:center}
+.camera-stage{aspect-ratio:4/3}
+.smart-stage{aspect-ratio:4/3 !important}
+#video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#070b16;display:none}
+#overlay{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+#smartCanvas{width:100%;height:100%;display:block;object-fit:contain;background:#070b16}
+.placeholder{position:absolute;inset:0;display:grid;place-items:center;padding:26px;text-align:center;color:#cbd5e1;font-size:14px;line-height:1.7}
+.placeholder b{display:block;color:#fff;font-size:18px;margin-bottom:5px}
+.controls{display:flex;gap:9px;flex-wrap:wrap;margin-top:14px}
+button,select{font:inherit}
+button{border:0;border-radius:10px;padding:10px 14px;font-weight:850;cursor:pointer;background:var(--blue);color:#fff;min-height:42px}
+button.stop{background:var(--red)}button.gray{background:#475569}button:disabled{opacity:.5;cursor:not-allowed}
+.mode-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px;padding:12px 13px;border:1px solid var(--line);border-radius:13px;background:#f8fafc}
+.mode-row label{font-size:13px;font-weight:900;color:#334155}
+select{min-height:40px;border:1px solid #cbd5e1;border-radius:9px;background:#fff;color:#0f172a;padding:7px 10px;font-weight:800}
+.progress{height:7px;background:#e2e8f0;border-radius:999px;overflow:hidden;margin-top:12px;display:none}.progress>div{height:100%;width:0;background:var(--blue);transition:width .2s}
+.notice{display:none;margin-top:10px;padding:10px 12px;border-radius:11px;font-size:13px;line-height:1.55;font-weight:750}.info{background:#eff6ff;color:#1e40af}.ok{background:#ecfdf5;color:#166534}.alert{background:#fef2f2;color:#991b1b}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}.metric{padding:12px;border:1px solid var(--line);border-radius:12px;background:#fff}.metric small{display:block;color:var(--muted);font-size:11px;font-weight:800}.metric strong{display:block;margin-top:4px;font-size:17px;color:#0f172a}
+.flow{margin-top:18px;display:grid;grid-template-columns:repeat(9,auto);justify-content:center;align-items:center;gap:8px;color:#64748b;font-size:12px;font-weight:850}.node{padding:7px 9px;border-radius:999px;background:#fff;border:1px solid var(--line);color:#334155}.arrow{color:#94a3b8;font-size:16px}
+.content-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:16px;margin-top:18px}.content-card{padding:18px}.content-card h2{font-size:20px;margin:0 0 12px}.step{display:grid;grid-template-columns:36px 1fr;gap:10px;align-items:start;padding:11px 0;border-top:1px solid #edf1f5}.step:first-of-type{border-top:0}.step-num{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:#dbeafe;color:#1d4ed8;font-size:12px;font-weight:950}.step b{display:block;font-size:14px}.step span{display:block;margin-top:3px;color:var(--muted);font-size:13px;line-height:1.65}.fact{padding:11px 12px;border-radius:12px;background:#f8fafc;border:1px solid var(--line);margin-top:9px;font-size:13px;line-height:1.65;color:#475569}.fact b{color:#0f172a}.limit{margin-top:12px;background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;padding:12px;border-radius:12px;font-size:13px;line-height:1.65;font-weight:700}
+footer{margin-top:28px;background:#fff;border-top:1px solid var(--line);padding:22px;text-align:center;color:var(--muted);font-size:13px;line-height:1.8}
+#sourceCanvas,#inputCanvas{display:none}
+@media(max-width:920px){.stages,.content-grid{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(2,1fr)}.flow{grid-template-columns:1fr;justify-items:center}.arrow{transform:rotate(90deg)}}
+@media(max-width:640px){header{padding:18px 16px}.badge{display:inline-flex;margin:9px 0 0}.hero{padding:14px}.hero-top{display:block}.demo-badge{display:inline-flex;margin-top:10px}.controls button{flex:1 1 42%}.metrics{grid-template-columns:1fr 1fr}.mode-row{align-items:stretch}.mode-row label{width:100%}select{width:100%}}
+
+/* Apple demo clip: kept separate from the live RetinaFace simulation */
+.apple-demo{margin-top:18px;padding:20px}
+.apple-demo h2{font-size:20px;margin:0 0 8px}
+.apple-demo p{margin:0 0 14px;color:var(--muted);font-size:14px;line-height:1.65}
+.apple-video{display:block;width:100%;max-height:600px;aspect-ratio:16/9;object-fit:contain;background:#070b16;border:1px solid #1e293b;border-radius:16px}
+.apple-source{font-size:12px!important;margin:10px 0 0!important}
+</style>
+</head>
+<body>
+<header>
+  <div class="header-inner">
+    <a class="back" href="../">← 回互動教學平台首頁</a>
+    <span class="badge">ENGINEERING CASE · SMART FRAMING</span>
+    <h1>03｜iPhone 17 Center Stage 智慧取景</h1>
+    <p>透過 RetinaFace 偵測人臉數量，練習用條件判斷控制畫面：0～1 張臉擷取中央 80% 區域（1X）；2 張以上顯示完整畫面（0.5X）。</p>
+  </div>
+</header>
+
+<main>
+  <section class="card hero">
+    <div class="hero-top">
+      <div>
+        <h2>從人臉偵測到智慧相機控制</h2>
+        <p>左側顯示 RetinaFace 人臉偵測框；右側僅依人臉數量切換固定中央裁切或完整畫面，不追蹤人臉位置。</p>
+      </div>
+      <div class="demo-badge">Webcam 即時互動</div>
+    </div>
+
+    <div class="stages">
+      <div class="stage-card">
+        <div class="stage-title"><span>原始相機｜AI 偵測</span><span>RetinaFace</span></div>
+        <div class="camera-stage">
+          <video id="video" playsinline autoplay muted></video>
+          <canvas id="overlay"></canvas>
+          <div id="cameraPlaceholder" class="placeholder"><div><b>尚未啟動攝影機</b>按下「開始體驗」，讓 AI 先找出畫面中的人臉。</div></div>
+        </div>
+      </div>
+
+      <div class="stage-card">
+        <div class="stage-title"><span>Center Stage｜智慧取景模擬</span><span id="ratioLabel">1X</span></div>
+        <div id="smartStage" class="smart-stage">
+          <canvas id="smartCanvas" width="640" height="360"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button id="startBtn">開始體驗</button>
+      <button id="stopBtn" class="stop" disabled>停止體驗</button>
+      <button id="switchBtn" class="gray" disabled>切換鏡頭</button>
+    </div>
+
+
+    <div id="progress" class="progress"><div id="bar"></div></div>
+    <div id="info" class="notice info"></div>
+    <div id="ok" class="notice ok"></div>
+    <div id="err" class="notice alert"></div>
+
+    <div class="metrics">
+      <div class="metric"><small>偵測人物數量</small><strong id="faceCount">0</strong></div>
+      <div class="metric"><small>顯示模式</small><strong id="ratioMetric">中央裁切</strong></div>
+      <div class="metric"><small>模擬倍率</small><strong id="zoomMetric">1X</strong></div>
+      <div class="metric"><small>推論 FPS</small><strong id="fpsMetric">0</strong></div>
+    </div>
+  </section>
+
+  <div class="flow" aria-label="Center Stage 工程流程">
+    <span class="node">Camera</span><span class="arrow">→</span>
+    <span class="node">Face Detection</span><span class="arrow">→</span>
+    <span class="node">人臉數量</span><span class="arrow">→</span>
+    <span class="node">條件判斷</span><span class="arrow">→</span>
+    <span class="node">固定中央裁切 / 完整顯示</span>
+  </div>
+
+  <section class="content-grid">
+    <article class="card content-card">
+      <h2>網頁中的工程邏輯</h2>
+      <div class="step"><div class="step-num">01</div><div><b>偵測人臉</b><span>使用 RetinaFace 取得人臉 Bounding Box，只繪製人臉框，不顯示五個臉部關鍵點。</span></div></div>
+      <div class="step"><div class="step-num">02</div><div><b>計算人臉數量</b><span>計算目前畫面內被偵測到的人臉數量。</span></div></div>
+      <div class="step"><div class="step-num">03</div><div><b>條件判斷</b><span>人臉數量小於等於 1：擷取固定中央 80% 區域並放大顯示（1X）；人臉數量大於 1：直接顯示完整攝影機畫面（0.5X）。</span></div></div>
+      <div class="step"><div class="step-num">04</div><div><b>顯示結果</b><span>兩種取景都固定在畫面中央，不因人臉偏移而移動。倍率是課堂模擬的相對顯示倍率。</span></div></div>
+    </article>
+
+    <aside class="card content-card">
+      <h2>iPhone 17 Center Stage 的產品概念</h2>
+      <div class="fact"><b>方形感光元件</b><br>Center Stage 前置相機使用方形感光元件，讓系統能從感光區域中彈性裁切不同畫面比例。</div>
+      <div class="fact"><b>95° 廣角視野</b><br>更大的視野能保留更多周邊畫面，提供自動拉遠、群組自拍與穩定取景所需要的空間。</div>
+      <div class="fact"><b>本單元簡化規則</b><br>只透過人臉數量切換固定中央裁切與完整顯示，不模擬自動旋轉或人物追蹤。</div>
+      <div class="fact"><b>AI 不只辨識，還要做控制</b><br>真正的工程應用是把偵測結果轉換成「鏡頭下一步要怎麼取景」的控制決策。</div>
+      <div class="limit">本頁是教學用的「工程邏輯模擬」，不是 Apple 內部 Center Stage 演算法。一般 Webcam 也沒有 iPhone 17 的方形感光元件與 95° 前鏡頭，因此重點是理解 AI 偵測結果如何驅動智慧取景，而不是重現硬體成像品質。</div>
+    </aside>
+  </section>
+
+
+  <section class="card apple-demo" aria-labelledby="appleDemoTitle">
+    <h2 id="appleDemoTitle">Apple Center Stage｜原始示範影片</h2>
+    <p>先觀看產品的取景效果，再與上方 RetinaFace 智慧取景模擬比較。</p>
+    <video class="apple-video" controls playsinline preload="metadata" aria-label="Apple Center Stage 示範影片">
+      <source src="./apple.mp4" type="video/mp4">
+      你的瀏覽器不支援 MP4 影片播放。
+    </video>
+    <p class="apple-source">影片素材：使用者提供的 Apple 示範片段。此教學模擬不代表 Apple 原始演算法。</p>
+  </section>
+
+</main>
+
+<footer>AI 工程素養互動教學平台<br>大安高工控制科邵時俊老師製作</footer>
+
+<canvas id="sourceCanvas" width="640" height="480"></canvas>
+<canvas id="inputCanvas" width="640" height="640"></canvas>
+<script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.22.0/dist/ort.webgpu.min.js"></script>
+<script>
+'use strict';
+const MODEL_SIZE=640;
+const MIN_SIZES=[[16,32],[64,128],[256,512]];
+const STEPS=[8,16,32];
+const VARIANCE=[0.1,0.2];
+const PRE_NMS_TOPK=1200;
+const POST_NMS_TOPK=20;
+const CONF_THRESHOLD=0.68;
+const NMS_THRESHOLD=0.40;
+// Direct model asset URL (not GitHub's /blob/ HTML preview page).
+const MODEL_CANDIDATES=[
+  'https://shihchun-shao.github.io/Course-of-AI/retinaface/models/retinaface_mv1_0.25.onnx'
+];
+const MODEL_CACHE_NAME='retinaface-model-cache-v2';
+
+const video=document.getElementById('video');
+const overlay=document.getElementById('overlay');
+const overlayCtx=overlay.getContext('2d');
+const smartCanvas=document.getElementById('smartCanvas');
+const smartCtx=smartCanvas.getContext('2d');
+const sourceCanvas=document.getElementById('sourceCanvas');
+const sourceCtx=sourceCanvas.getContext('2d');
+const inputCanvas=document.getElementById('inputCanvas');
+const inputCtx=inputCanvas.getContext('2d',{willReadFrequently:true});
+const smartStage=document.getElementById('smartStage');
+const cameraPlaceholder=document.getElementById('cameraPlaceholder');
+const startBtn=document.getElementById('startBtn');
+const stopBtn=document.getElementById('stopBtn');
+const switchBtn=document.getElementById('switchBtn');
+const faceCount=document.getElementById('faceCount');
+const ratioLabel=document.getElementById('ratioLabel');
+const ratioMetric=document.getElementById('ratioMetric');
+const zoomMetric=document.getElementById('zoomMetric');
+const fpsMetric=document.getElementById('fpsMetric');
+const progress=document.getElementById('progress');
+const bar=document.getElementById('bar');
+const info=document.getElementById('info');
+const ok=document.getElementById('ok');
+const err=document.getElementById('err');
+
+let stream=null;
+let session=null;
+let running=false;
+let processing=false;
+let switching=false;
+let mirrored=true;
+let priors=null;
+let rafId=0;
+let renderRafId=0;
+let lastInferAt=0;
+let inferCounter=0;
+let fpsClock=performance.now();
+let videoDevices=[];
+let currentDeviceId=null;
+let preferredFacing='user';
+let latestDetections=[];
+let cropState=null;
+
+function clearNotices(){info.style.display='none';ok.style.display='none';err.style.display='none'}
+function showInfo(t){info.textContent=t;info.style.display='block';ok.style.display='none';err.style.display='none'}
+function showOk(t){ok.textContent=t;ok.style.display='block';info.style.display='none';err.style.display='none'}
+function showError(t){err.textContent=t;err.style.display='block';info.style.display='none';ok.style.display='none'}
+function setProgress(v){progress.style.display='block';bar.style.width=Math.max(0,Math.min(100,v))+'%'}
+function hideProgress(){setTimeout(()=>progress.style.display='none',300)}
+function clamp(v,min,max){return Math.max(min,Math.min(max,v))}
+function lerp(a,b,t){return a+(b-a)*t}
+
+function generatePriors(width,height){
+  const arr=[];
+  for(let k=0;k<STEPS.length;k++){
+    const step=STEPS[k],fh=Math.ceil(height/step),fw=Math.ceil(width/step);
+    for(let i=0;i<fh;i++) for(let j=0;j<fw;j++) for(const minSize of MIN_SIZES[k]){
+      arr.push([(j+.5)*step/width,(i+.5)*step/height,minSize/width,minSize/height]);
+    }
+  }
+  return arr;
+}
+function iou(a,b){
+  const xx1=Math.max(a.x1,b.x1),yy1=Math.max(a.y1,b.y1),xx2=Math.min(a.x2,b.x2),yy2=Math.min(a.y2,b.y2);
+  const w=Math.max(0,xx2-xx1),h=Math.max(0,yy2-yy1),inter=w*h;
+  const areaA=Math.max(0,a.x2-a.x1)*Math.max(0,a.y2-a.y1),areaB=Math.max(0,b.x2-b.x1)*Math.max(0,b.y2-b.y1);
+  return inter/(areaA+areaB-inter+1e-9);
+}
+function nms(dets,threshold){
+  dets.sort((a,b)=>b.score-a.score);const keep=[];
+  while(dets.length&&keep.length<POST_NMS_TOPK){const best=dets.shift();keep.push(best);dets=dets.filter(d=>iou(best,d)<=threshold)}
+  return keep;
+}
+function prepareInput(){
+  const vw=video.videoWidth,vh=video.videoHeight,scale=Math.min(MODEL_SIZE/vw,MODEL_SIZE/vh);
+  const dw=Math.round(vw*scale),dh=Math.round(vh*scale),padX=Math.floor((MODEL_SIZE-dw)/2),padY=Math.floor((MODEL_SIZE-dh)/2);
+  inputCtx.save();inputCtx.setTransform(1,0,0,1,0,0);inputCtx.fillStyle='rgb(123,117,104)';inputCtx.fillRect(0,0,MODEL_SIZE,MODEL_SIZE);
+  if(mirrored){inputCtx.translate(padX+dw,padY);inputCtx.scale(-1,1);inputCtx.drawImage(video,0,0,dw,dh)}
+  else inputCtx.drawImage(video,padX,padY,dw,dh);
+  inputCtx.restore();
+  const rgba=inputCtx.getImageData(0,0,MODEL_SIZE,MODEL_SIZE).data,hw=MODEL_SIZE*MODEL_SIZE,tensorData=new Float32Array(hw*3);
+  for(let p=0,i=0;p<hw;p++,i+=4){tensorData[p]=rgba[i+2]-104;tensorData[hw+p]=rgba[i+1]-117;tensorData[2*hw+p]=rgba[i]-123}
+  return {tensor:new ort.Tensor('float32',tensorData,[1,3,MODEL_SIZE,MODEL_SIZE]),scale,padX,padY,vw,vh};
+}
+function tensorByLastDim(outputs,lastDim){for(const name of Object.keys(outputs)){const t=outputs[name];if(t&&t.dims&&t.dims[t.dims.length-1]===lastDim)return t}return null}
+function decodeOutputs(outputs,meta){
+  const locT=tensorByLastDim(outputs,4),confT=tensorByLastDim(outputs,2);
+  if(!locT||!confT) throw new Error('模型輸出格式不符合預期。');
+  const loc=locT.data,conf=confT.data,n=Math.min(priors.length,Math.floor(loc.length/4),Math.floor(conf.length/2));
+  const candidates=[];
+  for(let i=0;i<n;i++){
+    const score=Number(conf[i*2+1]);if(score<CONF_THRESHOLD)continue;
+    const p=priors[i],cx=p[0]+loc[i*4]*VARIANCE[0]*p[2],cy=p[1]+loc[i*4+1]*VARIANCE[0]*p[3],w=p[2]*Math.exp(loc[i*4+2]*VARIANCE[1]),h=p[3]*Math.exp(loc[i*4+3]*VARIANCE[1]);
+    let x1=(cx-w/2)*MODEL_SIZE,y1=(cy-h/2)*MODEL_SIZE,x2=(cx+w/2)*MODEL_SIZE,y2=(cy+h/2)*MODEL_SIZE;
+    x1=(x1-meta.padX)/meta.scale;y1=(y1-meta.padY)/meta.scale;x2=(x2-meta.padX)/meta.scale;y2=(y2-meta.padY)/meta.scale;
+    if(x2<=0||y2<=0||x1>=meta.vw||y1>=meta.vh)continue;
+    candidates.push({x1:clamp(x1,0,meta.vw),y1:clamp(y1,0,meta.vh),x2:clamp(x2,0,meta.vw),y2:clamp(y2,0,meta.vh),score});
+  }
+  candidates.sort((a,b)=>b.score-a.score);return nms(candidates.slice(0,PRE_NMS_TOPK),NMS_THRESHOLD);
+}
+
+function resizeOverlay(){
+  const r=overlay.getBoundingClientRect(),d=window.devicePixelRatio||1;
+  overlay.width=Math.max(1,Math.round(r.width*d));overlay.height=Math.max(1,Math.round(r.height*d));overlayCtx.setTransform(d,0,0,d,0,0);
+}
+function getDisplayRect(){
+  const cw=overlay.clientWidth,ch=overlay.clientHeight,vw=video.videoWidth||640,vh=video.videoHeight||480,s=Math.min(cw/vw,ch/vh),w=vw*s,h=vh*s;
+  return {s,x:(cw-w)/2,y:(ch-h)/2,w,h};
+}
+function drawDetections(dets){
+  const W=overlay.clientWidth,H=overlay.clientHeight;overlayCtx.clearRect(0,0,W,H);if(!video.videoWidth)return;
+  const d=getDisplayRect();overlayCtx.lineWidth=3;overlayCtx.font='800 13px system-ui';
+  dets.forEach((f,i)=>{
+    const x=d.x+f.x1*d.s,y=d.y+f.y1*d.s,w=(f.x2-f.x1)*d.s,h=(f.y2-f.y1)*d.s;
+    overlayCtx.strokeStyle='#22c55e';overlayCtx.strokeRect(x,y,w,h);
+    const label=`Person ${i+1}`,tw=overlayCtx.measureText(label).width+14,ly=Math.max(d.y,y-23);
+    overlayCtx.fillStyle='#16a34a';overlayCtx.fillRect(x,ly,tw,22);overlayCtx.fillStyle='#fff';overlayCtx.fillText(label,x+7,ly+15);
+  });
+}
+function drawSourceFrame(){
+  if(!video.videoWidth)return;
+  const vw=video.videoWidth,vh=video.videoHeight;
+  if(sourceCanvas.width!==vw||sourceCanvas.height!==vh){sourceCanvas.width=vw;sourceCanvas.height=vh;cropState=null}
+  sourceCtx.save();sourceCtx.setTransform(1,0,0,1,0,0);sourceCtx.clearRect(0,0,vw,vh);
+  if(mirrored){sourceCtx.translate(vw,0);sourceCtx.scale(-1,1)}
+  sourceCtx.drawImage(video,0,0,vw,vh);sourceCtx.restore();
+}
+function updateSmartFraming(){
+  const vw=video.videoWidth||640,vh=video.videoHeight||480;
+  const single=latestDetections.length<=1;
+  // Fixed central crop; no face position, tracking or landmarks are used.
+  cropState=single
+    ? {x:vw*0.1,y:vh*0.1,w:vw*0.8,h:vh*0.8}
+    : {x:0,y:0,w:vw,h:vh};
+  // Keep both modes at the same original aspect ratio, avoiding stretching.
+  const outW=640,outH=Math.max(1,Math.round(outW*vh/vw));
+  if(smartCanvas.width!==outW||smartCanvas.height!==outH){smartCanvas.width=outW;smartCanvas.height=outH}
+  // Both camera stages retain exactly the same 4:3 frame; image uses contain.
+  ratioLabel.textContent=single?'1X':'0.5X';
+  ratioLabel.classList.toggle('zoom-wide',!single);
+  ratioMetric.textContent=single?'中央裁切':'完整畫面';
+  zoomMetric.textContent=single?'1X':'0.5X';
+}
+function renderSmart(){
+  if(!running)return;
+  if(video.readyState>=2){
+    drawSourceFrame();updateSmartFraming();
+    if(cropState){
+      smartCtx.drawImage(sourceCanvas,cropState.x,cropState.y,cropState.w,cropState.h,0,0,smartCanvas.width,smartCanvas.height);
+      // RetinaFace coordinates are already expressed in the mirrored source image.
+      // Convert them through the same crop into the right-hand output canvas.
+      smartCtx.save();
+      smartCtx.strokeStyle='#ef4444';
+      smartCtx.lineWidth=3;
+      for(const face of latestDetections){
+        const x1=Math.max(face.x1,cropState.x),y1=Math.max(face.y1,cropState.y);
+        const x2=Math.min(face.x2,cropState.x+cropState.w),y2=Math.min(face.y2,cropState.y+cropState.h);
+        if(x2<=x1||y2<=y1)continue;
+        const sx=smartCanvas.width/cropState.w,sy=smartCanvas.height/cropState.h;
+        smartCtx.strokeRect((x1-cropState.x)*sx,(y1-cropState.y)*sy,(x2-x1)*sx,(y2-y1)*sy);
+      }
+      smartCtx.restore();
+    }
+  }
+  renderRafId=requestAnimationFrame(renderSmart);
+}
+
+async function fetchModelBuffer(){
+  const failures=[];
+  for(const url of MODEL_CANDIDATES){
+    try{
+      showInfo('正在自動載入平台 RetinaFace 模型…');setProgress(48);
+      let res;
+      if('caches' in window){const cache=await caches.open(MODEL_CACHE_NAME);res=await cache.match(url);if(!res){res=await fetch(url,{cache:'default'});if(res.ok)try{await cache.put(url,res.clone())}catch(_){}}}
+      else res=await fetch(url,{cache:'default'});
+      if(!res||!res.ok)throw new Error('HTTP '+(res?res.status:'0'));
+      const buf=await res.arrayBuffer();if(buf.byteLength<100000)throw new Error('模型檔案不完整');setProgress(72);return buf;
+    }catch(e){failures.push(url+' ('+(e.message||e)+')')}
+  }
+  throw new Error('無法自動載入 RetinaFace 模型。請確認 GitHub Pages 已發佈模型，並透過 HTTPS 存取本頁。已嘗試：'+failures.join('；'));
+}
+async function ensureSession(){
+  if(session)return;if(!window.ort)throw new Error('ONNX Runtime Web 載入失敗。');
+  ort.env.wasm.wasmPaths='https://cdn.jsdelivr.net/npm/onnxruntime-web@1.22.0/dist/';ort.env.wasm.numThreads=1;setProgress(10);
+  const model=await fetchModelBuffer(),providers=[];if('gpu' in navigator)providers.push(['webgpu','wasm']);providers.push(['wasm']);let last=null;
+  for(const eps of providers){try{showInfo('正在建立人臉偵測推論引擎…');setProgress(84);session=await ort.InferenceSession.create(model,{executionProviders:eps,graphOptimizationLevel:'all'});setProgress(100);hideProgress();return}catch(e){last=e;session=null}}
+  throw new Error('RetinaFace 初始化失敗：'+(last?.message||last));
+}
+async function inferFrame(){
+  if(!running||processing||switching||!session||video.readyState<2)return;processing=true;
+  try{const meta=prepareInput(),outputs=await session.run({[session.inputNames[0]]:meta.tensor});latestDetections=decodeOutputs(outputs,meta);faceCount.textContent=String(latestDetections.length);drawDetections(latestDetections);inferCounter++}
+  catch(e){console.error(e);showError('AI 推論失敗：'+(e.message||e));running=false}
+  finally{processing=false}
+}
+function inferLoop(now){
+  if(!running)return;if(!processing&&now-lastInferAt>=100){lastInferAt=now;inferFrame()}
+  if(now-fpsClock>=1000){fpsMetric.textContent=String(Math.round(inferCounter*1000/(now-fpsClock)));inferCounter=0;fpsClock=now}
+  rafId=requestAnimationFrame(inferLoop);
+}
+
+async function refreshDevices(){try{videoDevices=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==='videoinput')}catch(_){videoDevices=[]}switchBtn.disabled=!running}
+function stopTracks(){if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}video.srcObject=null}
+function setMirror(track,requestedFacing){const s=track?.getSettings?.()||{},f=s.facingMode||requestedFacing||'';mirrored=f==='user'||(!f&&requestedFacing==='user');video.style.transform=mirrored?'scaleX(-1)':'scaleX(1)'}
+async function openCamera({deviceId=null,facingMode=null,exact=false}={}){
+  stopTracks();const vc={width:{ideal:640},height:{ideal:480}};if(deviceId)vc.deviceId={exact:deviceId};else if(facingMode)vc.facingMode=exact?{exact:facingMode}:{ideal:facingMode};
+  stream=await navigator.mediaDevices.getUserMedia({video:vc,audio:false});video.srcObject=stream;await video.play();await new Promise(r=>setTimeout(r,120));
+  const track=stream.getVideoTracks()[0],settings=track?.getSettings?.()||{};currentDeviceId=settings.deviceId||deviceId||null;preferredFacing=settings.facingMode||facingMode||preferredFacing;setMirror(track,facingMode);
+  video.style.display='block';cameraPlaceholder.style.display='none';resizeOverlay();cropState=null;latestDetections=[];await refreshDevices();
+}
+async function switchCamera(){
+  if(switching)return;switching=true;switchBtn.disabled=true;clearNotices();const oldId=currentDeviceId,oldFacing=preferredFacing;
+  try{
+    const track=stream?.getVideoTracks?.()[0],facing=track?.getSettings?.().facingMode||'';
+    if(facing==='user'||facing==='environment'){
+      const target=facing==='user'?'environment':'user';try{currentDeviceId=null;await openCamera({facingMode:target,exact:true});showOk(target==='user'?'已切換至前鏡頭。':'已切換至後鏡頭。');return}catch(_){}}
+    await refreshDevices();
+    if(videoDevices.length>1){let idx=videoDevices.findIndex(d=>d.deviceId===oldId);if(idx<0)idx=0;const next=videoDevices[(idx+1)%videoDevices.length];await openCamera({deviceId:next.deviceId});showOk('已切換鏡頭：'+(next.label||'攝影機'));return}
+    const target=oldFacing==='user'?'environment':'user';await openCamera({facingMode:target,exact:true});showOk(target==='user'?'已切換至前鏡頭。':'已切換至後鏡頭。');
+  }catch(e){
+    try{
+      if(oldId)await openCamera({deviceId:oldId});
+      else if(oldFacing)await openCamera({facingMode:oldFacing});
+    }catch(_){}
+    showError('切換鏡頭失敗：'+(e.message||e))
+  }finally{switching=false;switchBtn.disabled=!running}
+}
+
+async function startAll(){
+  clearNotices();startBtn.disabled=true;
+  try{
+    if(!window.isSecureContext&&location.hostname!=='localhost'&&location.hostname!=='127.0.0.1')throw new Error('請使用 HTTPS 或 localhost 開啟。');
+    await ensureSession();showInfo('模型已準備完成，正在啟動攝影機…');currentDeviceId=null;preferredFacing='user';await openCamera({facingMode:'user'});
+    running=true;processing=false;latestDetections=[];cropState=null;faceCount.textContent='0';fpsMetric.textContent='0';stopBtn.disabled=false;switchBtn.disabled=false;inferCounter=0;fpsClock=performance.now();lastInferAt=0;
+    showOk('Center Stage 條件取景已啟動。請測試一人與兩人以上的畫面切換。');rafId=requestAnimationFrame(inferLoop);renderRafId=requestAnimationFrame(renderSmart);
+  }catch(e){stopTracks();video.style.display='none';cameraPlaceholder.style.display='grid';startBtn.disabled=false;stopBtn.disabled=true;switchBtn.disabled=true;hideProgress();let extra=e.message||'未知錯誤';if(e.name==='NotAllowedError')extra='攝影機權限被拒絕，請在網址列允許相機。';if(e.name==='NotFoundError')extra='找不到攝影機。';if(e.name==='NotReadableError')extra='攝影機可能正被其他程式占用。';showError('啟動失敗：'+extra)}
+}
+async function stopAll(){
+  running=false;processing=false;if(rafId)cancelAnimationFrame(rafId);if(renderRafId)cancelAnimationFrame(renderRafId);stopTracks();
+  video.style.display='none';cameraPlaceholder.style.display='grid';cameraPlaceholder.innerHTML='<div><b>已停止體驗</b>按「開始體驗」可重新載入模型與攝影機。</div>';
+  overlayCtx.clearRect(0,0,overlay.clientWidth,overlay.clientHeight);smartCtx.clearRect(0,0,smartCanvas.width,smartCanvas.height);latestDetections=[];cropState=null;faceCount.textContent='0';fpsMetric.textContent='0';zoomMetric.textContent='1X';ratioLabel.textContent='1X';ratioLabel.classList.remove('zoom-wide');
+  if(session){try{if(typeof session.release==='function')await session.release()}catch(_){}session=null}
+  stopBtn.disabled=true;startBtn.disabled=false;switchBtn.disabled=true;
+}
+
+startBtn.addEventListener('click',startAll);
+stopBtn.addEventListener('click',()=>{clearNotices();stopAll()});
+switchBtn.addEventListener('click',switchCamera);
+window.addEventListener('resize',resizeOverlay);
+window.addEventListener('pagehide',()=>{running=false;stopTracks();if(session&&typeof session.release==='function')session.release()});
+priors=generatePriors(MODEL_SIZE,MODEL_SIZE);resizeOverlay();
+</script>
+</body>
+</html>
