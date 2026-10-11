@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>預設模型 + 學生自訂模型 × Teachable Machine × 3D 智慧房間 v8</title>
+<style>
+:root{--bg:#f4f7fb;--card:#fff;--text:#172033;--muted:#667085;--blue:#2563eb;--line:#d9e1ec}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI","Noto Sans TC",sans-serif}
+.page{width:min(1320px,calc(100% - 24px));margin:auto;padding:22px 0 36px}.head{margin-bottom:14px}.eyebrow{font-size:12px;font-weight:900;letter-spacing:.08em;color:var(--blue)}h1{margin:6px 0 4px;font-size:clamp(24px,3vw,34px)}.sub{font-size:14px;color:var(--muted)}
+.layout{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(320px,.62fr);grid-template-areas:"room camera" "manual ai";gap:16px;align-items:start}.room-card{grid-area:room;align-self:stretch;display:flex;min-height:0}.camera-card{grid-area:camera;padding:14px;align-self:stretch}.manual-card{grid-area:manual}.ai-card{grid-area:ai}.card{background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden}.stage{position:relative;aspect-ratio:16/10;min-height:420px;background:#d9e0e6;overflow:hidden}.room-card .stage{flex:1;aspect-ratio:auto;width:100%}.stage canvas{display:block;width:100%;height:100%;touch-action:none;cursor:grab}.stage canvas:active{cursor:grabbing}.badge,.hint,.status{position:absolute;z-index:5;backdrop-filter:blur(8px);background:rgba(255,255,255,.88);border:1px solid rgba(255,255,255,.72);color:#2d394a}.badge{left:12px;top:12px;border-radius:999px;padding:7px 10px;font-size:11px;font-weight:900;letter-spacing:.08em}.hint{right:12px;top:12px;border-radius:999px;padding:7px 10px;font-size:11px;font-weight:800;color:#586576}.status{left:12px;right:12px;bottom:12px;border-radius:14px;padding:8px 10px;display:flex;gap:8px;flex-wrap:wrap;background:rgba(255,255,255,.82)}.status span{font-size:12px;font-weight:850}.loading{position:absolute;inset:0;z-index:10;display:grid;place-items:center;background:linear-gradient(145deg,#e7edf3,#c9d4df);font-size:14px;font-weight:800;color:#516173;transition:opacity .35s}.loading.done{opacity:0;pointer-events:none}.loading.error{background:#fef2f2;color:#8b1f1f;text-align:center;padding:20px;opacity:1}
+.panel{padding:17px}.panel h2{margin:0 0 4px;font-size:18px}.panel p{margin:0 0 8px;color:var(--muted);font-size:12px;line-height:1.6}.device{display:flex;align-items:center;gap:11px;padding:17px 0;border-top:1px solid var(--line)}.icon{width:40px;height:40px;border-radius:12px;background:#f7f9fc;display:grid;place-items:center;font-size:22px}.main{min-width:0;flex:1}.name{font-size:14px;font-weight:850}.state{font-size:12px;color:var(--muted);margin-top:3px}.switch{position:relative;width:56px;height:32px;flex:none}.switch input{position:absolute;opacity:0}.switch span{display:block;width:100%;height:100%;background:#cbd5e1;border-radius:999px;cursor:pointer;transition:.2s}.switch span:after{content:"";position:absolute;width:26px;height:26px;left:3px;top:3px;border-radius:50%;background:white;box-shadow:0 1px 4px rgba(0,0,0,.25);transition:.2s}.switch input:checked+span{background:var(--blue)}.switch input:checked+span:after{transform:translateX(24px)}.switch input:focus-visible+span{outline:3px solid rgba(37,99,235,.3);outline-offset:2px}.quality{margin-top:12px;padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:#f8fafc;font-size:12px;line-height:1.6;color:var(--muted)}.quality b{color:var(--text)}
+
+.ai-card{margin-top:0;padding:17px}.ai-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}.ai-head h2{margin:0 0 4px;font-size:19px}.ai-head p{margin:0;color:var(--muted);font-size:12px;line-height:1.6}.ai-badge{padding:7px 10px;border-radius:999px;background:#eef4ff;color:#1d4ed8;font-size:11px;font-weight:900;letter-spacing:.05em}.ai-grid{display:block;margin-top:14px}.camera-title{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px}.camera-title h2{margin:0;font-size:18px}.camera-title p{margin:3px 0 0;color:var(--muted);font-size:11px;line-height:1.5}.camera-box{position:relative;aspect-ratio:4/3;border-radius:16px;overflow:hidden;background:#0b1020;display:grid;place-items:center;border:1px solid #20293b}.camera-box canvas,.camera-box video{width:100%!important;height:100%!important;object-fit:cover;display:block}.camera-empty{color:#aeb8ca;font-size:13px;text-align:center;padding:20px;line-height:1.65}.camera-chip{position:absolute;left:9px;top:9px;padding:6px 9px;border-radius:999px;background:rgba(10,17,31,.72);color:#fff;font-size:11px;font-weight:850;backdrop-filter:blur(7px)}.ai-panel{min-width:0}.model-source{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px;padding:10px 11px;border:1px solid var(--line);border-radius:12px;background:#f8fafc}.model-source-info{min-width:0}.model-source-info small{display:block;color:var(--muted);font-size:10px;font-weight:800}.model-source-info b{display:block;margin-top:2px;font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.model-source-info span{display:block;margin-top:2px;color:var(--muted);font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.model-source-actions{display:flex;gap:7px;flex-wrap:wrap}.file-import{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:stretch}.file-picker{min-width:0;min-height:42px;border:1px dashed #9fb3c8;border-radius:11px;padding:9px 11px;background:#f8fbff;display:flex;align-items:center;gap:9px;cursor:pointer;font-size:12px;color:#475569}.file-picker:hover{border-color:#6f92bd}.file-picker:focus-within{outline:3px solid rgba(37,99,235,.16);border-color:#93b4ff}.file-picker input{position:absolute;inline-size:1px;block-size:1px;opacity:0;pointer-events:none}.file-picker b{color:var(--text)}.file-summary{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.file-list{margin-top:8px;display:grid;gap:5px}.file-item{display:flex;align-items:center;gap:7px;min-width:0;padding:7px 9px;border:1px solid var(--line);border-radius:9px;background:#fff;font-size:11px;color:var(--muted)}.file-item.ok{border-color:#b8dfc5;background:#f4fbf6;color:#166534}.file-item strong{color:inherit}.file-item span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px}.btn{min-height:40px;padding:0 13px;border:1px solid var(--line);border-radius:11px;background:#fff;color:var(--text);font:inherit;font-size:12px;font-weight:850;cursor:pointer}.btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}.btn.danger{background:#fff1f2;border-color:#fecdd3;color:#be123c}.btn:disabled{opacity:.45;cursor:not-allowed}.ai-message{margin-top:10px;padding:10px 11px;border-radius:11px;background:#f8fafc;border:1px solid var(--line);font-size:12px;color:var(--muted);line-height:1.55}.ai-message strong{color:var(--text)}.camera-card .top-result{margin-top:10px}.camera-card .predictions{margin-bottom:0}.top-result{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:end;margin-top:12px;padding:11px 12px;border-radius:13px;background:#101827;color:#fff}.top-result>div:first-child{min-width:0}.top-result small{display:block;color:#9fb0c6;font-size:10px;font-weight:800;letter-spacing:.06em}.top-result b{display:block;margin-top:2px;font-size:18px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.confidence{font-size:24px;font-weight:900;font-variant-numeric:tabular-nums;white-space:nowrap}.top-action{margin-top:7px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:#f8fafc;color:#475569;font-size:11px;line-height:1.5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.top-action strong{color:var(--text)}.top-action.blocked{background:#fff7ed;border-color:#fed7aa;color:#9a3412}.predictions{margin-top:10px;display:grid;gap:7px}.pred-row{display:grid;grid-template-columns:minmax(70px,120px) 1fr 45px;gap:8px;align-items:center;font-size:11px}.pred-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:800}.pred-track{height:8px;background:#e8edf4;border-radius:999px;overflow:hidden}.pred-fill{height:100%;width:0;background:#64748b;border-radius:999px;transition:width .13s linear}.pred-value{text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}.mapping-editor{margin-top:12px;border:1px solid var(--line);border-radius:13px;background:#f8fafc;overflow:hidden}.mapping-head{padding:10px 11px;border-bottom:1px solid var(--line);display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap}.mapping-head b{font-size:12px;color:var(--text)}.mapping-head small{display:block;margin-top:2px;font-size:10px;line-height:1.5;color:var(--muted)}.mapping-status{font-size:10px;font-weight:850;color:#64748b;background:#eef2f7;border-radius:999px;padding:5px 8px}.mapping-status.ready{color:#166534;background:#eaf8ef}.mapping-list{display:grid}.mapping-empty{padding:12px 11px;font-size:11px;line-height:1.6;color:var(--muted)}.mapping-row{display:grid;grid-template-columns:minmax(90px,1fr) minmax(170px,1.15fr);gap:10px;align-items:center;padding:9px 11px;border-top:1px solid var(--line)}.mapping-row:first-child{border-top:0}.mapping-class{min-width:0}.mapping-class strong{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:var(--text)}.mapping-class span{display:block;margin-top:2px;font-size:10px;color:var(--muted)}.mapping-row select{width:100%;min-height:38px;border:1px solid #cbd5e1;border-radius:9px;background:#fff;color:var(--text);padding:0 9px;font:inherit;font-size:12px}.mapping-row select:focus{outline:3px solid rgba(37,99,235,.16);border-color:#93b4ff}.mapping-note{padding:9px 11px;border-top:1px solid var(--line);font-size:10px;line-height:1.6;color:var(--muted)}.action-line{margin-top:10px;min-height:39px;padding:10px 11px;border-radius:11px;background:#effaf3;border:1px solid #ccebd6;color:#166534;font-size:12px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.action-line.wait{background:#f8fafc;border-color:var(--line);color:var(--muted)}
+@media(max-width:980px){.layout{grid-template-columns:minmax(0,1.25fr) minmax(280px,.75fr)}.stage{min-height:360px}}@media(max-width:820px){.layout{grid-template-columns:1fr;grid-template-areas:"room" "camera" "manual" "ai"}.room-card{display:block}.room-card .stage{aspect-ratio:4/3;min-height:330px}.camera-box{max-width:520px;width:100%;margin:auto}.stage{aspect-ratio:4/3;min-height:330px}.hint{display:none}.mapping-row{grid-template-columns:1fr}}@media(max-width:480px){.page{width:calc(100% - 14px);padding-top:10px}.panel,.ai-card,.camera-card{padding:14px}.stage{min-height:300px}}
+</style>
+</head>
+<body>
+<main class="page">
+<header class="head"><div class="eyebrow">TEACHABLE MACHINE × THREE.JS</div><h1>AI 手勢控制 × 高擬真 3D 智慧房間</h1><div class="sub">學生手動匯入 Teachable Machine 模型；同一個模型類別可直接切換設備的開／關狀態。</div></header>
+<div class="layout">
+  <section class="card room-card" aria-label="3D 智慧客廳">
+    <div class="stage" id="stage">
+      <div class="loading" id="loading">正在建立高擬真 3D 空間…</div>
+      <div class="badge">REALTIME INTERIOR</div>
+      <div class="hint">拖曳旋轉 · 滾輪縮放</div>
+      <div class="status"><span id="lightTag">💡 燈光 ON</span><span id="acTag">❄️ 冷氣 OFF</span><span id="curtainTag">🪟 窗簾 OPEN</span></div>
+    </div>
+  </section>
+
+  <section class="card camera-card" aria-label="AI 攝影機畫面">
+    <div class="camera-title">
+      <div><h2>AI 攝影機畫面</h2><p>手勢辨識畫面與即時分類結果</p></div>
+      <div class="ai-badge" id="tmStatusBadge">AI 尚未啟動</div>
+    </div>
+    <div class="camera-box" id="tmWebcamBox">
+      <div class="camera-empty" id="tmCameraEmpty">啟動 AI 後，攝影機畫面會顯示在這裡。<br>HTTPS / localhost 才能正常取得攝影機權限。</div>
+      <div class="camera-chip" id="tmCameraChip">前鏡頭</div>
+    </div>
+    <div class="top-result">
+      <div><small>TOP PREDICTION</small><b id="tmTopClass">—</b></div>
+      <div class="confidence" id="tmTopConfidence">0%</div>
+    </div>
+    <div class="top-action" id="tmTopAction"><strong>對應控制：</strong>—</div>
+    <div class="predictions" id="tmPredictions"></div>
+    <div class="action-line wait" id="tmActionStatus">等待 AI 啟動</div>
+  </section>
+
+  <aside class="card panel manual-card" aria-label="手動控制">
+    <h2>手動控制</h2><p>作為測試與備援，可直接控制 3D 客廳設備。</p>
+    <div class="device"><div class="icon">💡</div><div class="main"><div class="name">室內燈光</div><div class="state" id="lightState">目前：開啟</div></div><label class="switch"><input id="lightSwitch" type="checkbox" checked><span></span></label></div>
+    <div class="device"><div class="icon">❄️</div><div class="main"><div class="name">冷氣</div><div class="state" id="acState">目前：關閉</div></div><label class="switch"><input id="acSwitch" type="checkbox"><span></span></label></div>
+    <div class="device"><div class="icon">🪟</div><div class="main"><div class="name">電動窗簾</div><div class="state" id="curtainState">目前：收起</div></div><label class="switch"><input id="curtainSwitch" type="checkbox"><span></span></label></div>
+    <div class="quality"><b>3D 場景：</b><br>木地板、布料窗簾、玻璃反射、室內光影、冷氣出風與台北 101 窗景皆保留。</div>
+  </aside>
+
+  <section class="card ai-card" aria-label="Teachable Machine AI 攝影機設定">
+    <div class="ai-head">
+      <div><h2>AI 攝影機設定</h2><p>預設會嘗試載入教師示範模型；學生也可以匯入自己的 Teachable Machine 模型，再自行設定「模型類別 → 設備開／關切換」。</p></div>
+    </div>
+    <div class="ai-grid">
+      <div class="ai-panel">
+        <div class="model-source">
+          <div class="model-source-info">
+            <small>目前模型</small>
+            <b id="tmModelSourceLabel">正在檢查教師預設模型…</b>
+            <span id="tmModelSourceDetail">預設路徑：./default-model/</span>
+          </div>
+          <div class="model-source-actions">
+            <button class="btn" type="button" id="tmDefaultBtn">使用／恢復預設模型</button>
+          </div>
+        </div>
+        <div class="file-import">
+          <label class="file-picker" for="tmModelFiles">
+            <input id="tmModelFiles" type="file" accept=".json,.bin,application/json,application/octet-stream" multiple>
+            <span>📁</span>
+            <div class="file-summary"><b>上傳學生自己的模型</b><br><span id="tmFileSummary">請同時選取 model.json、metadata.json、weights.bin</span></div>
+          </label>
+          <button class="btn" type="button" id="tmLoadBtn" disabled>使用學生模型</button>
+        </div>
+        <div class="file-list" id="tmFileList">
+          <div class="file-item" id="tmModelJsonItem">○ <strong>model.json</strong><span>尚未選取</span></div>
+          <div class="file-item" id="tmMetadataJsonItem">○ <strong>metadata.json</strong><span>尚未選取</span></div>
+          <div class="file-item" id="tmWeightsItem">○ <strong>weights.bin</strong><span>尚未選取</span></div>
+        </div>
+        <div class="btn-row">
+          <button class="btn primary" type="button" id="tmStartBtn" disabled>啟動 AI 攝影機</button>
+          <button class="btn" type="button" id="tmSwitchBtn" disabled>切換鏡頭</button>
+          <button class="btn danger" type="button" id="tmStopBtn" disabled>停止 AI</button>
+        </div>
+        <div class="ai-message" id="tmMessage"><strong>模型：</strong>正在嘗試載入教師預設模型；若尚未放入，也可先上傳學生自己的模型。</div>
+        <div class="mapping-editor" id="tmMappingEditor">
+          <div class="mapping-head">
+            <div><b>類別 → 開／關控制</b><small>模型匯入後會自動列出類別。每一類可指定控制燈光、冷氣或窗簾；同一類別可重複切換開與關。</small></div>
+            <span class="mapping-status" id="tmMappingStatus">尚未匯入模型</span>
+          </div>
+          <div class="mapping-list" id="tmMappingList"><div class="mapping-empty">模型載入後，這裡會自動列出所有類別與控制設定。</div></div>
+          <div class="mapping-note">同一類別採「切換」控制。教師預設模型若使用「剪刀／石頭／布／背景」或 Scissors／Rock／Paper／Background，會自動套用示範控制；其他類別名稱仍會自動讀取，並可手動指定控制行為。</div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8.3/dist/teachablemachine-image.min.js"></script>
+<script type="module">
+(async()=>{
+const stage=document.getElementById('stage'),loading=document.getElementById('loading');
+try{
+ const THREE=await import('https://cdn.jsdelivr.net/npm/three@0.180.0/+esm');
+ const scene=new THREE.Scene(); scene.background=new THREE.Color(0xdfe6eb); scene.fog=new THREE.Fog(0xdfe6eb,11,22);
+ const camera=new THREE.PerspectiveCamera(38,1,.1,50); const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'}); renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.6)); renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap; renderer.outputColorSpace=THREE.SRGBColorSpace; renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=0.94; stage.prepend(renderer.domElement);
+ const world=new THREE.Group(); scene.add(world);
+ function canvasTexture(kind){const c=document.createElement('canvas');c.width=512;c.height=512;const x=c.getContext('2d'); if(kind==='wood'){x.fillStyle='#8c674c';x.fillRect(0,0,512,512);for(let i=0;i<22;i++){const y=i*24+Math.random()*8;x.fillStyle=i%2?'#75543f':'#9d795d';x.fillRect(0,y,512,2+Math.random()*3);for(let j=0;j<6;j++){x.strokeStyle='rgba(70,42,28,.18)';x.beginPath();x.moveTo(0,y+8+j*2);for(let xx=0;xx<=512;xx+=32)x.lineTo(xx,y+8+j*2+Math.sin((xx+i*37)*.03)*2);x.stroke()}}}else if(kind==='fabric'){x.fillStyle='#a79b8f';x.fillRect(0,0,512,512);for(let i=0;i<512;i+=5){x.strokeStyle=i%10===0?'rgba(255,255,255,.16)':'rgba(55,45,38,.08)';x.beginPath();x.moveTo(i,0);x.lineTo(i,512);x.stroke()}for(let i=0;i<512;i+=8){x.strokeStyle='rgba(255,255,255,.05)';x.beginPath();x.moveTo(0,i);x.lineTo(512,i);x.stroke()}}else if(kind==='wall'){x.fillStyle='#eee9e2';x.fillRect(0,0,512,512);for(let i=0;i<1500;i++){const v=225+Math.random()*18;x.fillStyle=`rgba(${v},${v-2},${v-4},.08)`;x.fillRect(Math.random()*512,Math.random()*512,1,1)}}const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.wrapS=t.wrapT=THREE.RepeatWrapping;return t}
+ const wood=canvasTexture('wood');wood.repeat.set(5.2,4.1); const fabric=canvasTexture('fabric');fabric.repeat.set(3,3); const wallTex=canvasTexture('wall');wallTex.repeat.set(3,2);
+ function m(color,rough=.65,metal=.02,map=null){return new THREE.MeshStandardMaterial({color,roughness:rough,metalness:metal,map})}
+ function box(w,h,d,mat,x,y,z){const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;world.add(o);return o}
+ function roundedRectShape(w,h,r){const s=new THREE.Shape();const x=-w/2,y=-h/2;s.moveTo(x+r,y);s.lineTo(x+w-r,y);s.quadraticCurveTo(x+w,y,x+w,y+r);s.lineTo(x+w,y+h-r);s.quadraticCurveTo(x+w,y+h,x+w-r,y+h);s.lineTo(x+r,y+h);s.quadraticCurveTo(x,y+h,x,y+h-r);s.lineTo(x,y+r);s.quadraticCurveTo(x,y,x+r,y);return s}
+ function roundedBox(w,h,d,r,mat,x,y,z,rotX=0,rotY=0,rotZ=0){const g=new THREE.ExtrudeGeometry(roundedRectShape(w,h,r),{depth:d,bevelEnabled:true,bevelSegments:2,steps:1,bevelSize:r*.35,bevelThickness:r*.35});g.center();const o=new THREE.Mesh(g,mat);o.position.set(x,y,z);o.rotation.set(rotX,rotY,rotZ);o.castShadow=true;o.receiveShadow=true;world.add(o);return o}
+ const floorMat=new THREE.MeshPhysicalMaterial({color:0xffffff,map:wood,roughness:.48,metalness:0,clearcoat:.12,clearcoatRoughness:.65});box(7.8,.14,6.2,floorMat,0,-.07,0);box(7.8,4.2,.14,new THREE.MeshStandardMaterial({color:0xffffff,map:wallTex,roughness:.92}),0,2.1,-3.02);box(.14,4.2,6.2,new THREE.MeshStandardMaterial({color:0xf0ece6,map:wallTex,roughness:.92}),-3.9,2.1,0);box(7.8,.10,6.2,m(0xf5f3ef,.98),0,4.15,0);
+ const hemi=new THREE.HemisphereLight(0xf8fbff,0x6f5f52,1.45);scene.add(hemi);const sun=new THREE.DirectionalLight(0xfff7eb,2.15);sun.position.set(4.5,7.2,4.0);sun.castShadow=true;sun.shadow.mapSize.set(1536,1536);sun.shadow.camera.left=-8;sun.shadow.camera.right=8;sun.shadow.camera.top=8;sun.shadow.camera.bottom=-8;scene.add(sun);
+ const roomLight=new THREE.PointLight(0xffd9a3,10,7.8,2);roomLight.position.set(.2,3.38,.15);roomLight.castShadow=true;roomLight.shadow.mapSize.set(768,768);scene.add(roomLight);
+ // window / balcony
+ const win=new THREE.Group();win.position.set(1.15,2.05,-2.93);world.add(win);
+ const TAIPEI_VIEW_URL='https://thumb.wikimedia.org/wikipedia/commons/thumb/4/48/Taipei%2C_assorted_-_TaipeiCityscapes4969.jpg/1280px-Taipei%2C_assorted_-_TaipeiCityscapes4969.jpg';
+ let viewTex;
+ try{
+   viewTex=await new Promise((resolve,reject)=>{
+     const loader=new THREE.TextureLoader();
+     loader.setCrossOrigin('anonymous');
+     loader.load(TAIPEI_VIEW_URL,tex=>resolve(tex),undefined,reject);
+   });
+   viewTex.colorSpace=THREE.SRGBColorSpace;
+   viewTex.wrapS=viewTex.wrapT=THREE.ClampToEdgeWrapping;
+ }catch(_){
+   const viewCanvas=document.createElement('canvas');viewCanvas.width=1200;viewCanvas.height=780;const vctx=viewCanvas.getContext('2d');
+   const skyGrad=vctx.createLinearGradient(0,0,0,780);skyGrad.addColorStop(0,'#72c1ec');skyGrad.addColorStop(.55,'#b8def3');skyGrad.addColorStop(1,'#eef7fc');vctx.fillStyle=skyGrad;vctx.fillRect(0,0,1200,780);
+   vctx.fillStyle='#91a3af';vctx.fillRect(0,620,1200,32);
+   const baseBuildings=[{x:55,w:88,h:150,c:'#7e93a5'},{x:160,w:72,h:205,c:'#8da0af'},{x:252,w:110,h:180,c:'#778c9e'},{x:390,w:78,h:120,c:'#8ca0af'},{x:495,w:105,h:170,c:'#7f95a5'},{x:630,w:88,h:210,c:'#8da0af'},{x:760,w:112,h:160,c:'#7d92a2'},{x:900,w:95,h:195,c:'#879caa'},{x:1018,w:88,h:145,c:'#7f94a4'}];
+   baseBuildings.forEach(b=>{vctx.fillStyle=b.c;vctx.fillRect(b.x,620-b.h,b.w,b.h)});
+   const tx=780,ty=600;vctx.fillStyle='#365f79';vctx.fillRect(tx,ty-330,76,330);for(let i=0;i<8;i++){const y=ty-40-i*36;vctx.fillStyle='#5c8298';vctx.fillRect(tx-12,y,100,9);vctx.fillStyle='#365f79';vctx.fillRect(tx+5,y-28,66,26)}vctx.fillStyle='#84aabd';vctx.fillRect(tx+33,ty-420,8,90);
+   viewTex=new THREE.CanvasTexture(viewCanvas);viewTex.colorSpace=THREE.SRGBColorSpace;
+ }
+ const outsideView=new THREE.Mesh(new THREE.PlaneGeometry(4.25,2.75),new THREE.MeshBasicMaterial({map:viewTex,toneMapped:false}));
+ outsideView.position.z=.015;
+ win.add(outsideView);
+ const glass=new THREE.Mesh(new THREE.PlaneGeometry(4.25,2.75),new THREE.MeshPhysicalMaterial({color:0xe8f7ff,roughness:.08,metalness:0,transparent:true,opacity:.11,transmission:.08,thickness:.02,depthWrite:false}));
+ glass.position.z=.03;
+ win.add(glass);
+ const frame=m(0xeeeae4,.45,.08);
+ const wf=(w,h,x,y)=>{const q=new THREE.Mesh(new THREE.BoxGeometry(w,h,.08),frame);q.position.set(x,y,.075);q.castShadow=true;win.add(q)};
+ wf(4.36,.10,0,1.39);wf(4.36,.10,0,-1.39);wf(.10,2.82,-2.18,0);wf(.10,2.82,2.18,0);wf(.07,2.75,0,0);
+ // curtains with folds
+ function curtainGeom(w,h){const g=new THREE.PlaneGeometry(w,h,42,8);const p=g.attributes.position;for(let i=0;i<p.count;i++){const x=p.getX(i),y=p.getY(i);p.setZ(i,.07*Math.sin(((x/w)+.5)*Math.PI*18)+.015*Math.sin(y*8))}p.needsUpdate=true;g.computeVertexNormals();return g}
+ const cmat=new THREE.MeshStandardMaterial({color:0xb4a89c,map:fabric,roughness:.98,side:THREE.DoubleSide});const leftCurtain=new THREE.Mesh(curtainGeom(2.15,2.95),cmat.clone()),rightCurtain=new THREE.Mesh(curtainGeom(2.15,2.95),cmat.clone());leftCurtain.position.set(.075,2.0,-2.77);rightCurtain.position.set(2.22,2.0,-2.77);leftCurtain.castShadow=rightCurtain.castShadow=true;world.add(leftCurtain,rightCurtain);const rod=new THREE.Mesh(new THREE.CylinderGeometry(.035,.035,4.65,18),m(0x3e4145,.25,.78));rod.rotation.z=Math.PI/2;rod.position.set(1.15,3.54,-2.72);world.add(rod);
+ // bed
+ const bedMat=m(0x6e594b,.58);roundedBox(2.65,.38,1.72,.10,bedMat,1.55,.24,1.42);roundedBox(2.46,.32,1.58,.14,m(0xe8e6e2,.98),1.55,.55,1.42);roundedBox(1.55,.09,1.59,.05,m(0x657f91,.92),1.98,.77,1.42);roundedBox(.72,.18,.52,.12,m(0xf1efe9,.98),.72,.78,1.06);roundedBox(.72,.18,.52,.12,m(0xf1efe9,.98),.72,.78,1.67);
+ // sofa / reading chair
+ roundedBox(1.35,.44,.88,.15,m(0x6e7479,.92),-2.9,.43,1.45);roundedBox(1.34,.92,.20,.13,m(0x666d73,.94),-2.9,.92,1.78,-.08,0,0);roundedBox(.55,.20,.55,.13,m(0x8b745f,.9),-2.9,.72,1.22);
+ // rug
+ const rugMat=new THREE.MeshStandardMaterial({color:0x9ba0a4,roughness:1});const rug=new THREE.Mesh(new THREE.BoxGeometry(3.55,.025,2.15),rugMat);rug.position.set(.55,.015,.65);rug.receiveShadow=true;world.add(rug);
+ // desk
+ const deskWood=new THREE.MeshPhysicalMaterial({color:0xffffff,map:wood,roughness:.45,clearcoat:.12,clearcoatRoughness:.55});roundedBox(2.35,.13,.82,.055,deskWood,-1.84,.9,-1.72);for(const [x,z] of [[-2.85,-2.00],[-.83,-2.00],[-2.85,-1.45],[-.83,-1.45]])box(.075,.86,.075,m(0x30353a,.34,.62),x,.44,z);
+ roundedBox(1.45,.86,.09,.06,m(0x20262d,.28,.48),-1.84,1.56,-1.75);const scr=new THREE.Mesh(new THREE.PlaneGeometry(1.29,.68),new THREE.MeshStandardMaterial({color:0x152631,emissive:0x0f496d,emissiveIntensity:.82,roughness:.28}));scr.position.set(-1.84,1.56,-1.697);world.add(scr);box(.12,.34,.12,m(0x3d4349,.32,.58),-1.84,1.08,-1.72);roundedBox(.94,.035,.32,.025,m(0x343941,.42,.38),-.92,.985,-1.55);
+ // chair
+ roundedBox(.68,.14,.68,.11,m(0x262b31,.72,.05),-1.45,.61,-.65);roundedBox(.66,.90,.15,.10,m(0x24292f,.72,.05),-1.45,1.08,-.36,-.10);box(.05,.45,.05,m(0x3b4146,.30,.65),-1.45,.34,-.65);
+ // side cabinet
+ roundedBox(.78,.88,.42,.07,m(0x8a705c,.58),3.28,.52,.52);for(let i=0;i<2;i++){const d=roundedBox(.66,.30,.045,.03,m(i?0x7c6250:0x927764,.58),3.28,.36+i*.34,.28);}
+ // shelves and books
+ roundedBox(.78,2.1,.35,.06,m(0x7c614d,.62),-3.38,1.18,.60);for(let i=0;i<4;i++)box(.65,.045,.31,m(0x604b3c,.55),-3.38,.42+i*.46,.60);const colors=[0x7c5555,0x4e6179,0x73704d,0x506d59,0x745a77];for(let i=0;i<10;i++){box(.075,.23+(i%3)*.04,.20,m(colors[i%colors.length],.85),-3.64+(i%5)*.13,.61+Math.floor(i/5)*.46,.58)}
+ // AC
+ const acGroup=new THREE.Group();acGroup.position.set(-1.7,3.02,-2.83);world.add(acGroup);const acBody=new THREE.Mesh(new THREE.BoxGeometry(1.55,.43,.29),new THREE.MeshPhysicalMaterial({color:0xf7f8fa,roughness:.28,clearcoat:.32,clearcoatRoughness:.25}));acBody.castShadow=true;const vent=new THREE.Mesh(new THREE.BoxGeometry(1.18,.055,.055),m(0xa8b0b8,.38,.18));vent.position.set(0,-.14,.17);const panelMat=new THREE.MeshStandardMaterial({color:0x55656f,emissive:0x22b8cf,emissiveIntensity:.06,roughness:.18});const panel=new THREE.Mesh(new THREE.BoxGeometry(.26,.065,.018),panelMat);panel.position.set(.48,.06,.155);const ledMat=new THREE.MeshStandardMaterial({color:0xb8fff0,emissive:0x28f0a8,emissiveIntensity:.04,roughness:.16});const powerLed=new THREE.Mesh(new THREE.SphereGeometry(.022,14,12),ledMat);powerLed.position.set(.63,.06,.154);const ledHalo=new THREE.Mesh(new THREE.PlaneGeometry(.09,.09),new THREE.MeshBasicMaterial({color:0x5af0be,transparent:true,opacity:.0,depthWrite:false}));ledHalo.position.set(.63,.06,.165);acGroup.add(acBody,vent,panel,powerLed,ledHalo);
+ const airMat=new THREE.MeshBasicMaterial({color:0x9bd9ff,transparent:true,opacity:.35,depthWrite:false});const air=[];for(let i=0;i<12;i++){const s=new THREE.Mesh(new THREE.PlaneGeometry(.38,.016),airMat.clone());s.position.set(-2.25+(i%4)*.38,2.62-Math.floor(i/4)*.15,-2.50+Math.floor(i/4)*.17);s.rotation.x=-.28;s.visible=false;world.add(s);air.push(s)}
+ // pendant
+ const wire=new THREE.Mesh(new THREE.CylinderGeometry(.018,.018,.62,12),m(0x32353a,.30,.7));wire.position.set(.15,3.82,.15);scene.add(wire);const shade=new THREE.Mesh(new THREE.CylinderGeometry(.16,.44,.30,36,1,true),m(0x313337,.28,.55));shade.position.set(.15,3.47,.15);scene.add(shade);const bulbMat=new THREE.MeshStandardMaterial({color:0xffe5ad,emissive:0xffc75f,emissiveIntensity:.95,roughness:.18});const bulb=new THREE.Mesh(new THREE.SphereGeometry(.13,24,18),bulbMat);bulb.position.set(.15,3.28,.15);scene.add(bulb);
+ // small decor
+ const pot=new THREE.Mesh(new THREE.CylinderGeometry(.20,.16,.28,24),m(0x8c6f5d,.75));pot.position.set(3.18,.99,.52);world.add(pot);for(let i=0;i<7;i++){const leaf=new THREE.Mesh(new THREE.SphereGeometry(.10,12,8),m(0x587254,.92));leaf.scale.set(.7,1.7,.55);leaf.position.set(3.18+Math.sin(i)*.16,1.24+(i%3)*.09,.52+Math.cos(i)*.13);leaf.rotation.z=(i-3)*.22;world.add(leaf)}
+ world.traverse(o=>{if(o.isMesh){o.receiveShadow=true}});
+ // camera controls
+ const target=new THREE.Vector3(.05,1.45,.10);let yaw=.68,pitch=.28,radius=9.4;function cam(){const cp=Math.cos(pitch);camera.position.set(target.x+radius*cp*Math.sin(yaw),target.y+radius*Math.sin(pitch),target.z+radius*cp*Math.cos(yaw));camera.lookAt(target)}cam();let drag=false,lx=0,ly=0;renderer.domElement.addEventListener('pointerdown',e=>{drag=true;lx=e.clientX;ly=e.clientY;renderer.domElement.setPointerCapture(e.pointerId)});renderer.domElement.addEventListener('pointermove',e=>{if(!drag)return;const dx=e.clientX-lx,dy=e.clientY-ly;lx=e.clientX;ly=e.clientY;yaw-=dx*.0075;pitch=Math.max(.08,Math.min(.70,pitch-dy*.006));cam()});renderer.domElement.addEventListener('pointerup',e=>{drag=false;try{renderer.domElement.releasePointerCapture(e.pointerId)}catch(_){}});renderer.domElement.addEventListener('wheel',e=>{e.preventDefault();radius=Math.max(6.2,Math.min(12,radius+Math.sign(e.deltaY)*.5));cam()},{passive:false});
+ const state={light:true,ac:false,curtain:false};
+ const ls=document.getElementById('lightSwitch'),as=document.getElementById('acSwitch'),cs=document.getElementById('curtainSwitch');
+ const lstate=document.getElementById('lightState'),astate=document.getElementById('acState'),cstate=document.getElementById('curtainState'),lt=document.getElementById('lightTag'),at=document.getElementById('acTag'),ct=document.getElementById('curtainTag');
+ function ui(){ls.checked=state.light;as.checked=state.ac;cs.checked=state.curtain;lstate.textContent='目前：'+(state.light?'開啟':'關閉');astate.textContent='目前：'+(state.ac?'開啟':'關閉');cstate.textContent='目前：'+(state.curtain?'關閉':'收起');lt.textContent='💡 燈光 '+(state.light?'ON':'OFF');at.textContent='❄️ 冷氣 '+(state.ac?'ON':'OFF');ct.textContent='🪟 窗簾 '+(state.curtain?'CLOSED':'OPEN')}
+ ls.onchange=e=>{state.light=e.target.checked;ui()};as.onchange=e=>{state.ac=e.target.checked;ui()};cs.onchange=e=>{state.curtain=e.target.checked;ui()};ui();
+
+ // ===== Teachable Machine AI control =====
+ const tmModelFiles=document.getElementById('tmModelFiles'),tmFileSummary=document.getElementById('tmFileSummary'),tmLoadBtn=document.getElementById('tmLoadBtn'),tmStartBtn=document.getElementById('tmStartBtn'),tmSwitchBtn=document.getElementById('tmSwitchBtn'),tmStopBtn=document.getElementById('tmStopBtn'),tmDefaultBtn=document.getElementById('tmDefaultBtn'),tmModelSourceLabel=document.getElementById('tmModelSourceLabel'),tmModelSourceDetail=document.getElementById('tmModelSourceDetail');
+ const tmModelJsonItem=document.getElementById('tmModelJsonItem'),tmMetadataJsonItem=document.getElementById('tmMetadataJsonItem'),tmWeightsItem=document.getElementById('tmWeightsItem');
+ const tmWebcamBox=document.getElementById('tmWebcamBox'),tmCameraEmpty=document.getElementById('tmCameraEmpty'),tmCameraChip=document.getElementById('tmCameraChip'),tmMessage=document.getElementById('tmMessage'),tmStatusBadge=document.getElementById('tmStatusBadge'),tmTopClass=document.getElementById('tmTopClass'),tmTopConfidence=document.getElementById('tmTopConfidence'),tmTopAction=document.getElementById('tmTopAction'),tmPredictions=document.getElementById('tmPredictions'),tmActionStatus=document.getElementById('tmActionStatus');
+ const tmMappingList=document.getElementById('tmMappingList'),tmMappingStatus=document.getElementById('tmMappingStatus');
+ const TM_THRESHOLD=.80,TM_HOLD_MS=700,TM_REARM_THRESHOLD=.74,TM_INTERVAL_MS=125,DEFAULT_MODEL_PATH='./default-model/';
+ let tmModel=null,tmWebcam=null,tmRunning=false,tmFacing='user',tmFrameId=0,tmPredictTimer=0,tmPredicting=false,tmCandidate='',tmCandidateSince=0,tmArmed=true,tmLastAction='',tmModelSource='none';
+ let tmClassMappings={};
+ function setTMMessage(msg,strong='狀態'){tmMessage.innerHTML='<strong>'+strong+'：</strong>'+msg}function syncActionTitle(){tmActionStatus.title=tmActionStatus.textContent||''}
+ let tmSelectedFiles={model:null,metadata:null,weights:null};
+ renderMappingEditor([]);
+ function fileNameOf(file){return file?file.name:'尚未選取'}
+ function setFileItem(el,file,label){el.classList.toggle('ok',!!file);el.innerHTML=(file?'✓ ':'○ ')+'<strong>'+label+'</strong><span>'+fileNameOf(file)+'</span>'}
+ function classifyModelFiles(files){
+   const all=[...files];
+   const jsons=all.filter(f=>f.name.toLowerCase().endsWith('.json'));
+   const bins=all.filter(f=>f.name.toLowerCase().endsWith('.bin'));
+   const model=jsons.find(f=>f.name.toLowerCase()==='model.json')||jsons.find(f=>f.name.toLowerCase().includes('model')&&!f.name.toLowerCase().includes('metadata'))||null;
+   const metadata=jsons.find(f=>f.name.toLowerCase()==='metadata.json')||jsons.find(f=>f.name.toLowerCase().includes('metadata'))||null;
+   const weights=bins.length===1?bins[0]:bins.find(f=>/weights/i.test(f.name))||bins[0]||null;
+   tmSelectedFiles={model,metadata,weights};
+   setFileItem(tmModelJsonItem,model,'model.json');setFileItem(tmMetadataJsonItem,metadata,'metadata.json');setFileItem(tmWeightsItem,weights,'weights.bin');
+   const ready=!!(model&&metadata&&weights);tmLoadBtn.disabled=!ready;
+   tmFileSummary.textContent=ready?'3 個模型檔案已選取，可按「使用學生模型」':'請同時選取 model.json、metadata.json、weights.bin';
+   tmStatusBadge.textContent=ready?'學生模型檔案已選取':(tmModel?'模型已載入':'AI 尚未啟動');
+   setTMMessage(ready?'學生模型檔案已準備完成；按「使用學生模型」後才會切換目前模型。':'請一次選取完整的 3 個 Teachable Machine 模型檔案。','模型');
+   updateMappingReadyState();
+ }
+ const ACTION_OPTIONS=[
+   ['none','不控制'],['idle','Idle／重新待命'],
+   ['light_toggle','燈光開／關'],
+   ['ac_toggle','冷氣開／關'],
+   ['curtain_toggle','窗簾開／關']
+ ];
+ function inferDefaultAction(label){const s=String(label||'').trim().toLowerCase().replace(/[\s_\-]/g,'');if(s.includes('剪刀')||s.includes('scissor'))return 'light_toggle';if(s.includes('石頭')||s==='rock'||s.includes('rockgesture'))return 'ac_toggle';if(s==='布'||s.includes('paper'))return 'curtain_toggle';if(s.includes('background')||s.includes('背景')||s.includes('idle')||s.includes('無動作')||s.includes('none')||s.includes('other'))return 'idle';return 'none'}
+ function setModelSourceUI(source,detail=''){tmModelSource=source;if(source==='default'){tmModelSourceLabel.textContent='教師預設模型';tmModelSourceDetail.textContent=detail||'來源：./default-model/'}else if(source==='student'){tmModelSourceLabel.textContent='學生自訂模型';tmModelSourceDetail.textContent=detail||'來源：本機手動匯入'}else{tmModelSourceLabel.textContent='尚未載入模型';tmModelSourceDetail.textContent=detail||'可使用教師預設模型或上傳學生模型'}}
+ function resetPredictionUI(){tmPredictions.innerHTML='';tmTopClass.textContent='—';tmTopConfidence.textContent='0%';tmTopAction.classList.remove('blocked');tmTopAction.innerHTML='<strong>對應控制：</strong>—';tmActionStatus.classList.add('wait');tmActionStatus.textContent='等待 AI 啟動'}
+ async function installLoadedModel(model,source){if(tmRunning)stopTM(false);if(tmModel&&tmModel!==model){try{tmModel.dispose?.()}catch(_){ }}tmModel=model;resetPredictionUI();const n=tmModel.getTotalClasses();const labels=typeof tmModel.getClassLabels==='function'?tmModel.getClassLabels():[];tmClassMappings={};labels.forEach(label=>tmClassMappings[label]=source==='default'?inferDefaultAction(label):'none');renderMappingEditor(labels);setModelSourceUI(source,source==='default'?'來源：'+DEFAULT_MODEL_PATH+'（共 '+n+' 類）':'來源：本機手動匯入（共 '+n+' 類）');return {n,labels}}
+ async function loadDefaultModel(){if(!window.tmImage)throw new Error('Teachable Machine 函式庫未載入');tmDefaultBtn.disabled=true;tmStatusBadge.textContent='載入預設模型中…';setTMMessage('正在讀取 '+DEFAULT_MODEL_PATH+' 的教師預設模型…','模型');try{const model=await window.tmImage.load(DEFAULT_MODEL_PATH+'model.json',DEFAULT_MODEL_PATH+'metadata.json');const {n,labels}=await installLoadedModel(model,'default');tmStatusBadge.textContent='預設模型已載入';const autoCount=Object.values(tmClassMappings).filter(a=>!['none','idle'].includes(a)).length;setTMMessage('教師預設模型載入完成，共 '+n+' 個類別'+(labels.length?'：'+labels.join('、'):'')+'。'+(autoCount?'已依剪刀／石頭／布名稱自動套用示範控制。':'類別已讀取，請在下方指定控制行為。'),'模型');updateMappingReadyState();return true}catch(err){if(tmModelSource==='none'){tmModel=null;tmClassMappings={};renderMappingEditor([]);resetPredictionUI();setModelSourceUI('none','找不到 ./default-model/ 模型檔案');tmStatusBadge.textContent='預設模型尚未放入'}setTMMessage('目前找不到教師預設模型。等你訓練完成後，把 model.json、metadata.json、weights.bin 放入 default-model 資料夾即可；學生模型上傳仍可正常使用。','模型');return false}finally{tmDefaultBtn.disabled=false}}
+ function actionForLabel(label){return tmClassMappings[String(label||'')]||'none'}
+ function actionName(a){const hit=ACTION_OPTIONS.find(x=>x[0]===a);return hit?hit[1]:'不控制'}
+ function hasControlMapping(){return Object.values(tmClassMappings).some(a=>!['none','idle'].includes(a))}
+ function updateMappingReadyState(){const ready=!!tmModel&&hasControlMapping();tmMappingStatus.textContent=!tmModel?'尚未匯入模型':ready?'控制設定完成':'請設定至少一個控制行為';tmMappingStatus.classList.toggle('ready',ready);tmStartBtn.disabled=!ready||tmRunning;if(tmModel&&!ready)setTMMessage('模型已匯入，請先在「類別 → 開／關控制」設定至少一個設備，再啟動 AI。','設定')}
+ function renderMappingEditor(labels){tmMappingList.innerHTML='';if(!labels||!labels.length){tmMappingList.innerHTML='<div class="mapping-empty">模型載入後，這裡會自動列出所有類別與控制設定。</div>';updateMappingReadyState();return}labels.forEach((label,index)=>{if(!(label in tmClassMappings))tmClassMappings[label]='none';const row=document.createElement('div');row.className='mapping-row';const info=document.createElement('div');info.className='mapping-class';const strong=document.createElement('strong');strong.textContent=label;const meta=document.createElement('span');meta.textContent='模型類別 '+(index+1);info.append(strong,meta);const select=document.createElement('select');select.setAttribute('aria-label',label+' 的控制行為');ACTION_OPTIONS.forEach(([value,name])=>{const opt=document.createElement('option');opt.value=value;opt.textContent=name;select.appendChild(opt)});select.value=tmClassMappings[label];select.addEventListener('change',()=>{tmClassMappings[label]=select.value;resetGestureCandidate();tmArmed=true;updateMappingReadyState();tmActionStatus.classList.add('wait');tmActionStatus.textContent='控制對應已更新，等待 AI 啟動／辨識。'});row.append(info,select);tmMappingList.appendChild(row)});updateMappingReadyState()}
+ function applyMappedAction(a){let result='';if(a==='light_toggle'){state.light=!state.light;result='燈光已'+(state.light?'開啟':'關閉')}else if(a==='ac_toggle'){state.ac=!state.ac;result='冷氣已'+(state.ac?'開啟':'關閉')}else if(a==='curtain_toggle'){state.curtain=!state.curtain;result='窗簾已'+(state.curtain?'關閉':'打開')}else{return}ui();tmLastAction=a;tmActionStatus.classList.remove('wait');tmActionStatus.textContent='✓ AI 已觸發：'+result+'；請先離開目前手勢或回到 Idle，再次辨識同一類別即可切回。';syncActionTitle()}
+ function resetGestureCandidate(){tmCandidate='';tmCandidateSince=0}
+ async function loadTMModel(){
+   if(!window.tmImage)throw new Error('Teachable Machine 函式庫未載入');
+   const {model,weights,metadata}=tmSelectedFiles;
+   if(!model||!weights||!metadata)throw new Error('請先選取完整模型檔案');
+   tmLoadBtn.disabled=true;tmStatusBadge.textContent='學生模型匯入中…';setTMMessage('正在從學生電腦讀取模型檔案…','模型');
+   try{
+     const loaded=await window.tmImage.loadFromFiles(model,weights,metadata);
+     const {n,labels}=await installLoadedModel(loaded,'student');
+     tmStatusBadge.textContent='學生模型已載入';setTMMessage('學生模型匯入完成，共 '+n+' 個類別'+(labels.length?'：'+labels.join('、'):'')+'。請在下方設定每一類要切換哪一個設備。','模型');updateMappingReadyState();return tmModel
+   }
+   catch(err){tmStatusBadge.textContent=tmModel?'原模型仍保留':'模型匯入失敗';setTMMessage('學生模型無法讀取。請確認選到的是同一次 Teachable Machine 匯出的 model.json、metadata.json 與 .bin 權重檔。','錯誤');throw err}
+   finally{tmLoadBtn.disabled=!(tmSelectedFiles.model&&tmSelectedFiles.metadata&&tmSelectedFiles.weights)}
+ }
+ function clearWebcamCanvas(){[...tmWebcamBox.querySelectorAll('canvas,video')].forEach(el=>el.remove());tmCameraEmpty.style.display='block'}
+ function stopTM(showMessage=true){tmRunning=false;if(tmFrameId)cancelAnimationFrame(tmFrameId);if(tmPredictTimer)clearTimeout(tmPredictTimer);tmFrameId=0;tmPredictTimer=0;tmPredicting=false;if(tmWebcam){try{tmWebcam.stop()}catch(_){ }tmWebcam=null}clearWebcamCanvas();tmSwitchBtn.disabled=true;tmStopBtn.disabled=true;tmStatusBadge.textContent=tmModel?(tmModelSource==='default'?'預設模型已載入':'學生模型已載入'):'AI 尚未啟動';tmActionStatus.classList.add('wait');tmActionStatus.textContent='AI 已停止';tmTopAction.classList.remove('blocked');tmTopAction.innerHTML='<strong>對應控制：</strong>—';resetGestureCandidate();tmArmed=true;updateMappingReadyState();if(showMessage&&tmModel)setTMMessage('已匯入的模型與類別對應仍保留，可再次啟動攝影機。','狀態')}
+ async function startTM(){
+   if(tmRunning)return;tmStartBtn.disabled=true;tmStatusBadge.textContent='AI 啟動中…';
+   try{if(!tmModel){updateMappingReadyState();tmStatusBadge.textContent='請先匯入模型';setTMMessage('尚未載入模型。請先放入教師預設模型，或選取三個學生模型檔案並按「使用學生模型」。','提醒');return}if(!hasControlMapping()){updateMappingReadyState();tmStatusBadge.textContent='請先設定控制';setTMMessage('請先替至少一個模型類別指定燈光、冷氣或窗簾的開／關切換。','提醒');return}const flip=tmFacing==='user';tmWebcam=new window.tmImage.Webcam(320,320,flip);await tmWebcam.setup({facingMode:{ideal:tmFacing}});await tmWebcam.play();tmCameraEmpty.style.display='none';const cv=tmWebcam.canvas;cv.setAttribute('aria-label','AI 手勢辨識攝影機畫面');tmWebcamBox.appendChild(cv);tmRunning=true;tmStartBtn.disabled=true;tmSwitchBtn.disabled=false;tmStopBtn.disabled=false;tmCameraChip.textContent=tmFacing==='user'?'前鏡頭':'後鏡頭';tmStatusBadge.textContent='AI 辨識中';setTMMessage('攝影機已啟動；請將手勢放在畫面中央。','狀態');tmActionStatus.classList.add('wait');tmActionStatus.textContent='等待穩定手勢（≥ 80% / 約 0.7 秒）';tmArmed=true;resetGestureCandidate();displayLoop();schedulePredict(80)}
+   catch(err){stopTM(false);tmStatusBadge.textContent='啟動失敗';setTMMessage('無法啟動。若模型存在，請確認此頁面是以 HTTPS 或 localhost 開啟並允許攝影機權限。','錯誤')}
+ }
+ function displayLoop(){if(!tmRunning||!tmWebcam)return;tmWebcam.update();tmFrameId=requestAnimationFrame(displayLoop)}
+ function schedulePredict(delay=TM_INTERVAL_MS){if(!tmRunning)return;tmPredictTimer=setTimeout(runPrediction,delay)}
+ async function runPrediction(){if(!tmRunning||!tmWebcam||!tmModel||tmPredicting){schedulePredict();return}tmPredicting=true;try{const prediction=await tmModel.predict(tmWebcam.canvas);handlePrediction(prediction)}catch(_){setTMMessage('模型推論發生錯誤，已停止 AI。','錯誤');stopTM(false);return}finally{tmPredicting=false}schedulePredict()}
+ function renderPredictions(list){const sorted=[...list].sort((a,b)=>b.probability-a.probability);tmPredictions.innerHTML='';sorted.forEach(p=>{const row=document.createElement('div');row.className='pred-row';const name=document.createElement('div');name.className='pred-name';name.textContent=p.className;const track=document.createElement('div');track.className='pred-track';const fill=document.createElement('div');fill.className='pred-fill';fill.style.width=Math.round(p.probability*100)+'%';track.appendChild(fill);const val=document.createElement('div');val.className='pred-value';val.textContent=Math.round(p.probability*100)+'%';row.append(name,track,val);tmPredictions.appendChild(row)});return sorted}
+ function handlePrediction(prediction){const sorted=renderPredictions(prediction);if(!sorted.length)return;const top=sorted[0],prob=top.probability,action=actionForLabel(top.className),now=performance.now();tmTopClass.textContent=top.className;tmTopConfidence.textContent=Math.round(prob*100)+'%';
+   const mappedName=actionName(action);
+   tmTopAction.classList.toggle('blocked',prob<TM_THRESHOLD);
+   tmTopAction.innerHTML='<strong>對應控制：</strong>'+mappedName+(prob<TM_THRESHOLD?' <span>（信心度低於 80%，不執行控制）</span>':'');tmTopAction.title=tmTopAction.textContent;
+   if(prob<TM_THRESHOLD){if(prob<TM_REARM_THRESHOLD){tmArmed=true}resetGestureCandidate();tmActionStatus.classList.add('wait');tmActionStatus.textContent='最高信心度 '+Math.round(prob*100)+'% 低於 80%，本次不執行任何控制。';return}
+   if(action==='idle'||action==='none'){tmArmed=true;resetGestureCandidate();tmActionStatus.classList.add('wait');tmActionStatus.textContent=action==='idle'?'Idle／重新待命已確認，可以做下一個手勢。':'目前最高類別設定為「不控制」，已重新待命。';return}
+   if(!tmArmed){tmActionStatus.classList.add('wait');tmActionStatus.textContent='已觸發 '+actionName(tmLastAction)+'；請先離開目前手勢、切到不控制類別或回到 Idle。';return}
+   const candidateKey=top.className+'::'+action;if(tmCandidate!==candidateKey){tmCandidate=candidateKey;tmCandidateSince=now;tmActionStatus.classList.add('wait');tmActionStatus.textContent='偵測到「'+top.className+' → '+mappedName+'」，請保持手勢…';return}
+   const held=now-tmCandidateSince;if(held>=TM_HOLD_MS){applyMappedAction(action);tmArmed=false;resetGestureCandidate()}else{tmActionStatus.classList.add('wait');tmActionStatus.textContent='保持「'+top.className+' → '+mappedName+'」… '+Math.min(100,Math.round(held/TM_HOLD_MS*100))+'%'}syncActionTitle();
+ }
+ tmModelFiles.addEventListener('change',()=>classifyModelFiles(tmModelFiles.files));
+ tmLoadBtn.addEventListener('click',()=>{loadTMModel().catch(()=>{})});
+ tmDefaultBtn.addEventListener('click',()=>{loadDefaultModel().catch(()=>{})});
+ tmStartBtn.addEventListener('click',startTM);
+ tmStopBtn.addEventListener('click',()=>stopTM(true));
+ tmSwitchBtn.addEventListener('click',async()=>{const wasRunning=tmRunning;stopTM(false);tmFacing=tmFacing==='user'?'environment':'user';tmCameraChip.textContent=tmFacing==='user'?'前鏡頭':'後鏡頭';if(wasRunning)await startTM()});
+ window.__stopTM=()=>stopTM(false);
+ window.addEventListener('pagehide',()=>stopTM(false),{once:true});
+ loadDefaultModel().catch(()=>{});
+ const ro=new ResizeObserver(([en])=>{const r=en.contentRect;renderer.setSize(Math.max(1,r.width),Math.max(1,r.height),false);camera.aspect=r.width/r.height;camera.updateProjectionMatrix()});ro.observe(stage);let disposed=false;const clock=new THREE.Clock();let lv=1,leftScale=.24,rightScale=.24,leftX=-.70,rightX=3.00;function tick(){if(disposed)return;requestAnimationFrame(tick);const dt=Math.min(.04,clock.getDelta()),k=Math.min(1,dt*4.5);lv+=(((state.light?1:0)-lv))*k;roomLight.intensity=1.0+8.2*lv;bulbMat.emissiveIntensity=.04+0.91*lv;const acTarget=state.ac?1.55:.08;panelMat.emissiveIntensity+=(acTarget-panelMat.emissiveIntensity)*.10;ledMat.emissiveIntensity+=(((state.ac?2.6:.05)-ledMat.emissiveIntensity))*0.12;ledHalo.material.opacity+=(((state.ac?.38:0)-ledHalo.material.opacity))*0.12;vent.rotation.x+=(((state.ac?-.34:0)-vent.rotation.x))*0.08;const t=performance.now()*.001;air.forEach((s,i)=>{s.visible=state.ac;if(state.ac){const ph=(t*1.1+i*.13)%1;s.position.y=2.62-ph*.78;s.position.z=-2.48+ph*.72;s.material.opacity=.05+.35*Math.sin(Math.PI*ph)}});const sc=state.curtain?1:.24;leftScale+=(sc-leftScale)*k;rightScale+=(sc-rightScale)*k;leftX+=((state.curtain?.075:-.70)-leftX)*k;rightX+=((state.curtain?2.22:3.00)-rightX)*k;leftCurtain.scale.x=leftScale;rightCurtain.scale.x=rightScale;leftCurtain.position.x=leftX;rightCurtain.position.x=rightX;renderer.render(scene,camera)}loading.classList.add('done');tick();window.addEventListener('pagehide',()=>{disposed=true;ro.disconnect();renderer.dispose();if(window.__stopTM)window.__stopTM()},{once:true});
+}catch(e){loading.textContent='3D 模組載入失敗，請確認可連線載入 Three.js。';loading.classList.add('error')}})();
+</script>
+</body></html>
