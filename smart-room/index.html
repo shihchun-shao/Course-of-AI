@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>預設模型 + 學生自訂模型 × Teachable Machine × 3D 智慧房間 v13</title>
+<title>預設模型 + 學生自訂模型 × Teachable Machine × 3D 智慧房間 v14</title>
 <style>
 :root{--bg:#f4f7fb;--card:#fff;--text:#172033;--muted:#667085;--blue:#2563eb;--line:#d9e1ec}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI","Noto Sans TC",sans-serif}
@@ -100,11 +100,11 @@
         <div class="ai-message" id="tmMessage"><strong>模型：</strong>正在嘗試載入教師預設模型；若尚未放入，也可先上傳學生自己的模型。</div>
         <div class="mapping-editor" id="tmMappingEditor">
           <div class="mapping-head">
-            <div><b>類別 → 開／關控制</b><small>模型匯入後會自動列出類別。每一類可指定控制燈光、冷氣或窗簾；同一類別可重複切換開與關。</small></div>
+            <div><b>類別 → 開／關控制</b><small>模型匯入後會自動列出類別。燈光、冷氣與窗簾各只能指定給一個模型類別；同一類別仍可重複切換該設備的開與關。</small></div>
             <span class="mapping-status" id="tmMappingStatus">尚未匯入模型</span>
           </div>
           <div class="mapping-list" id="tmMappingList"><div class="mapping-empty">模型載入後，這裡會自動列出所有類別與控制設定。</div></div>
-          <div class="mapping-note">同一類別採「切換」控制。教師預設模型若使用「剪刀／石頭／布」或 Scissors／Rock／Paper，會自動套用示範控制；手勢切換後會自動重新待命。若另有 Background／Idle 類別，也會作為不控制／重新待命使用。</div>
+          <div class="mapping-note">同一類別採「切換」控制；燈光、冷氣、窗簾三種設備控制不得重複指定，「不控制」與 Idle／重新待命可重複使用。教師預設模型若使用「剪刀／石頭／布」或 Scissors／Rock／Paper，會自動套用示範控制；手勢切換後會自動重新待命。</div>
         </div>
       </div>
     </div>
@@ -231,6 +231,7 @@ try{
    ['ac_toggle','冷氣開／關'],
    ['curtain_toggle','窗簾開／關']
  ];
+ const UNIQUE_CONTROL_ACTIONS=new Set(['light_toggle','ac_toggle','curtain_toggle']);
  function inferDefaultAction(label){const s=String(label||'').trim().toLowerCase().replace(/[\s_\-]/g,'');if(s.includes('剪刀')||s.includes('scissor'))return 'light_toggle';if(s.includes('石頭')||s==='rock'||s.includes('rockgesture'))return 'ac_toggle';if(s==='布'||s.includes('paper'))return 'curtain_toggle';if(s.includes('background')||s.includes('背景')||s.includes('idle')||s.includes('無動作')||s.includes('none')||s.includes('other'))return 'idle';return 'none'}
  function setModelSourceUI(source,detail=''){tmModelSource=source;if(source==='default'){tmModelSourceLabel.textContent='教師預設模型';tmModelSourceDetail.textContent=detail||'來源：./default-model/'}else if(source==='student'){tmModelSourceLabel.textContent='學生自訂模型';tmModelSourceDetail.textContent=detail||'來源：本機手動匯入'}else{tmModelSourceLabel.textContent='尚未載入模型';tmModelSourceDetail.textContent=detail||'可使用教師預設模型或上傳學生模型'}}
  function resetPredictionUI(){tmPredictions.innerHTML='';tmTopClass.textContent='—';tmTopConfidence.textContent='0%';tmTopAction.classList.remove('blocked');tmTopAction.innerHTML='<strong>對應控制：</strong>—';tmActionStatus.classList.add('wait');tmActionStatus.textContent='等待 AI 啟動'}
@@ -240,7 +241,9 @@ try{
  function actionName(a){const hit=ACTION_OPTIONS.find(x=>x[0]===a);return hit?hit[1]:'不控制'}
  function hasControlMapping(){return Object.values(tmClassMappings).some(a=>!['none','idle'].includes(a))}
  function updateMappingReadyState(){const ready=!!tmModel&&hasControlMapping();tmMappingStatus.textContent=!tmModel?'尚未匯入模型':ready?'控制設定完成':'請設定至少一個控制行為';tmMappingStatus.classList.toggle('ready',ready);tmStartBtn.disabled=!ready||tmRunning;if(tmModel&&!ready)setTMMessage('模型已匯入，請先在「類別 → 開／關控制」設定至少一個設備，再啟動 AI。','設定')}
- function renderMappingEditor(labels){tmMappingList.innerHTML='';if(!labels||!labels.length){tmMappingList.innerHTML='<div class="mapping-empty">模型載入後，這裡會自動列出所有類別與控制設定。</div>';updateMappingReadyState();return}labels.forEach((label,index)=>{if(!(label in tmClassMappings))tmClassMappings[label]='none';const row=document.createElement('div');row.className='mapping-row';const info=document.createElement('div');info.className='mapping-class';const strong=document.createElement('strong');strong.textContent=label;const meta=document.createElement('span');meta.textContent='模型類別 '+(index+1);info.append(strong,meta);const select=document.createElement('select');select.setAttribute('aria-label',label+' 的控制行為');ACTION_OPTIONS.forEach(([value,name])=>{const opt=document.createElement('option');opt.value=value;opt.textContent=name;select.appendChild(opt)});select.value=tmClassMappings[label];select.addEventListener('change',()=>{tmClassMappings[label]=select.value;resetGestureCandidate();tmArmed=true;updateMappingReadyState();tmActionStatus.classList.add('wait');tmActionStatus.textContent='控制對應已更新，等待 AI 啟動／辨識。'});row.append(info,select);tmMappingList.appendChild(row)});updateMappingReadyState()}
+ function enforceUniqueControlMappings(labels){const used=new Set();labels.forEach(label=>{const action=tmClassMappings[label];if(UNIQUE_CONTROL_ACTIONS.has(action)){if(used.has(action))tmClassMappings[label]='none';else used.add(action)}})}
+ function updateMappingOptionAvailability(){const selects=[...tmMappingList.querySelectorAll('select[data-mapping-label]')];selects.forEach(select=>{const label=select.dataset.mappingLabel;ACTION_OPTIONS.forEach(([value,name])=>{const opt=[...select.options].find(o=>o.value===value);if(!opt)return;if(!UNIQUE_CONTROL_ACTIONS.has(value)){opt.disabled=false;opt.textContent=name;return}const owner=Object.entries(tmClassMappings).find(([other,action])=>other!==label&&action===value);opt.disabled=!!owner;opt.textContent=owner?name+'（已使用）':name})})}
+ function renderMappingEditor(labels){tmMappingList.innerHTML='';if(!labels||!labels.length){tmMappingList.innerHTML='<div class="mapping-empty">模型載入後，這裡會自動列出所有類別與控制設定。</div>';updateMappingReadyState();return}labels.forEach(label=>{if(!(label in tmClassMappings))tmClassMappings[label]='none'});enforceUniqueControlMappings(labels);labels.forEach((label,index)=>{const row=document.createElement('div');row.className='mapping-row';const info=document.createElement('div');info.className='mapping-class';const strong=document.createElement('strong');strong.textContent=label;const meta=document.createElement('span');meta.textContent='模型類別 '+(index+1);info.append(strong,meta);const select=document.createElement('select');select.dataset.mappingLabel=label;select.setAttribute('aria-label',label+' 的控制行為');ACTION_OPTIONS.forEach(([value,name])=>{const opt=document.createElement('option');opt.value=value;opt.textContent=name;select.appendChild(opt)});select.value=tmClassMappings[label];select.addEventListener('change',()=>{const chosen=select.value;const duplicateOwner=UNIQUE_CONTROL_ACTIONS.has(chosen)?Object.entries(tmClassMappings).find(([other,action])=>other!==label&&action===chosen):null;if(duplicateOwner){select.value=tmClassMappings[label];setTMMessage('「'+actionName(chosen)+'」已指定給「'+duplicateOwner[0]+'」，每一種設備控制只能指定給一個模型類別。','設定');updateMappingOptionAvailability();return}tmClassMappings[label]=chosen;resetGestureCandidate();tmArmed=true;updateMappingOptionAvailability();updateMappingReadyState();tmActionStatus.classList.add('wait');tmActionStatus.textContent='控制對應已更新，等待 AI 啟動／辨識。'});row.append(info,select);tmMappingList.appendChild(row)});updateMappingOptionAvailability();updateMappingReadyState()}
  function applyMappedAction(a){let result='';if(a==='light_toggle'){state.light=!state.light;result='燈光已'+(state.light?'開啟':'關閉')}else if(a==='ac_toggle'){state.ac=!state.ac;result='冷氣已'+(state.ac?'開啟':'關閉')}else if(a==='curtain_toggle'){state.curtain=!state.curtain;result='窗簾已'+(state.curtain?'關閉':'打開')}else{return}ui();tmLastAction=a;tmActionStatus.classList.remove('wait');tmActionStatus.textContent='✓ AI 已觸發：'+result+'；請先換成另一個手勢，再回到原手勢即可再次切換。';syncActionTitle()}
  function resetGestureCandidate(){tmCandidate='';tmCandidateSince=0}
  async function loadTMModel(){
