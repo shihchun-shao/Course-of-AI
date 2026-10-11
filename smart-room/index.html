@@ -95,7 +95,7 @@
             <span class="mapping-status" id="tmMappingStatus">尚未匯入模型</span>
           </div>
           <div class="mapping-list" id="tmMappingList"><div class="mapping-empty">模型載入後，這裡會自動列出所有類別與控制設定。</div></div>
-          <div class="mapping-note">同一類別採「切換」控制。教師預設模型若使用「剪刀／石頭／布／背景」或 Scissors／Rock／Paper／Background，會自動套用示範控制；其他類別名稱仍會自動讀取，並可手動指定控制行為。</div>
+          <div class="mapping-note">同一類別採「切換」控制。教師預設模型若使用「剪刀／石頭／布」或 Scissors／Rock／Paper，會自動套用示範控制；手勢切換後會自動重新待命。若另有 Background／Idle 類別，也會作為不控制／重新待命使用。</div>
         </div>
       </div>
     </div>
@@ -191,7 +191,7 @@ try{
  const tmWebcamBox=document.getElementById('tmWebcamBox'),tmCameraEmpty=document.getElementById('tmCameraEmpty'),tmCameraChip=document.getElementById('tmCameraChip'),tmMessage=document.getElementById('tmMessage'),tmStatusBadge=document.getElementById('tmStatusBadge'),tmTopClass=document.getElementById('tmTopClass'),tmTopConfidence=document.getElementById('tmTopConfidence'),tmTopAction=document.getElementById('tmTopAction'),tmPredictions=document.getElementById('tmPredictions'),tmActionStatus=document.getElementById('tmActionStatus');
  const tmMappingList=document.getElementById('tmMappingList'),tmMappingStatus=document.getElementById('tmMappingStatus');
  const TM_THRESHOLD=.80,TM_HOLD_MS=700,TM_REARM_THRESHOLD=.74,TM_INTERVAL_MS=125,DEFAULT_MODEL_PATH='./default-model/';
- let tmModel=null,tmWebcam=null,tmRunning=false,tmFacing='user',tmFrameId=0,tmPredictTimer=0,tmPredicting=false,tmCandidate='',tmCandidateSince=0,tmArmed=true,tmLastAction='',tmModelSource='none';
+ let tmModel=null,tmWebcam=null,tmRunning=false,tmFacing='user',tmFrameId=0,tmPredictTimer=0,tmPredicting=false,tmCandidate='',tmCandidateSince=0,tmArmed=true,tmLastAction='',tmLastTriggeredClass='',tmReleaseSince=0,tmModelSource='none';
  let tmClassMappings={};
  function setTMMessage(msg,strong='狀態'){tmMessage.innerHTML='<strong>'+strong+'：</strong>'+msg}function syncActionTitle(){tmActionStatus.title=tmActionStatus.textContent||''}
  let tmSelectedFiles={model:null,metadata:null,weights:null};
@@ -229,7 +229,7 @@ try{
  function hasControlMapping(){return Object.values(tmClassMappings).some(a=>!['none','idle'].includes(a))}
  function updateMappingReadyState(){const ready=!!tmModel&&hasControlMapping();tmMappingStatus.textContent=!tmModel?'尚未匯入模型':ready?'控制設定完成':'請設定至少一個控制行為';tmMappingStatus.classList.toggle('ready',ready);tmStartBtn.disabled=!ready||tmRunning;if(tmModel&&!ready)setTMMessage('模型已匯入，請先在「類別 → 開／關控制」設定至少一個設備，再啟動 AI。','設定')}
  function renderMappingEditor(labels){tmMappingList.innerHTML='';if(!labels||!labels.length){tmMappingList.innerHTML='<div class="mapping-empty">模型載入後，這裡會自動列出所有類別與控制設定。</div>';updateMappingReadyState();return}labels.forEach((label,index)=>{if(!(label in tmClassMappings))tmClassMappings[label]='none';const row=document.createElement('div');row.className='mapping-row';const info=document.createElement('div');info.className='mapping-class';const strong=document.createElement('strong');strong.textContent=label;const meta=document.createElement('span');meta.textContent='模型類別 '+(index+1);info.append(strong,meta);const select=document.createElement('select');select.setAttribute('aria-label',label+' 的控制行為');ACTION_OPTIONS.forEach(([value,name])=>{const opt=document.createElement('option');opt.value=value;opt.textContent=name;select.appendChild(opt)});select.value=tmClassMappings[label];select.addEventListener('change',()=>{tmClassMappings[label]=select.value;resetGestureCandidate();tmArmed=true;updateMappingReadyState();tmActionStatus.classList.add('wait');tmActionStatus.textContent='控制對應已更新，等待 AI 啟動／辨識。'});row.append(info,select);tmMappingList.appendChild(row)});updateMappingReadyState()}
- function applyMappedAction(a){let result='';if(a==='light_toggle'){state.light=!state.light;result='燈光已'+(state.light?'開啟':'關閉')}else if(a==='ac_toggle'){state.ac=!state.ac;result='冷氣已'+(state.ac?'開啟':'關閉')}else if(a==='curtain_toggle'){state.curtain=!state.curtain;result='窗簾已'+(state.curtain?'關閉':'打開')}else{return}ui();tmLastAction=a;tmActionStatus.classList.remove('wait');tmActionStatus.textContent='✓ AI 已觸發：'+result+'；請先離開目前手勢或回到 Idle，再次辨識同一類別即可切回。';syncActionTitle()}
+ function applyMappedAction(a){let result='';if(a==='light_toggle'){state.light=!state.light;result='燈光已'+(state.light?'開啟':'關閉')}else if(a==='ac_toggle'){state.ac=!state.ac;result='冷氣已'+(state.ac?'開啟':'關閉')}else if(a==='curtain_toggle'){state.curtain=!state.curtain;result='窗簾已'+(state.curtain?'關閉':'打開')}else{return}ui();tmLastAction=a;tmActionStatus.classList.remove('wait');tmActionStatus.textContent='✓ AI 已觸發：'+result+'；請先換成另一個手勢，再回到原手勢即可再次切換。';syncActionTitle()}
  function resetGestureCandidate(){tmCandidate='';tmCandidateSince=0}
  async function loadTMModel(){
    if(!window.tmImage)throw new Error('Teachable Machine 函式庫未載入');
@@ -245,10 +245,10 @@ try{
    finally{tmLoadBtn.disabled=!(tmSelectedFiles.model&&tmSelectedFiles.metadata&&tmSelectedFiles.weights)}
  }
  function clearWebcamCanvas(){[...tmWebcamBox.querySelectorAll('canvas,video')].forEach(el=>el.remove());tmCameraEmpty.style.display='block'}
- function stopTM(showMessage=true){tmRunning=false;if(tmFrameId)cancelAnimationFrame(tmFrameId);if(tmPredictTimer)clearTimeout(tmPredictTimer);tmFrameId=0;tmPredictTimer=0;tmPredicting=false;if(tmWebcam){try{tmWebcam.stop()}catch(_){ }tmWebcam=null}clearWebcamCanvas();tmSwitchBtn.disabled=true;tmStopBtn.disabled=true;tmStatusBadge.textContent=tmModel?(tmModelSource==='default'?'預設模型已載入':'學生模型已載入'):'AI 尚未啟動';tmActionStatus.classList.add('wait');tmActionStatus.textContent='AI 已停止';tmTopAction.classList.remove('blocked');tmTopAction.innerHTML='<strong>對應控制：</strong>—';resetGestureCandidate();tmArmed=true;updateMappingReadyState();if(showMessage&&tmModel)setTMMessage('已匯入的模型與類別對應仍保留，可再次啟動攝影機。','狀態')}
+ function stopTM(showMessage=true){tmRunning=false;if(tmFrameId)cancelAnimationFrame(tmFrameId);if(tmPredictTimer)clearTimeout(tmPredictTimer);tmFrameId=0;tmPredictTimer=0;tmPredicting=false;if(tmWebcam){try{tmWebcam.stop()}catch(_){ }tmWebcam=null}clearWebcamCanvas();tmSwitchBtn.disabled=true;tmStopBtn.disabled=true;tmStatusBadge.textContent=tmModel?(tmModelSource==='default'?'預設模型已載入':'學生模型已載入'):'AI 尚未啟動';tmActionStatus.classList.add('wait');tmActionStatus.textContent='AI 已停止';tmTopAction.classList.remove('blocked');tmTopAction.innerHTML='<strong>對應控制：</strong>—';resetGestureCandidate();tmArmed=true;tmLastTriggeredClass='';tmReleaseSince=0;updateMappingReadyState();if(showMessage&&tmModel)setTMMessage('已匯入的模型與類別對應仍保留，可再次啟動攝影機。','狀態')}
  async function startTM(){
    if(tmRunning)return;tmStartBtn.disabled=true;tmStatusBadge.textContent='AI 啟動中…';
-   try{if(!tmModel){updateMappingReadyState();tmStatusBadge.textContent='請先匯入模型';setTMMessage('尚未載入模型。請先放入教師預設模型，或選取三個學生模型檔案並按「使用學生模型」。','提醒');return}if(!hasControlMapping()){updateMappingReadyState();tmStatusBadge.textContent='請先設定控制';setTMMessage('請先替至少一個模型類別指定燈光、冷氣或窗簾的開／關切換。','提醒');return}const flip=tmFacing==='user';tmWebcam=new window.tmImage.Webcam(320,320,flip);await tmWebcam.setup({facingMode:{ideal:tmFacing}});await tmWebcam.play();tmCameraEmpty.style.display='none';const cv=tmWebcam.canvas;cv.setAttribute('aria-label','AI 手勢辨識攝影機畫面');tmWebcamBox.appendChild(cv);tmRunning=true;tmStartBtn.disabled=true;tmSwitchBtn.disabled=false;tmStopBtn.disabled=false;tmCameraChip.textContent=tmFacing==='user'?'前鏡頭':'後鏡頭';tmStatusBadge.textContent='AI 辨識中';setTMMessage('攝影機已啟動；請將手勢放在畫面中央。','狀態');tmActionStatus.classList.add('wait');tmActionStatus.textContent='等待穩定手勢（≥ 80% / 約 0.7 秒）';tmArmed=true;resetGestureCandidate();displayLoop();schedulePredict(80)}
+   try{if(!tmModel){updateMappingReadyState();tmStatusBadge.textContent='請先匯入模型';setTMMessage('尚未載入模型。請先放入教師預設模型，或選取三個學生模型檔案並按「使用學生模型」。','提醒');return}if(!hasControlMapping()){updateMappingReadyState();tmStatusBadge.textContent='請先設定控制';setTMMessage('請先替至少一個模型類別指定燈光、冷氣或窗簾的開／關切換。','提醒');return}const flip=tmFacing==='user';tmWebcam=new window.tmImage.Webcam(320,320,flip);await tmWebcam.setup({facingMode:{ideal:tmFacing}});await tmWebcam.play();tmCameraEmpty.style.display='none';const cv=tmWebcam.canvas;cv.setAttribute('aria-label','AI 手勢辨識攝影機畫面');tmWebcamBox.appendChild(cv);tmRunning=true;tmStartBtn.disabled=true;tmSwitchBtn.disabled=false;tmStopBtn.disabled=false;tmCameraChip.textContent=tmFacing==='user'?'前鏡頭':'後鏡頭';tmStatusBadge.textContent='AI 辨識中';setTMMessage('攝影機已啟動；請將手勢放在畫面中央。','狀態');tmActionStatus.classList.add('wait');tmActionStatus.textContent='等待穩定手勢（≥ 80% / 約 0.7 秒）';tmArmed=true;tmLastTriggeredClass='';tmReleaseSince=0;resetGestureCandidate();displayLoop();schedulePredict(80)}
    catch(err){stopTM(false);tmStatusBadge.textContent='啟動失敗';setTMMessage('無法啟動。若模型存在，請確認此頁面是以 HTTPS 或 localhost 開啟並允許攝影機權限。','錯誤')}
  }
  function displayLoop(){if(!tmRunning||!tmWebcam)return;tmWebcam.update();tmFrameId=requestAnimationFrame(displayLoop)}
@@ -259,11 +259,19 @@ try{
    const mappedName=actionName(action);
    tmTopAction.classList.toggle('blocked',prob<TM_THRESHOLD);
    tmTopAction.innerHTML='<strong>對應控制：</strong>'+mappedName+(prob<TM_THRESHOLD?' <span>（信心度低於 80%，不執行控制）</span>':'');tmTopAction.title=tmTopAction.textContent;
-   if(prob<TM_THRESHOLD){if(prob<TM_REARM_THRESHOLD){tmArmed=true}resetGestureCandidate();tmActionStatus.classList.add('wait');tmActionStatus.textContent='最高信心度 '+Math.round(prob*100)+'% 低於 80%，本次不執行任何控制。';return}
-   if(action==='idle'||action==='none'){tmArmed=true;resetGestureCandidate();tmActionStatus.classList.add('wait');tmActionStatus.textContent=action==='idle'?'Idle／重新待命已確認，可以做下一個手勢。':'目前最高類別設定為「不控制」，已重新待命。';return}
-   if(!tmArmed){tmActionStatus.classList.add('wait');tmActionStatus.textContent='已觸發 '+actionName(tmLastAction)+'；請先離開目前手勢、切到不控制類別或回到 Idle。';return}
+   if(prob<TM_THRESHOLD){if(prob<TM_REARM_THRESHOLD){tmArmed=true;tmLastTriggeredClass='';tmReleaseSince=0}resetGestureCandidate();tmActionStatus.classList.add('wait');tmActionStatus.textContent='最高信心度 '+Math.round(prob*100)+'% 低於 80%，本次不執行任何控制。';return}
+   if(action==='idle'||action==='none'){tmArmed=true;tmLastTriggeredClass='';tmReleaseSince=0;resetGestureCandidate();tmActionStatus.classList.add('wait');tmActionStatus.textContent=action==='idle'?'Idle／重新待命已確認，可以做下一個手勢。':'目前最高類別設定為「不控制」，已重新待命。';return}
+   if(!tmArmed){
+     if(top.className!==tmLastTriggeredClass){
+       if(!tmReleaseSince)tmReleaseSince=now;
+       const releaseHeld=now-tmReleaseSince;
+       if(releaseHeld>=250){tmArmed=true;tmReleaseSince=0;resetGestureCandidate();tmActionStatus.classList.add('wait');tmActionStatus.textContent='已切換到「'+top.className+'」，控制已重新待命；請保持手勢以執行 '+mappedName+'。';return}
+       tmActionStatus.classList.add('wait');tmActionStatus.textContent='偵測到手勢已切換，正在重新待命…';return
+     }
+     tmReleaseSince=0;tmActionStatus.classList.add('wait');tmActionStatus.textContent='「'+top.className+'」已觸發過；請先換成另一個手勢，再回來即可再次切換。';return
+   }
    const candidateKey=top.className+'::'+action;if(tmCandidate!==candidateKey){tmCandidate=candidateKey;tmCandidateSince=now;tmActionStatus.classList.add('wait');tmActionStatus.textContent='偵測到「'+top.className+' → '+mappedName+'」，請保持手勢…';return}
-   const held=now-tmCandidateSince;if(held>=TM_HOLD_MS){applyMappedAction(action);tmArmed=false;resetGestureCandidate()}else{tmActionStatus.classList.add('wait');tmActionStatus.textContent='保持「'+top.className+' → '+mappedName+'」… '+Math.min(100,Math.round(held/TM_HOLD_MS*100))+'%'}syncActionTitle();
+   const held=now-tmCandidateSince;if(held>=TM_HOLD_MS){tmLastTriggeredClass=top.className;applyMappedAction(action);tmArmed=false;tmReleaseSince=0;resetGestureCandidate()}else{tmActionStatus.classList.add('wait');tmActionStatus.textContent='保持「'+top.className+' → '+mappedName+'」… '+Math.min(100,Math.round(held/TM_HOLD_MS*100))+'%'}syncActionTitle();
  }
  tmModelFiles.addEventListener('change',()=>classifyModelFiles(tmModelFiles.files));
  tmLoadBtn.addEventListener('click',()=>{loadTMModel().catch(()=>{})});
