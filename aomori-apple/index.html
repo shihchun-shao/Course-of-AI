@@ -71,6 +71,7 @@ button.secondary{background:#475569}button:disabled{opacity:.5;cursor:not-allowe
 .unit-card .topline{display:flex;align-items:center;justify-content:space-between;gap:10px}.unit-card .num{font-size:12px;font-weight:950;color:#1d4ed8;background:#dbeafe;padding:5px 8px;border-radius:999px}.unit-card .status{font-size:11px;font-weight:900;color:#166534;background:#dcfce7;padding:5px 8px;border-radius:999px}.unit-card .status.build{color:#92400e;background:#fef3c7}
 .unit-card h3{margin:13px 0 7px;font-size:20px}.unit-card p{margin:0;color:var(--muted);font-size:14px;line-height:1.65}.tech{margin-top:12px;font-size:12px;font-weight:850;color:#475569}.unit-card .go{margin-top:auto;padding-top:16px}.go a,.go span{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:10px 14px;border-radius:10px;font-weight:900;text-decoration:none;font-size:14px}.go a{background:var(--blue);color:#fff}.go span{background:#e2e8f0;color:#64748b}
 .unit-card.wide{grid-column:1/-1}
+.unit-card.material-card{border-color:#c4b5fd;background:linear-gradient(135deg,#ffffff 0%,#faf5ff 100%)}.unit-card.material-card .num{color:#6d28d9;background:#ede9fe}.unit-card.material-card .go a{background:var(--purple)}
 .flow-strip{margin-top:18px;display:grid;grid-template-columns:repeat(9,auto);justify-content:center;align-items:center;gap:8px;color:#64748b;font-size:12px;font-weight:850}.flow-node{padding:7px 9px;border-radius:999px;background:#fff;border:1px solid var(--line);color:#334155}.flow-arrow{color:#94a3b8;font-size:16px}
 footer{margin-top:28px;background:#fff;border-top:1px solid var(--line);padding:22px;text-align:center;color:var(--muted);font-size:13px;line-height:1.8}
 @media(max-width:900px){
@@ -116,8 +117,8 @@ footer{margin-top:28px;background:#fff;border-top:1px solid var(--line);padding:
           <b>蘋果偵測與數量統計</b>
           <small>Object Detection · Batch Intake</small>
           <div class="station-output" id="outputUnit1">Apple × 5</div>
-          <div class="intake-zone" aria-label="UNIT 01 共有五顆待檢蘋果">
-            <div class="intake-label">進料區｜5 顆待檢蘋果</div>
+          <div class="intake-zone" id="intakeZone" aria-label="UNIT 01 進料區目前有 5 顆待檢蘋果">
+            <div class="intake-label" id="intakeLabel">進料區｜5 顆待檢蘋果</div>
             <div class="intake-apples">
               <span class="intake-apple" data-apple="0"></span>
               <span class="intake-apple" data-apple="1"></span>
@@ -222,6 +223,14 @@ footer{margin-top:28px;background:#fff;border-top:1px solid var(--line);padding:
       <div class="tech">System Integration · Decision Logic · Smart Sorting</div>
       <div class="go"><a href="./unit05/">進入 UNIT 05</a></div>
     </article>
+
+    <article class="unit-card wide material-card">
+      <div class="topline"><span class="num">使用教材</span></div>
+      <h3>指定教材影像</h3>
+      <p>查看各站課程使用的指定教材照片，可直接下載原始高解析度影像，列印後搭配攝影機進行實際檢測。</p>
+      <div class="tech">Teaching Materials · Print · Camera Detection</div>
+      <div class="go"><a href="./materials/">查看與下載教材</a></div>
+    </article>
   </section>
 </main>
 
@@ -233,6 +242,8 @@ footer{margin-top:28px;background:#fff;border-top:1px solid var(--line);padding:
   const stations = Array.from(document.querySelectorAll('.station'));
   const intakeApples = Array.from(document.querySelectorAll('.intake-apple'));
   const intakeWrap = document.querySelector('.intake-apples');
+  const intakeLabel = document.getElementById('intakeLabel');
+  const intakeZone = document.getElementById('intakeZone');
   const runner = document.getElementById('appleRunner');
   const stage = document.getElementById('productionStage');
   const belt = document.querySelector('.belt');
@@ -355,6 +366,10 @@ footer{margin-top:28px;background:#fff;border-top:1px solid var(--line);padding:
       el.classList.toggle('done',done);
       el.classList.toggle('processing',processing);
     });
+
+    const remaining = intakeApples.reduce((count, el) => count + (el.classList.contains('done') ? 0 : 1), 0);
+    if(intakeLabel) intakeLabel.textContent = `進料區｜${remaining} 顆待檢蘋果`;
+    if(intakeZone) intakeZone.setAttribute('aria-label', `UNIT 01 進料區目前有 ${remaining} 顆待檢蘋果`);
   }
 
   function setOutputs(phase){
