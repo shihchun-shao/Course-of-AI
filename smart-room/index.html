@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>預設模型 + 學生自訂模型 × Teachable Machine × 3D 智慧房間 v14</title>
+<title>預設模型 + 學生自訂模型 × Teachable Machine × 3D 智慧房間 v15</title>
 <style>
 :root{--bg:#f4f7fb;--card:#fff;--text:#172033;--muted:#667085;--blue:#2563eb;--line:#d9e1ec}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI","Noto Sans TC",sans-serif}
@@ -261,10 +261,48 @@ try{
  }
  function clearWebcamCanvas(){[...tmWebcamBox.querySelectorAll('canvas,video')].forEach(el=>el.remove());tmCameraEmpty.style.display='block'}
  function stopTM(showMessage=true){tmRunning=false;if(tmFrameId)cancelAnimationFrame(tmFrameId);if(tmPredictTimer)clearTimeout(tmPredictTimer);tmFrameId=0;tmPredictTimer=0;tmPredicting=false;if(tmWebcam){try{tmWebcam.stop()}catch(_){ }tmWebcam=null}clearWebcamCanvas();tmSwitchBtn.disabled=true;tmStopBtn.disabled=true;tmStatusBadge.textContent=tmModel?(tmModelSource==='default'?'預設模型已載入':'學生模型已載入'):'AI 尚未啟動';tmActionStatus.classList.add('wait');tmActionStatus.textContent='AI 已停止';tmTopAction.classList.remove('blocked');tmTopAction.innerHTML='<strong>對應控制：</strong>—';resetGestureCandidate();tmArmed=true;tmLastTriggeredClass='';tmReleaseSince=0;updateMappingReadyState();if(showMessage&&tmModel)setTMMessage('已匯入的模型與類別對應仍保留，可再次啟動攝影機。','狀態')}
+ function cameraErrorMessage(err){
+   const name=String(err?.name||'');
+   if(!window.isSecureContext&&location.hostname!=='localhost'&&location.hostname!=='127.0.0.1')return '目前頁面不是安全連線。攝影機需要 HTTPS 或 localhost 才能使用。';
+   if(name==='NotAllowedError'||name==='PermissionDeniedError'||name==='SecurityError')return '攝影機權限被拒絕。請在瀏覽器網址列的網站權限中允許使用攝影機後，再重新啟動。';
+   if(name==='NotFoundError'||name==='DevicesNotFoundError')return '找不到可使用的攝影機。請確認攝影機已連接，或裝置上有可用鏡頭。';
+   if(name==='NotReadableError'||name==='TrackStartError')return '攝影機目前無法讀取，可能正被 Teams、Meet、相機程式或其他分頁占用。請關閉其他使用攝影機的程式後再試。';
+   if(name==='OverconstrainedError'||name==='ConstraintNotSatisfiedError')return '目前鏡頭不支援指定的前／後鏡頭條件，已嘗試相容模式但仍無法開啟。';
+   if(name==='AbortError')return '攝影機啟動被中斷，請再按一次「啟動 AI 攝影機」。';
+   const detail=String(err?.message||name||'未知錯誤').trim();
+   return '攝影機啟動失敗'+(detail?'（'+detail+'）':'')+'。';
+ }
+ async function createTMWebcam(){
+   if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw new Error('此瀏覽器不支援 getUserMedia 攝影機介面');
+   const flip=tmFacing==='user';
+   const attempts=tmFacing==='environment'?[{facingMode:'environment'},{facingMode:{ideal:'environment'}},{}]:[{facingMode:'user'},{}];
+   let lastErr=null;
+   for(const options of attempts){
+     const cam=new window.tmImage.Webcam(320,320,flip);
+     try{
+       await cam.setup(options);
+       if(cam.webcam){cam.webcam.setAttribute('playsinline','');cam.webcam.muted=true}
+       await cam.play();
+       return cam;
+     }catch(err){
+       lastErr=err;
+       try{cam.stop()}catch(_){ }
+       const n=String(err?.name||'');
+       if(n==='NotAllowedError'||n==='PermissionDeniedError'||n==='SecurityError'||n==='NotFoundError'||n==='DevicesNotFoundError'||n==='NotReadableError'||n==='TrackStartError')break;
+     }
+   }
+   throw lastErr||new Error('攝影機初始化失敗');
+ }
  async function startTM(){
    if(tmRunning)return;tmStartBtn.disabled=true;tmStatusBadge.textContent='AI 啟動中…';
-   try{if(!tmModel){updateMappingReadyState();tmStatusBadge.textContent='請先匯入模型';setTMMessage('尚未載入模型。請先放入教師預設模型，或選取三個學生模型檔案並按「使用學生模型」。','提醒');return}if(!hasControlMapping()){updateMappingReadyState();tmStatusBadge.textContent='請先設定控制';setTMMessage('請先替至少一個模型類別指定燈光、冷氣或窗簾的開／關切換。','提醒');return}const flip=tmFacing==='user';tmWebcam=new window.tmImage.Webcam(320,320,flip);await tmWebcam.setup({facingMode:{ideal:tmFacing}});await tmWebcam.play();tmCameraEmpty.style.display='none';const cv=tmWebcam.canvas;cv.setAttribute('aria-label','AI 手勢辨識攝影機畫面');tmWebcamBox.appendChild(cv);tmRunning=true;tmStartBtn.disabled=true;tmSwitchBtn.disabled=false;tmStopBtn.disabled=false;tmCameraChip.textContent=tmFacing==='user'?'前鏡頭':'後鏡頭';tmStatusBadge.textContent='AI 辨識中';setTMMessage('攝影機已啟動；請將手勢放在畫面中央。','狀態');tmActionStatus.classList.add('wait');tmActionStatus.textContent='等待穩定手勢（≥ '+thresholdPercent()+'% / 約 0.7 秒）';tmArmed=true;tmLastTriggeredClass='';tmReleaseSince=0;resetGestureCandidate();displayLoop();schedulePredict(80)}
-   catch(err){stopTM(false);tmStatusBadge.textContent='啟動失敗';setTMMessage('無法啟動。若模型存在，請確認此頁面是以 HTTPS 或 localhost 開啟並允許攝影機權限。','錯誤')}
+   try{
+     if(!tmModel){updateMappingReadyState();tmStatusBadge.textContent='請先匯入模型';setTMMessage('尚未載入模型。請先放入教師預設模型，或選取三個學生模型檔案並按「使用學生模型」。','提醒');return}
+     if(!hasControlMapping()){updateMappingReadyState();tmStatusBadge.textContent='請先設定控制';setTMMessage('請先替至少一個模型類別指定燈光、冷氣或窗簾的開／關切換。','提醒');return}
+     tmWebcam=await createTMWebcam();
+     tmCameraEmpty.style.display='none';const cv=tmWebcam.canvas;cv.setAttribute('aria-label','AI 手勢辨識攝影機畫面');tmWebcamBox.appendChild(cv);tmRunning=true;tmStartBtn.disabled=true;tmSwitchBtn.disabled=false;tmStopBtn.disabled=false;tmCameraChip.textContent=tmFacing==='user'?'前鏡頭':'後鏡頭';tmStatusBadge.textContent='AI 辨識中';setTMMessage('攝影機已啟動；請將手勢放在畫面中央。','狀態');tmActionStatus.classList.add('wait');tmActionStatus.textContent='等待穩定手勢（≥ '+thresholdPercent()+'% / 約 0.7 秒）';tmArmed=true;tmLastTriggeredClass='';tmReleaseSince=0;resetGestureCandidate();displayLoop();schedulePredict(80)
+   }catch(err){
+     const msg=cameraErrorMessage(err);stopTM(false);tmStatusBadge.textContent='啟動失敗';setTMMessage(msg,'錯誤');console.error('TM webcam start failed:',err)
+   }
  }
  function displayLoop(){if(!tmRunning||!tmWebcam)return;tmWebcam.update();tmFrameId=requestAnimationFrame(displayLoop)}
  function schedulePredict(delay=TM_INTERVAL_MS){if(!tmRunning)return;tmPredictTimer=setTimeout(runPrediction,delay)}
