@@ -1,1 +1,1 @@
-{"tfjsVersion":"1.7.4","tmVersion":"2.4.17","packageVersion":"0.8.4-alpha2","packageName":"@teachablemachine/image","timeStamp":"2026-10-11T03:40:54.147Z","userMetadata":{},"modelName":"tm-my-image-model","labels":["讚","布","6","背景"],"imageSize":224}
+{"tfjsVersion":"1.7.4","tmVersion":"2.4.17","packageVersion":"0.8.4-alpha2","packageName":"@teachablemachine/image","timeStamp":"2026-10-14T02:39:53.712Z","userMetadata":{},"modelName":"tm-my-image-model","labels":["剪刀","石頭","布","背景"],"imageSize":224}
