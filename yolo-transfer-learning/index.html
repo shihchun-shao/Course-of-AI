@@ -17,6 +17,16 @@
 .steps{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.step-card{position:relative;display:flex;gap:16px;min-height:186px;padding:20px;background:#fff;border:1px solid var(--line);border-radius:17px;text-decoration:none;color:inherit;box-shadow:0 5px 17px #18345a08;transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease;overflow:hidden}.step-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--accent)}.step-card:hover{transform:translateY(-2px);box-shadow:0 12px 28px #18345a12;border-color:#afc4df}.step-card.s1{--accent:var(--blue)}.step-card.s2{--accent:var(--green)}.step-card.s3{--accent:var(--purple)}.step-card.s4{--accent:var(--orange)}.step-mark{flex:0 0 56px;height:56px;border-radius:15px;background:color-mix(in srgb,var(--accent) 10%,white);color:var(--accent);display:grid;place-items:center;font-size:20px;font-weight:950}.step-copy{min-width:0;display:flex;flex-direction:column}.step-no{font-size:11px;letter-spacing:.1em;font-weight:900;color:var(--accent)}.step-copy h3{margin:3px 0 5px;font-size:19px;line-height:1.35}.step-copy p{margin:0;color:var(--muted);font-size:13px;line-height:1.65}.step-action{margin-top:auto;padding-top:13px;color:var(--accent);font-size:13px;font-weight:900}.tip{margin-top:18px;padding:14px 16px;border:1px solid #d5e7f4;background:#f4fbff;border-radius:12px;color:#47627f;font-size:13px;line-height:1.75}.tip strong{color:#244766}.footer{margin-top:24px;text-align:center;color:#8090a5;font-size:12px}
 @media(max-width:720px){.wrap{padding:12px 14px 30px}.hero{padding:22px 18px}.process{padding:18px 12px}.rail,.flow-pack{display:none}.stations{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:18px}.station-icon{width:70px;height:70px;border-radius:19px}.steps{grid-template-columns:1fr}.step-card{min-height:160px;padding:17px}.section-title{font-size:20px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition:none!important}.photo-pack{left:25.5%;opacity:1!important;animation:none!important}.annotated-pack{left:50.5%;opacity:1!important;animation:none!important}.colab-pack{left:75.5%;opacity:1!important;animation:none!important}}
+
+/* 教材下載：沿用原頁配色，僅新增此區塊 */
+.learning-downloads{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-top:18px;padding:18px 20px;background:var(--card);border:1px solid var(--line);border-radius:17px}
+.learning-downloads h2{margin:0;font-size:18px;color:var(--text)}
+.learning-downloads p{margin:6px 0 0;font-size:14px;color:var(--muted);line-height:1.6}
+.learning-download-actions{display:flex;gap:10px;flex-wrap:wrap}
+.learning-download-actions a{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:10px 16px;border:1px solid var(--blue);border-radius:10px;color:var(--blue);background:#f2f7ff;text-decoration:none;font-size:14px;font-weight:700}
+.learning-download-actions a:last-child{border-color:var(--purple);color:var(--purple);background:#f7f4ff}
+.learning-download-actions a:hover{filter:brightness(.95)}
+.learning-download-actions a:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
 </style>
 </head>
 <body>
@@ -57,6 +67,13 @@
     <a class="step-card s4" href="./step4.html">
       <div class="step-mark">04</div><div class="step-copy"><span class="step-no">STEP 4｜BROWSER INFERENCE</span><h3>匯入 ONNX 與攝影機測試</h3><p>載入自己訓練的 ONNX 模型，啟動攝影機觀察即時偵測框、類別與信心度。</p><span class="step-action">進入模型測試 →</span></div>
     </a>
+  </section>
+  <section class="learning-downloads" aria-labelledby="learning-download-title">
+    <div><h2 id="learning-download-title">STEP 3｜訓練教材下載</h2><p>下載操作本後上傳至 Google Colab，搭配教學 PDF 完成訓練。</p></div>
+    <div class="learning-download-actions">
+      <a href="./客製化YOLO.ipynb" download="客製化YOLO.ipynb">↓ 下載 Colab 操作本（.ipynb）</a>
+      <a href="./colab客製化YOLO.pdf" download="colab客製化YOLO.pdf">↓ 下載教學 PDF</a>
+    </div>
   </section>
   <div class="tip"><strong>遷移式學習的重點：</strong>模型先從大量資料學到一般影像特徵，再利用少量自訂影像微調，讓它適應新的物件類別。請讓照片涵蓋不同角度、距離、背景與光線，避免訓練資料都很相似。</div>
   <footer class="footer">AI 工程素養互動教學平台｜大安高工控制科邵時俊老師製作</footer>
