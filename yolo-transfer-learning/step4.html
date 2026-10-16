@@ -2,28 +2,33 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>STEP 4｜ONNX 攝影機測試・效能優化版</title>
+<title>STEP 4｜ONNX 攝影機測試・示範與多類別版</title>
 <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.22.0/dist/ort.webgpu.min.js"></script>
 <style>
 :root{--bg:#f4f7fb;--card:#fff;--text:#172033;--muted:#667085;--blue:#2563eb;--green:#15803d;--red:#dc2626;--line:#d9e1ec;--navy:#0b1020}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.55 system-ui,-apple-system,"Segoe UI","Noto Sans TC",sans-serif}header{background:#fff;border-bottom:1px solid var(--line);padding:16px 22px}.head,main,footer{max-width:1200px;margin:auto}.back{font-size:13px;font-weight:800;color:#52637c;text-decoration:none}.badge{display:inline-block;margin-top:14px;padding:5px 10px;background:#fff7ed;color:#a8520a;border-radius:99px;font-size:11px;font-weight:900;letter-spacing:.06em}h1{font-size:28px;line-height:1.25;margin:7px 0}.sub{margin:0;color:var(--muted)}main{padding:20px;display:grid;grid-template-columns:minmax(0,1.3fr) minmax(300px,.8fr);gap:18px;align-items:start}.card{background:var(--card);border:1px solid var(--line);border-radius:17px;box-shadow:0 5px 18px #1720330a;overflow:hidden}.cardhead{padding:15px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:12px}.cardhead h2{margin:0;font-size:17px}.status{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:7px}.dot{width:8px;height:8px;background:#98a2b3;border-radius:50%}.dot.ok{background:#16a34a}.dot.err{background:#dc2626}.stagewrap{padding:14px}.stage{position:relative;width:100%;aspect-ratio:4/3;overflow:hidden;background:var(--navy);border-radius:13px;display:grid;place-items:center;color:#dce6f5}.stage video,.stage canvas{position:absolute;inset:0;width:100%;height:100%}.stage video{object-fit:fill;display:none}.stage canvas{pointer-events:none}.placeholder{z-index:1;text-align:center;color:#bac7dc;padding:18px}.placeholder b{display:block;color:#fff;font-size:17px;margin-bottom:4px}.overlaytag{position:absolute;z-index:2;left:10px;top:10px;padding:4px 9px;background:#07111dcc;border-radius:99px;color:#fff;font-size:11px}.metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;padding:0 14px 14px}.metric{background:#f5f8fc;border:1px solid #e8edf4;border-radius:10px;padding:9px 11px}.metric small{display:block;color:var(--muted);font-size:11px}.metric strong{font-size:19px}.controls{padding:16px 18px}.controls label{display:block;font-weight:800;font-size:13px;margin:13px 0 5px}.controls input[type=file],.controls textarea,.controls select{width:100%;font:inherit;padding:9px 10px;border:1px solid var(--line);border-radius:9px;background:#fff}.controls textarea{min-height:66px;resize:vertical}.hint{color:var(--muted);font-size:11px;margin:5px 0 0}.row{display:flex;gap:8px;flex-wrap:wrap}.btn{border:0;border-radius:9px;padding:9px 12px;font:inherit;font-weight:800;cursor:pointer}.btn:disabled{opacity:.48;cursor:not-allowed}.primary{color:#fff;background:var(--blue)}.danger{color:#a92332;background:#fff0f0;border:1px solid #f4cbd0}.secondary{color:#263951;background:#edf2f8}.range{display:flex;align-items:center;gap:10px}.range input{flex:1}.pill{background:#edf4ff;color:#174ca9;padding:3px 8px;border-radius:20px;font-size:12px;font-weight:800}.notice{margin-top:13px;padding:10px 11px;border-radius:10px;background:#f0f8ff;color:#3e5c7a;font-size:12px;line-height:1.65}.error{color:#b42332;font-size:12px;white-space:pre-line;margin-top:9px}.backrow{padding:0 18px 16px}.backrow a{color:var(--blue);font-weight:800;text-decoration:none;font-size:13px}footer{text-align:center;color:#8290a4;font-size:12px;padding:0 20px 22px}
+.classLegend{display:flex;flex-wrap:wrap;gap:8px;padding:0 14px 14px}.classLegend:empty{display:none}.classChip{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:#344054;overflow-wrap:anywhere}.classSwatch{width:12px;height:12px;border-radius:3px;flex:none}
 @media(max-width:820px){main{grid-template-columns:1fr;padding:14px}.cardhead{padding:13px 15px}.controls{padding:14px 15px}header{padding:14px}.head,main,footer{max-width:100%}}
 </style>
 </head>
 <body>
-<header><div class="head"><a class="back" href="./">← 回 UNIT 07 流程頁</a><div><span class="badge">STEP 4 · ONNX INFERENCE</span><h1>匯入模型與攝影機測試</h1><p class="sub">把 Colab 訓練完成的 YOLO 模型匯出為 ONNX，再用攝影機測試；支援單一或多個物件類別。</p></div></div></header>
+<header><div class="head"><a class="back" href="./">← 回 UNIT 07 流程頁</a><div><span class="badge">STEP 4 · ONNX INFERENCE</span><h1>匯入模型與攝影機測試</h1><p class="sub">使用示範模型，或上傳自己訓練的 ONNX 模型，用攝影機測試單一或多個物件類別。</p></div></div></header>
 <main>
   <section class="card">
-    <div class="cardhead"><h2>即時偵測畫面</h2><div class="status"><i class="dot" id="dot"></i><span id="status">請先匯入 ONNX 模型</span></div></div>
-    <div class="stagewrap"><div class="stage" id="stage"><div class="overlaytag" id="overlayTag">YOLO · 尚未載入</div><div class="placeholder" id="placeholder"><b>等待模型</b>請在右側選擇 .onnx 檔案</div><video id="video" autoplay muted playsinline></video><canvas id="canvas"></canvas></div></div>
+    <div class="cardhead"><h2>即時偵測畫面</h2><div class="status"><i class="dot" id="dot"></i><span id="status">請先載入示範或上傳 ONNX 模型</span></div></div>
+    <div class="stagewrap"><div class="stage" id="stage"><div class="overlaytag" id="overlayTag">YOLO · 尚未載入</div><div class="placeholder" id="placeholder"><b>等待模型</b>請在右側載入示範或上傳 .onnx 檔案</div><video id="video" autoplay muted playsinline></video><canvas id="canvas"></canvas></div></div>
     <div class="metrics"><div class="metric"><small>偵測物件</small><strong id="count">0</strong></div><div class="metric"><small>最高信心度</small><strong id="confidence">—</strong></div><div class="metric"><small>模型推論時間</small><strong id="latency">—</strong></div><div class="metric"><small>實際偵測 FPS</small><strong id="fps">—</strong></div></div>
+    <div class="classLegend" id="classLegend" aria-label="類別顏色對照"></div>
   </section>
   <aside class="card">
     <div class="cardhead"><h2>模型與攝影機設定</h2></div>
     <div class="controls">
-      <label for="modelFile">1. 選擇 Colab 匯出的 ONNX 模型</label><input id="modelFile" type="file" accept=".onnx,application/octet-stream">
+      <label>1. 選擇模型來源</label>
+      <button class="btn primary" id="loadDemo" type="button">載入示範模型</button>
+      <p class="hint">示範類別：布（papers）、剪刀（scissors）。載入後再啟動攝影機。</p>
+      <label for="modelFile">或上傳自己的 ONNX 模型</label><input id="modelFile" type="file" accept=".onnx,application/octet-stream">
       <p class="hint" id="modelName">尚未選擇模型（建議使用 nano／n 等級、輸入尺寸 640 的 ONNX）</p>
-      <label for="classes">2. 輸入類別名稱與順序（可單類或多類）</label><textarea id="classes" placeholder="每行一個類別，例如：&#10;scissors_hand&#10;red_apple"></textarea>
+      <label for="classes">2. 類別名稱（自動讀取，可修改）</label><textarea id="classes" placeholder="每行一個類別，例如：&#10;scissors_hand&#10;red_apple"></textarea>
       <p class="hint" id="classHint">只有一類就輸入一行；多類時每行輸入一類，順序須和訓練資料一致。載入 ONNX 後會自動讀取模型內的類別名稱；若模型未保存名稱，可從資料集的 classes.txt 複製。</p>
       <label for="threshold">信心度門檻</label><div class="range"><input id="threshold" type="range" min="0.10" max="0.90" step="0.05" value="0.35"><span class="pill" id="thresholdValue">0.35</span></div>
       <label for="interval">偵測更新間隔</label><div class="range"><input id="interval" type="range" min="50" max="500" step="50" value="100"><span class="pill" id="intervalValue">100 ms</span></div>
@@ -45,6 +50,7 @@ const proc=document.createElement('canvas');proc.width=SIDE;proc.height=SIDE;con
 const modelFile=document.getElementById('modelFile'),classInput=document.getElementById('classes'),classHint=document.getElementById('classHint'),startBtn=document.getElementById('start'),stopBtn=document.getElementById('stop'),switchBtn=document.getElementById('switch'),cameraSelect=document.getElementById('camera');
 const statusEl=document.getElementById('status'),dot=document.getElementById('dot'),placeholder=document.getElementById('placeholder'),stage=document.getElementById('stage'),overlayTag=document.getElementById('overlayTag'),errorEl=document.getElementById('error'),threshold=document.getElementById('threshold');
 let session=null,stream=null,running=false,raf=0,busy=false,lastInfer=0,geometry=null,cameras=[];
+const demoBtn=document.getElementById('loadDemo'),classLegend=document.getElementById('classLegend');
 const inputBuffer=new Float32Array(SIDE*SIDE*3), interval=document.getElementById('interval'), fpsEl=document.getElementById('fps'), backendEl=document.getElementById('backend');
 let inputTensor=null,inFlight=null,epoch=0,opening=false,loading=false,completedTimes=[];
 function resetFPS(){completedTimes=[];fpsEl.textContent='—'}
@@ -64,14 +70,28 @@ function readOnnxMetadata(buffer){
 }
 function parseClassNames(value){if(!value)return[];try{const parsed=JSON.parse(value);if(Array.isArray(parsed))return parsed.map(String);if(parsed&&typeof parsed==='object')return Object.entries(parsed).sort((a,b)=>Number(a[0])-Number(b[0])).map(x=>String(x[1]))}catch{}const pairs=[...value.matchAll(/(?:^|[,{]\s*)[\"']?(\d+)[\"']?\s*:\s*([\"'])((?:\\.|(?!\2)[\s\S])*)\2(?=\s*[,}])/g)];if(pairs.length)return pairs.sort((a,b)=>Number(a[1])-Number(b[1])).map(m=>m[3].replace(/\\([\\'\"])/g,'$1'));if(value.trim().startsWith('[')){const items=[...value.matchAll(/([\"'])((?:\\.|(?!\1)[\s\S])*)\1/g)];if(items.length)return items.map(m=>m[2].replace(/\\([\\'\"])/g,'$1'))}return[]}
 function readModelClassNames(buffer){try{return parseClassNames(readOnnxMetadata(buffer).get('names'))}catch{return[]}}
+const CLASS_COLORS=['#2563eb','#d97706','#15803d','#9333ea','#dc2626','#0e7490','#be185d','#4d7c0f'];
+function classColor(id){return CLASS_COLORS[id]||`hsl(${Math.round((id*137.508)%360)} 70% 35%)`}
+function refreshLegend(){classLegend.replaceChildren();getClasses().forEach((name,id)=>{const chip=document.createElement('span'),swatch=document.createElement('i'),label=document.createElement('span');chip.className='classChip';swatch.className='classSwatch';swatch.style.backgroundColor=classColor(id);label.textContent=name;chip.append(swatch,label);classLegend.appendChild(chip)})}
+async function loadDemoModel(){
+ if(loading||opening)return;
+ await loadModel({name:'示範模型 · sample.onnx',isDemo:true,arrayBuffer:async()=>{
+  if(location.protocol==='file:')throw new Error('示範模型需透過 HTTPS 或 localhost 載入，請將 step4.html 與 sample.onnx 放在同一資料夾後開啟網站。');
+  say('示範模型下載中…');
+  const response=await fetch(new URL('./sample.onnx',location.href));
+  if(!response.ok)throw new Error(`示範模型下載失敗（HTTP ${response.status}）。請確認 sample.onnx 與 step4.html 位於同一資料夾。`);
+  const bytes=await response.arrayBuffer();if(!bytes.byteLength)throw new Error('示範模型是空檔案，請重新上傳 sample.onnx。');
+  return bytes;
+ }})
+}
 async function loadModel(file){
- if(loading||opening)return;loading=true;modelFile.disabled=true;stopCamera(false);startBtn.disabled=true;backendEl.textContent='運算模式：載入中…';
+ if(loading||opening)return;loading=true;modelFile.disabled=true;demoBtn.disabled=true;stopCamera(false);startBtn.disabled=true;backendEl.textContent='運算模式：載入中…';
  try{
-  await releaseModel();fail('');if(!file)return;
+  await releaseModel();fail('');classInput.value='';refreshLegend();overlayTag.textContent='YOLO · 載入中';if(!file)return;
   if(!window.ort)throw new Error('ONNX Runtime 載入失敗，請確認網路後重新整理頁面。');
   say('模型載入中…');document.getElementById('modelName').textContent=file.name;
   ort.env.wasm.wasmPaths='https://cdn.jsdelivr.net/npm/onnxruntime-web@1.22.0/dist/';
-  const bytes=await file.arrayBuffer(),names=readModelClassNames(bytes);classInput.value=names.join('\n');
+  const bytes=await file.arrayBuffer(),names=readModelClassNames(bytes);classInput.value=names.join('\n');refreshLegend();
   if(classHint)classHint.textContent=names.length?`已從 ONNX 模型自動讀取 ${names.length} 個類別名稱；需要時仍可直接修改。`:'這個 ONNX 沒有可讀取的類別名稱，請依序輸入類別（一行一類）。';
   try{
    if(!navigator.gpu||!await navigator.gpu.requestAdapter())throw new Error('此裝置未提供 WebGPU');
@@ -83,13 +103,13 @@ async function loadModel(file){
   }
   if(session.inputNames.length!==1)throw new Error('此測試頁預期模型只有一個影像輸入。');
   inputTensor=new ort.Tensor('float32',inputBuffer,[1,3,SIDE,SIDE]);
-  overlayTag.textContent='YOLO · 自訂模型';say(names.length?`模型已載入，自動讀取 ${names.length} 個類別。`:'模型已載入；請確認或輸入類別名稱。','ok');
- }catch(e){await releaseModel();backendEl.textContent='運算模式：尚未載入';say('模型載入失敗','err');fail('無法載入 ONNX：'+(e?.message||e))}
- finally{loading=false;modelFile.disabled=false;startBtn.disabled=!session}
+  overlayTag.textContent=file.isDemo?'YOLO · 示範模型':'YOLO · 自訂模型';if(file.isDemo)modelFile.value='';say(names.length?`模型已載入，自動讀取 ${names.length} 個類別。`:'模型已載入；請確認或輸入類別名稱。','ok');
+ }catch(e){await releaseModel();classInput.value='';refreshLegend();overlayTag.textContent='YOLO · 尚未載入';backendEl.textContent='運算模式：尚未載入';say('模型載入失敗','err');fail('無法載入 ONNX：'+(e?.message||e))}
+ finally{loading=false;modelFile.disabled=false;demoBtn.disabled=false;startBtn.disabled=!session}
 }
 async function refreshCameras(){try{const devices=await navigator.mediaDevices.enumerateDevices();cameras=devices.filter(d=>d.kind==='videoinput');const old=cameraSelect.value;cameraSelect.innerHTML='<option value="">預設攝影機</option>';cameras.forEach((d,i)=>{const o=document.createElement('option');o.value=d.deviceId;o.textContent=d.label||`攝影機 ${i+1}`;cameraSelect.appendChild(o)});cameraSelect.disabled=cameras.length<2;if(cameras.some(c=>c.deviceId===old))cameraSelect.value=old}catch{}}
-async function openCamera(){if(opening||loading)return;if(!session){fail('請先選擇並載入 ONNX 模型。');return}opening=true;modelFile.disabled=true;startBtn.disabled=true;stopCamera(false);startBtn.disabled=true;const token=epoch;try{await settleInference();if(token!==epoch)return;const selected=cameraSelect.value;const videoOptions={width:{ideal:1280},height:{ideal:720}};stream=await navigator.mediaDevices.getUserMedia({audio:false,video:selected?{...videoOptions,deviceId:{exact:selected}}:{...videoOptions,facingMode:{ideal:'user'}}});if(token!==epoch){stream.getTracks().forEach(t=>t.stop());stream=null;return}video.srcObject=stream;await video.play();if(token!==epoch)return;stage.style.aspectRatio=`${video.videoWidth}/${video.videoHeight}`;video.style.display='block';placeholder.style.display='none';await refreshCameras();if(token!==epoch)return;running=true;lastInfer=0;resetFPS();errorEl.textContent='';stopBtn.disabled=false;switchBtn.disabled=cameras.length<2;cameraSelect.disabled=cameras.length<2;say('攝影機已啟動','ok');tick(token)}catch(e){stopCamera(false);say('無法啟動攝影機','err');const hints={NotAllowedError:'請在網址列允許攝影機權限。',NotFoundError:'找不到可用攝影機。'};fail((hints[e.name]||e.message||String(e))+' 請確認以 HTTPS 或 localhost 開啟。')}finally{opening=false;modelFile.disabled=false;startBtn.disabled=!session}}
-function stopCamera(update=true){epoch++;running=false;resetFPS();if(raf)cancelAnimationFrame(raf);raf=0;if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}video.srcObject=null;video.style.display='none';placeholder.style.display='grid';ctx.clearRect(0,0,canvas.width,canvas.height);document.getElementById('count').textContent='0';document.getElementById('confidence').textContent='—';document.getElementById('latency').textContent='—';stopBtn.disabled=true;switchBtn.disabled=true;cameraSelect.disabled=cameras.length<2;startBtn.disabled=!session;if(update)say(session?'模型已載入':'請先匯入 ONNX 模型',session?'ok':'')}
+async function openCamera(){if(opening||loading)return;if(!session){fail('請先選擇並載入 ONNX 模型。');return}opening=true;modelFile.disabled=true;demoBtn.disabled=true;startBtn.disabled=true;stopCamera(false);startBtn.disabled=true;const token=epoch;try{await settleInference();if(token!==epoch)return;const selected=cameraSelect.value;const videoOptions={width:{ideal:1280},height:{ideal:720}};stream=await navigator.mediaDevices.getUserMedia({audio:false,video:selected?{...videoOptions,deviceId:{exact:selected}}:{...videoOptions,facingMode:{ideal:'user'}}});if(token!==epoch){stream.getTracks().forEach(t=>t.stop());stream=null;return}video.srcObject=stream;await video.play();if(token!==epoch)return;stage.style.aspectRatio=`${video.videoWidth}/${video.videoHeight}`;video.style.display='block';placeholder.style.display='none';await refreshCameras();if(token!==epoch)return;running=true;lastInfer=0;resetFPS();errorEl.textContent='';stopBtn.disabled=false;switchBtn.disabled=cameras.length<2;cameraSelect.disabled=cameras.length<2;say('攝影機已啟動','ok');tick(token)}catch(e){stopCamera(false);say('無法啟動攝影機','err');const hints={NotAllowedError:'請在網址列允許攝影機權限。',NotFoundError:'找不到可用攝影機。'};fail((hints[e.name]||e.message||String(e))+' 請確認以 HTTPS 或 localhost 開啟。')}finally{opening=false;modelFile.disabled=false;demoBtn.disabled=false;startBtn.disabled=!session}}
+function stopCamera(update=true){epoch++;running=false;resetFPS();if(raf)cancelAnimationFrame(raf);raf=0;if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}video.srcObject=null;video.style.display='none';placeholder.style.display='grid';ctx.clearRect(0,0,canvas.width,canvas.height);document.getElementById('count').textContent='0';document.getElementById('confidence').textContent='—';document.getElementById('latency').textContent='—';stopBtn.disabled=true;switchBtn.disabled=true;cameraSelect.disabled=cameras.length<2;startBtn.disabled=!session;if(update)say(session?'模型已載入':'請先載入示範或上傳 ONNX 模型',session?'ok':'')}
 function preprocess(){const w=video.videoWidth,h=video.videoHeight,scale=Math.min(SIDE/w,SIDE/h),nw=Math.round(w*scale),nh=Math.round(h*scale),px=Math.floor((SIDE-nw)/2),py=Math.floor((SIDE-nh)/2);pctx.fillStyle='rgb(114,114,114)';pctx.fillRect(0,0,SIDE,SIDE);pctx.drawImage(video,px,py,nw,nh);const rgba=pctx.getImageData(0,0,SIDE,SIDE).data,plane=SIDE*SIDE,input=inputBuffer;for(let i=0;i<plane;i++){input[i]=rgba[i*4]/255;input[plane+i]=rgba[i*4+1]/255;input[2*plane+i]=rgba[i*4+2]/255}geometry={w,h,scale,px,py};return inputTensor}
 function iou(a,b){const x1=Math.max(a.x1,b.x1),y1=Math.max(a.y1,b.y1),x2=Math.min(a.x2,b.x2),y2=Math.min(a.y2,b.y2),inter=Math.max(0,x2-x1)*Math.max(0,y2-y1);return inter/(a.area+b.area-inter+1e-8)}
 function decode(tensor,g){
@@ -107,7 +127,7 @@ function decode(tensor,g){
  }
  found.sort((a,b)=>b.score-a.score);const keep=[];for(const a of found){if(keep.every(b=>b.cls!==a.cls||iou(a,b)<.45))keep.push(a);if(keep.length>=30)break}return keep
 }
-function paint(dets,g,ms){if(canvas.width!==g.w||canvas.height!==g.h){canvas.width=g.w;canvas.height=g.h}ctx.clearRect(0,0,g.w,g.h);ctx.lineWidth=Math.max(2,Math.round(g.w/400));ctx.font=`bold ${Math.max(14,Math.round(g.w/46))}px system-ui,sans-serif`;ctx.textBaseline='top';const names=getClasses();for(const d of dets){let x1=d.x1,x2=d.x2;if(document.getElementById('mirror').checked){x1=g.w-d.x2;x2=g.w-d.x1}const name=names[d.cls]||`class_${d.cls}`,label=`${name} ${(d.score*100).toFixed(0)}%`,bw=x2-x1,bh=d.y2-d.y1;ctx.strokeStyle='#2563eb';ctx.fillStyle='#2563eb';ctx.strokeRect(x1,d.y1,bw,bh);const tw=ctx.measureText(label).width+12,th=Math.max(23,Math.round(g.w/34)),ly=Math.max(0,d.y1-th);ctx.fillRect(x1,ly,tw,th);ctx.fillStyle='#fff';ctx.fillText(label,x1+6,ly+3)}document.getElementById('count').textContent=dets.length;document.getElementById('confidence').textContent=dets.length?(Math.max(...dets.map(d=>d.score))*100).toFixed(0)+'%':'—';document.getElementById('latency').textContent=ms.toFixed(0)+' ms'}
+function paint(dets,g,ms){if(canvas.width!==g.w||canvas.height!==g.h){canvas.width=g.w;canvas.height=g.h}ctx.clearRect(0,0,g.w,g.h);ctx.lineWidth=Math.max(2,Math.round(g.w/400));ctx.font=`bold ${Math.max(14,Math.round(g.w/46))}px system-ui,sans-serif`;ctx.textBaseline='top';const names=getClasses();for(const d of dets){let x1=d.x1,x2=d.x2;if(document.getElementById('mirror').checked){x1=g.w-d.x2;x2=g.w-d.x1}const name=names[d.cls]||`class_${d.cls}`,label=`${name} ${(d.score*100).toFixed(0)}%`,bw=x2-x1,bh=d.y2-d.y1;const color=classColor(d.cls);ctx.strokeStyle=color;ctx.fillStyle=color;ctx.strokeRect(x1,d.y1,bw,bh);const tw=ctx.measureText(label).width+12,th=Math.max(23,Math.round(g.w/34)),ly=Math.max(0,d.y1-th);ctx.fillRect(x1,ly,tw,th);ctx.fillStyle='#fff';ctx.fillText(label,x1+6,ly+3)}document.getElementById('count').textContent=dets.length;document.getElementById('confidence').textContent=dets.length?(Math.max(...dets.map(d=>d.score))*100).toFixed(0)+'%':'—';document.getElementById('latency').textContent=ms.toFixed(0)+' ms'}
 async function tick(token){
  if(!running||token!==epoch)return;
  const now=performance.now();
@@ -128,6 +148,7 @@ async function tick(token){
  if(running&&token===epoch)raf=requestAnimationFrame(()=>tick(token));
 }
 interval.addEventListener('input',()=>{document.getElementById('intervalValue').textContent=interval.value+' ms';resetFPS()});
+demoBtn.addEventListener('click',loadDemoModel);classInput.addEventListener('input',refreshLegend);
 modelFile.addEventListener('change',()=>loadModel(modelFile.files?.[0]));startBtn.addEventListener('click',openCamera);stopBtn.addEventListener('click',()=>stopCamera());cameraSelect.addEventListener('change',()=>{if(running)openCamera()});switchBtn.addEventListener('click',async()=>{const opts=[...cameraSelect.options].filter(o=>o.value);if(opts.length<2)return;const i=opts.findIndex(o=>o.value===cameraSelect.value);cameraSelect.value=opts[(i+1)%opts.length].value;await openCamera()});threshold.addEventListener('input',()=>document.getElementById('thresholdValue').textContent=Number(threshold.value).toFixed(2));const mirrorInput=document.getElementById('mirror');function updateMirror(){video.style.transform=mirrorInput.checked?'scaleX(-1)':''}mirrorInput.addEventListener('change',updateMirror);updateMirror();
 window.addEventListener('pagehide',()=>{stopCamera(false);void releaseModel()});
 </script>
