@@ -1,0 +1,2094 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#1769ff">
+<meta name="description" content="坐著伸出一隻手，用 AI 手部辨識控制虛擬機械手臂。移動、捏合、放下，完成三個工件的搬運任務。">
+<title>AI 隔空夾取｜用手控制機械手臂</title>
+<style>
+:root{--bg:#f3f7fb;--card:#fff;--text:#0e1b3d;--muted:#66758d;--line:#d8e3ef;--blue:#1769ff;--blue-dark:#1459d6;--green:#008d73;--orange:#d98912;--red:#c93737;--shadow:0 5px 22px #203c6806;font-synthesis:none;color-scheme:light}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(180deg,#fff 0,#f3f7fb 310px,#f0f5fa 100%);color:var(--text);font:14px/1.5 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif}button,input,select{font:inherit}button,a,input,summary,select{-webkit-tap-highlight-color:transparent}button,summary,select{cursor:pointer}button{touch-action:manipulation}button:disabled{cursor:not-allowed;opacity:.46}button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible,select:focus-visible,canvas:focus-visible{outline:3px solid #8cb9ff;outline-offset:3px}[hidden]{display:none!important}svg{flex-shrink:0}.site-header{background:#fff;border-bottom:1px solid var(--line)}.nav-inner{max-width:1440px;padding:14px 32px;margin:auto;display:flex;justify-content:space-between;align-items:center;gap:16px}.home-link{display:inline-flex;gap:7px;align-items:center;color:#53647e;text-decoration:none;font-size:13px;font-weight:650}.home-link:hover{color:var(--blue)}.brand{display:flex;gap:12px;align-items:center;font-size:12px;font-weight:650;color:#8190a4;letter-spacing:.025em}.brand-divider{width:1px;height:12px;background:#cfd9e5}.page-wrap{max-width:1440px;margin:0 auto;padding:27px 32px 16px}.intro{display:flex;justify-content:space-between;gap:20px;align-items:flex-end;margin-bottom:25px}.eyebrow{display:flex;gap:13px;align-items:center;margin-bottom:12px;flex-wrap:wrap}.unit-chip{color:#2563cd;background:#eaf2ff;border:1px solid #d8e7ff;border-radius:6px;font-size:11px;font-weight:750;padding:4px 9px}.english-tag{font-size:10px;letter-spacing:.13em;color:#8493aa;font-weight:700}h1{margin:0;font-size:32px;font-weight:850;letter-spacing:-.035em;line-height:1.3}h1 span{font-size:19px;font-weight:550;letter-spacing:-.02em;color:#62738c;margin-left:13px}.lead{font-size:13px;color:var(--muted);margin:10px 0 0;line-height:1.7}.mode-switch{display:flex;flex-shrink:0;background:#eaf0f7;border:1px solid #e1e8f1;border-radius:10px;padding:4px;gap:3px;margin-bottom:2px}.mode-btn{display:flex;align-items:center;justify-content:center;gap:7px;background:transparent;border:0;border-radius:7px;padding:9px 12px;color:#65758e;font-size:12px;font-weight:650;white-space:nowrap;transition:background .18s,color .18s}.mode-btn.selected{background:#fff;color:var(--blue);box-shadow:0 2px 5px #1f3d7010}.workspace{display:grid;grid-template-columns:minmax(0,1.42fr) minmax(0,1fr);gap:20px;align-items:stretch}.card{background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);overflow:hidden;min-width:0}.card-heading{height:59px;display:flex;justify-content:space-between;gap:10px;align-items:center;padding:0 19px;border-bottom:1px solid #e6edf5}.heading-with-icon{display:flex;align-items:center;gap:10px;min-width:0}.card-heading h2{font-size:14px;font-weight:750;margin:0;white-space:nowrap}.tiny-icon{display:flex;align-items:center;justify-content:center;width:31px;height:31px;border-radius:9px}.tiny-icon.blue{color:#306dd1;background:#eef4ff}.tiny-icon.teal{color:#008e83;background:#e9f6f3}.status-pill{display:inline-flex;align-items:center;gap:6px;padding:4px 8px;font-size:10px;font-weight:650;border-radius:5px;white-space:nowrap;line-height:1.4}.status-pill i{width:5px;height:5px;border-radius:100%;background:currentColor}.status-pill.neutral{color:#8090a7;background:#f1f4f8}.status-pill.good{color:#008773;background:#e9f7f1}.status-pill.warn{color:#aa710f;background:#fff5dd}.status-pill.blue{color:#296ad1;background:#edf4ff}.robot-card{display:flex;flex-direction:column}.scene-wrap{position:relative;flex:1;min-height:440px;background:#eef4fb;overflow:hidden}.scene-wrap canvas{display:block;width:100%;height:100%;position:absolute;inset:0;touch-action:none}.scene-corner{position:absolute;top:15px;left:17px;display:flex;gap:6px;align-items:center;pointer-events:none}.scene-corner>span{font-size:10px;letter-spacing:.025em;font-weight:650;padding:4px 7px;border:1px solid #d7e2ef;background:#ffffffc7;color:#5276a8;border-radius:5px;backdrop-filter:blur(4px)}.scene-corner>.plane-tag{color:#8d9bb0;background:transparent;border-color:transparent}.scene-pause{position:absolute;right:14px;top:14px;display:flex;align-items:center;gap:5px;border:1px solid #d2dfee;border-radius:7px;padding:6px 9px;font-size:10px;color:#6d7d93;background:#ffffffcc}.scene-pause[aria-pressed="true"]{background:#fff2d4;color:#916515;border-color:#ead7a4}.scene-message{position:absolute;left:50%;bottom:17px;transform:translateX(-50%);padding:9px 14px;background:#ffffffed;border:1px solid #d2e0ef;color:#52647e;font-size:12px;font-weight:600;border-radius:9px;box-shadow:0 3px 12px #3d649414;max-width:94%;width:max-content;text-align:center;pointer-events:none;line-height:1.6}.scene-message.success{color:#007e65;border-color:#b6e1d3}.scene-message.warn{color:#9b680f;border-color:#ecd59d}.task-panel{padding:17px 19px 18px;border-top:1px solid #dae4f0;background:#fff}.task-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}.task-top strong{font-size:12px;font-weight:750}.task-caption{margin-left:10px;color:#98a3b4;font-size:10px}.task-actions{display:flex;align-items:center;gap:14px}.count{font-size:13px;font-variant-numeric:tabular-nums;line-height:1}.count b{font-size:21px;color:var(--blue);font-weight:800}.count span{color:#99a6b9}.icon-button{background:#f5f8fc;color:#7185a0;border:1px solid #e3eaf3;border-radius:7px;padding:5px;display:inline-flex;align-items:center;justify-content:center}.icon-button:hover{background:#eaf2ff;color:var(--blue)}.task-items{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}.task-item{display:flex;align-items:center;gap:8px;border:1px solid #e0e8f2;border-radius:9px;padding:9px 10px;min-width:0}.block-swatch{display:flex;align-items:center;justify-content:center;width:27px;height:29px;flex-shrink:0;border-radius:5px;color:#fff;background:var(--item);font-size:11px;font-weight:800;box-shadow:inset 0 -3px #00000016}.task-item strong{display:block;font-size:10px;line-height:1.5;white-space:nowrap;font-weight:700}.task-item small{display:block;font-size:9px;line-height:1.5;color:#98a5b8}.task-check{margin-left:auto;font-size:14px;color:#b9c8d8}.task-item.done{background:#f2fbf8;border-color:#cce7dc}.task-item.done .task-check{color:#008d73}.task-item.done small{color:#008d73}.manual-controls{border-top:1px solid #e0e8f2;padding:12px 19px;display:flex;align-items:center;justify-content:space-between;gap:12px}.manual-controls p{font-size:11px;color:#65768f;margin:0}.manual-controls strong{display:block;font-weight:600;color:#405777}.manual-controls p span{display:block;font-size:10px;margin-top:3px;color:#8190a4}.scene-wrap canvas.manual-input{cursor:grab}.scene-wrap canvas.manual-input.is-grabbing{cursor:grabbing}.camera-stage{position:relative;aspect-ratio:4/3;background:#0e1729;overflow:hidden;margin:15px 16px 0;border-radius:11px;border:1px solid #14243e}.camera-stage video,.camera-stage canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}.camera-stage video{display:none}.camera-stage.live video{display:block}.camera-placeholder{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;color:#d3e0f2;padding:16px;text-align:center;background:radial-gradient(ellipse at 50% 45%,#1b3150 0,#0d182a 72%)}.hand-illustration{height:105px;margin-bottom:9px;opacity:.92}.camera-placeholder strong{font-size:14px;font-weight:650;letter-spacing:.02em}.camera-placeholder>span{font-size:10px;line-height:1.8;color:#7f97b8;margin-top:7px}.camera-placeholder>.camera-local-note{margin-top:19px;color:#536b89;font-size:9px}.tracking-overlay{position:absolute;top:12px;left:50%;transform:translateX(-50%);background:#14253bd9;color:#c7d9ed;font-size:10px;padding:5px 9px;border-radius:5px;white-space:normal;width:max-content;max-width:95%;text-align:center;pointer-events:none}.fps-badge{position:absolute;bottom:9px;right:10px;background:#0c172bb3;color:#8ea4c0;font:10px/1.3 ui-monospace,monospace;padding:4px 6px;border-radius:4px}.control-body{padding:14px 16px 15px}.camera-buttons{display:flex;gap:8px}.button{border:1px solid transparent;border-radius:8px;padding:10px 15px;line-height:1.3;font-size:12px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;gap:7px;transition:background .15s,box-shadow .15s;min-height:38px}.button.primary{background:var(--blue);color:#fff;box-shadow:0 3px 7px #1769ff12}.button.primary:hover:not(:disabled){background:var(--blue-dark)}.button.secondary{background:#f6f8fc;border-color:#e1e8f2;color:#647795}.button.secondary:hover:not(:disabled){background:#edf3fb;color:#2f65ad}.button.stop{background:#fff6f6;color:#bb5b5b;border-color:#f1dede;padding-inline:14px}.camera-buttons .primary{flex:1}.camera-switch{padding:9px 11px}.loading-message{color:#346ab0;font-size:11px;margin:10px 0 0;line-height:1.65}.loading-message::before{content:"";display:inline-block;width:7px;height:7px;border:2px solid #c6ddfb;border-top-color:#3575d1;border-radius:50%;margin-right:7px;animation:spin 1s linear infinite}.error-message{background:#fff4f1;color:#b24838;border:1px solid #f0d6cd;border-radius:7px;padding:10px 12px;font-size:11px;line-height:1.7;margin-top:10px;overflow-wrap:anywhere}@keyframes spin{to{transform:rotate(360deg)}}.live-values{display:grid;grid-template-columns:1.2fr 1fr .8fr;border:1px solid #e5ecf4;border-radius:9px;margin:14px 0 16px;background:#fafcfe}.live-values>div{padding:9px 8px;text-align:center;min-width:0}.live-values>div+div{border-left:1px solid #e5ecf4}.live-values span{display:block;font-size:9px;color:#8a9ab0;margin-bottom:3px}.live-values strong{font-size:12px;line-height:1.6;font-weight:700;color:#4b6283;display:block;white-space:nowrap}.slider-label{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;gap:10px}.slider-label label{font-size:12px;font-weight:700;color:#516482}.slider-label output{font-size:11px;color:#2768c9;font-variant-numeric:tabular-nums;font-weight:750;background:#edf4ff;border-radius:5px;padding:2px 7px}.slider-control input,.advanced input[type="range"]{display:block;width:100%;margin:7px 0;accent-color:var(--blue);cursor:pointer;height:16px}.slider-ends{display:flex;justify-content:space-between;font-size:9px;color:#8d9bb0;line-height:1.3}.slider-control p{font-size:10px;color:#8b99ad;margin:7px 0 0}.workspace-help{font-size:10px;line-height:1.75;color:#7789a1;margin:13px 0 0;padding-top:12px;border-top:1px solid #e9eef5}.workspace-help strong{font-weight:600;color:#617691}.advanced{border-top:1px solid #e9eef5;margin-top:13px;padding-top:11px}.advanced>summary{list-style:none;display:flex;align-items:center;justify-content:space-between;color:#7889a1;font-size:10px;font-weight:600}.advanced>summary::-webkit-details-marker,.learning-note>summary::-webkit-details-marker{display:none}.advanced[open]>summary>svg{transform:rotate(180deg)}.advanced-body{padding-top:14px}.setting-help{font-size:10px;color:#8997ab;line-height:1.6;margin:5px 0 12px}.pinch-meter-row{display:flex;align-items:center;justify-content:space-between;padding:7px 10px;background:#f4f7fb;border-radius:6px;font-size:10px;color:#7c8ca4;margin-bottom:9px}.pinch-meter-row strong{color:#3c73c2;font-variant-numeric:tabular-nums}.check-row{display:flex;align-items:center;gap:6px;font-size:11px;color:#61738e;padding:4px 0}.check-row input{accent-color:var(--blue);margin:0 3px 0 0}.camera-label{display:block;font-size:10px;font-weight:650;color:#7789a3;margin:13px 0 5px}select{border:1px solid #d8e3ef;border-radius:6px;padding:7px 9px;color:#536781;width:100%;background:#fff;min-width:0;font-size:11px}.completion-banner{position:absolute;inset:auto 20px 20px;display:flex;gap:12px;align-items:center;padding:17px 19px;background:#f5fffbf7;border:1px solid #a5dcc9;border-radius:12px;box-shadow:0 6px 22px #0b755318;z-index:3}.completion-check{width:35px;height:35px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:#d7f4e7;color:#008d73;font-size:20px;font-weight:700;flex-shrink:0}.completion-banner strong{display:block;color:#08795e;font-size:14px}.completion-banner div>span{color:#639085;font-size:10px;display:block;margin-top:3px}.small-button{margin-left:auto;font-size:10px;font-weight:650;border:1px solid #b6dece;border-radius:7px;background:#fff;color:#1c8064;padding:8px 10px;white-space:nowrap}.how-to{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px;margin-top:20px}.how-to article{display:flex;gap:12px;align-items:center;border:1px solid #e0e8f2;border-radius:12px;background:#ffffffbf;padding:17px 18px}.step-number{color:#a1b7d2;font-size:11px;font-weight:750;align-self:flex-start;margin-top:3px;font-variant-numeric:tabular-nums}.how-to h3{font-size:12px;margin:0 0 4px;font-weight:750;color:#455d7f}.how-to p{font-size:10px;color:#8898ae;margin:0;line-height:1.65}.step-art{width:37px;height:37px;margin-left:auto;color:#8faed5}.learning-note{margin-top:17px;background:#ffffff88;border:1px solid #e3eaf3;border-radius:10px;padding:12px 17px}.learning-note summary{list-style:none;color:#6b809e;font-size:11px;font-weight:600;display:flex;align-items:center;gap:8px}.learning-note summary::after{content:"＋";margin-left:auto;color:#8295af;font-size:14px}.learning-note[open] summary::after{content:"－"}.learning-dot{width:6px;height:6px;background:#8bb2eb;border-radius:50%}.learning-note>div{padding:5px 14px 2px;font-size:12px;line-height:1.9;color:#7385a1}.learning-note .tech-credit{font-size:10px;color:#99a5b6}footer{display:flex;justify-content:space-between;gap:12px;margin:20px 2px 0;padding-top:12px;border-top:1px solid #dfe7f0;color:#96a3b6;font-size:10px}
+@media(min-width:1550px){.page-wrap{padding-top:35px}.scene-wrap{min-height:480px}}
+@media(max-width:1150px){.intro{align-items:flex-start;flex-direction:column;gap:17px}.mode-switch{align-self:flex-start}.workspace{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:15px}.scene-wrap{min-height:415px}.task-caption{display:none}.task-items{gap:6px}.task-item{padding:8px 7px;gap:6px}.task-item strong{font-size:9px}.task-check{display:none}.brand{font-size:11px}.card-heading{padding-inline:14px}.how-to article{padding:15px 12px;gap:8px}.step-art{width:29px;height:29px}.how-to p{font-size:9px}}
+@media(max-width:800px){.page-wrap{padding:22px 18px 16px}.nav-inner{padding:13px 18px}.brand{display:none}h1{font-size:29px}h1 span{display:block;font-size:17px;margin:7px 0 0;font-weight:500}.lead{font-size:12px}.workspace{grid-template-columns:1fr;gap:17px}.intro{margin-bottom:19px}.scene-wrap{height:auto;min-height:0;aspect-ratio:1000/720;flex:auto}.camera-stage{max-height:380px;aspect-ratio:4/3;margin-inline:auto;width:calc(100% - 32px);max-width:508px}.control-body{padding:15px 18px 18px}.camera-buttons{max-width:508px;margin:auto}.live-values{margin-top:15px}.slider-control{padding:0 2px}.task-item strong{font-size:11px}.task-item small{font-size:10px}.task-check{display:block}.task-caption{display:inline}.task-item{padding:10px}.how-to{gap:9px}.how-to article{padding:12px;display:block}.how-to .step-number{display:block;margin-bottom:7px}.step-art{display:none}.how-to p{font-size:10px}.how-to h3{font-size:12px}.learning-note>div{padding-inline:0}}
+@media(max-width:440px){.page-wrap{padding:19px 12px 14px}.nav-inner{padding:12px 14px}.home-link{font-size:11px}.english-tag{font-size:8px;letter-spacing:.08em}.eyebrow{gap:9px}.unit-chip{font-size:10px}h1{font-size:28px}.mode-switch{width:100%;padding:4px}.mode-btn{flex:1;padding:9px 6px;font-size:11px}.scene-corner{top:10px;left:10px}.scene-corner>span{font-size:8px}.scene-pause{top:9px;right:9px;font-size:9px;padding:5px 7px}.scene-message{font-size:10px;bottom:11px;padding:7px 9px}.task-panel{padding:13px}.task-caption{font-size:9px;margin-left:7px}.task-item{gap:6px;padding:8px 6px}.block-swatch{width:23px;height:26px;font-size:10px}.task-item strong{font-size:9px}.task-item small{font-size:9px}.task-check{font-size:11px}.card-heading{height:52px;padding:0 13px}.card-heading h2{font-size:12px}.status-pill{font-size:9px}.tiny-icon{width:28px;height:28px}.heading-with-icon{gap:8px}.manual-controls{padding:11px 13px;align-items:stretch}.manual-controls p{font-size:10px;max-width:100%}.completion-banner{inset:auto 10px 11px;padding:11px 12px;gap:8px}.completion-banner strong{font-size:12px}.completion-banner div>span{font-size:9px}.completion-check{width:27px;height:27px;font-size:17px}.small-button{font-size:9px;padding:7px}.how-to{gap:7px}.how-to article{padding:11px 9px}.how-to h3{font-size:11px}.how-to p{font-size:9px}.learning-note{padding:11px 12px}.learning-note summary{font-size:10px}footer{font-size:9px;flex-wrap:wrap}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}.loading-message::before{animation:none}}
+
+.camera-stage canvas{pointer-events:none}
+
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="nav-inner">
+    <a id="homeLink" class="home-link" href="../index.html"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m14 6-6 6 6 6M8 12h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>回 AI 教學首頁</a>
+    <span class="brand">AI 工程素養<span class="brand-divider"></span>互動教學平台</span>
+  </div>
+</header>
+<main class="page-wrap">
+  <section class="intro" aria-labelledby="page-title">
+    <div>
+      <div class="eyebrow"><span class="unit-chip">02｜我的 AI 零基礎</span><span class="english-tag">HAND TRACKING × ROBOTICS</span></div>
+      <h1 id="page-title">AI 隔空夾取 <span>用手控制機械手臂</span></h1>
+      <p class="lead">移動手掌定位，捏合夾取、張開放下。把三個工件送到同色工作站。</p>
+    </div>
+    <div class="mode-switch" role="group" aria-label="選擇操作模式">
+      <button id="handMode" class="mode-btn selected" aria-pressed="true"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" aria-hidden="true"><rect x="3" y="6" width="13" height="12" rx="3" stroke="currentColor" stroke-width="1.7"/><path d="m16 10 5-3v10l-5-3" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>攝影機控制</button>
+      <button id="manualMode" class="mode-btn" aria-pressed="false"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" aria-hidden="true"><path d="m5 3 14 9-6 1-3 6L5 3Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>滑鼠／觸控練習</button>
+    </div>
+  </section>
+
+  <div class="workspace">
+    <section class="card robot-card" aria-labelledby="stationTitle">
+      <div class="card-heading">
+        <div class="heading-with-icon"><span class="tiny-icon blue"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 21h9M7 21v-5l6-4-3-6M10 6l7-3 3 5-4 3M16 11l-3 1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="10" cy="6" r="2.2" fill="white" stroke="currentColor" stroke-width="1.6"/><circle cx="13" cy="12" r="2.2" fill="white" stroke="currentColor" stroke-width="1.6"/></svg></span><h2 id="stationTitle">機械手臂工作站</h2></div>
+        <span id="workStatus" class="status-pill neutral"><i></i>等待操作</span>
+      </div>
+      <div class="scene-wrap" id="sceneWrap">
+        <canvas id="robotCanvas" tabindex="0" aria-label="虛擬機械手臂工作臺。練習模式移動游標定位，滑鼠左鍵按住夾取，放開鬆爪；觸控請按住工件，待夾爪靠近後拖曳。"></canvas>
+        <div class="scene-corner"><span id="inputBadge">攝影機控制</span><span class="plane-tag">XY 平面</span></div>
+        <button id="pauseButton" class="scene-pause" aria-pressed="false" title="暫停機械手臂"><svg id="pauseIcon" width="15" height="15" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><rect x="5" y="4" width="3" height="12" rx="1"/><rect x="12" y="4" width="3" height="12" rx="1"/></svg><span id="pauseLabel">暫停</span></button>
+        <div id="sceneMessage" class="scene-message" role="status">先啟動攝影機，或切換至滑鼠／觸控練習。</div>
+        <div id="completion" class="completion-banner" hidden><span class="completion-check">✓</span><div><strong>搬運任務完成！</strong><span>三個工件都抵達正確工作站。</span></div><button id="playAgain" class="small-button">再挑戰一次</button></div>
+      </div>
+      <div class="task-panel">
+        <div class="task-top"><div><strong>搬運任務</strong><span class="task-caption">工件與工作站配對</span></div><div class="task-actions"><span class="count"><b id="placedCount">0</b><span> / 3</span></span><button id="resetButton" class="icon-button" aria-label="重設搬運任務" title="重設搬運任務"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 10a8 8 0 1 1 1 7M4 4v6h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div></div>
+        <div class="task-items">
+          <div class="task-item" id="task-a" style="--item:#3b82f6"><span class="block-swatch">A</span><div><strong>A 工作站</strong><small>待搬運</small></div><span class="task-check">○</span></div>
+          <div class="task-item" id="task-b" style="--item:#f59e0b"><span class="block-swatch">B</span><div><strong>B 工作站</strong><small>待搬運</small></div><span class="task-check">○</span></div>
+          <div class="task-item" id="task-c" style="--item:#14b8a6"><span class="block-swatch">C</span><div><strong>C 工作站</strong><small>待搬運</small></div><span class="task-check">○</span></div>
+        </div>
+      </div>
+      <div class="manual-controls" id="manualControls" hidden><p><strong>滑鼠左鍵按住夾取，拖曳搬運，放開即鬆爪。</strong><span>觸控請按住工件，待夾爪靠近並夾住後再拖曳。</span></p></div>
+    </section>
+
+    <section class="card control-card" aria-labelledby="cameraTitle">
+      <div class="card-heading"><div class="heading-with-icon"><span class="tiny-icon teal"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 10V8a7 7 0 0 1 14 0v2M8 14v-4m4 5V7m4 8v-4M5 10c-2-2-4 0-2 3l5 7h7c3-2 5-6 5-9" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"/></svg></span><h2 id="cameraTitle">手部辨識與控制</h2></div><span id="cameraBadge" class="status-pill neutral"><i></i>尚未啟動</span></div>
+      <div class="camera-stage" id="cameraStage">
+        <video id="cameraVideo" playsinline autoplay muted></video>
+        <canvas id="handOverlay" aria-hidden="true"></canvas>
+        <div class="camera-placeholder" id="cameraPlaceholder">
+          <div class="hand-illustration"><svg width="88" height="98" viewBox="0 0 90 100" fill="none" aria-hidden="true"><path d="M28 81 12 58c-6-9 3-15 9-7l9 10V27c0-8 10-8 10 0v23-33c0-8 11-8 11 0v32-27c0-8 11-8 11 0v29-18c0-8 11-8 11 0v28c0 15-5 23-13 27H36l-8-7Z" fill="#172a48" stroke="#7badee" stroke-width="2.3" stroke-linejoin="round"/><g fill="#71b5ff"><circle cx="30" cy="59" r="3"/><circle cx="40" cy="50" r="3"/><circle cx="51" cy="49" r="3"/><circle cx="62" cy="51" r="3"/><circle cx="72" cy="54" r="3"/><circle cx="49" cy="80" r="3"/></g><path d="m30 59 19 21-9-30m9 30 2-31m-2 31 13-29m-13 29 23-26" stroke="#3a6499" stroke-width="1.2"/></svg></div>
+          <strong id="placeholderTitle">伸出一隻手，開始控制</strong>
+          <span id="placeholderText">完整手掌留在鏡頭內，掌心小幅移動即可。</span>
+          <span class="camera-local-note" id="cameraNote">影像在你的瀏覽器中處理</span>
+        </div>
+        <div id="trackingOverlay" class="tracking-overlay" hidden>讓完整手掌與指尖出現在鏡頭內</div>
+        <span id="fpsBadge" class="fps-badge" hidden>— FPS</span>
+      </div>
+      <div class="control-body">
+        <div class="camera-buttons" id="cameraButtons"><button id="startButton" class="button primary"><svg width="17" height="17" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M5 3.5v13l11-6.5L5 3.5Z"/></svg><span>啟動攝影機</span></button><button id="stopButton" class="button stop" disabled>停止</button><button id="switchButton" class="button secondary camera-switch" disabled title="切換至另一個鏡頭" aria-label="切換鏡頭"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 8h16v12H4zM8 8l2-4h4l2 4M9 12l-2 2 2 2m6-4 2 2-2 2M7 14h10" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
+        <p id="loadingMessage" class="loading-message" role="status" hidden></p>
+        <div id="errorMessage" class="error-message" role="alert" hidden></div>
+        <div class="live-values" aria-label="目前控制狀態"><div><span>手部追蹤</span><strong id="handValue">等待啟動</strong></div><div><span>夾爪狀態</span><strong id="gripValue">張開</strong></div><div><span>目前工件</span><strong id="heldValue">—</strong></div></div>
+        <div class="slider-control"><div class="slider-label"><label for="smoothRange">平滑程度</label><output id="smoothValue" for="smoothRange">35%</output></div><input id="smoothRange" type="range" min="0" max="100" step="5" value="35"><div class="slider-ends"><span>反應快</span><span>較穩定</span></div><p>調高可減少抖動，也會增加跟隨延遲。</p></div>
+        <p class="workspace-help" id="workspaceHelp"><strong>黃色框為固定掌心操作範圍。</strong>掌心移到框邊即可到達工作臺邊緣；手指可在框外，但需留在鏡頭內。</p>
+        <details class="advanced"><summary>手勢設定與鏡頭選項<svg width="15" height="15" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m5 7 5 5 5-5" stroke="currentColor" stroke-width="1.6"/></svg></summary><div class="advanced-body"><div class="slider-label"><label for="pinchRange">捏合門檻</label><output for="pinchRange" id="pinchValue">0.35</output></div><input id="pinchRange" type="range" min="0.2" max="0.65" step="0.01" value="0.35"><p class="setting-help">數值越大，越容易判定捏合。以指尖距離／手掌寬度計算。</p><div class="pinch-meter-row"><span>目前捏合比例</span><strong id="pinchRatio">—</strong></div><label class="check-row"><input type="checkbox" id="showLandmarks" checked><span>顯示手部關鍵點</span></label><label class="check-row"><input type="checkbox" id="mirrorCamera" checked><span>鏡像顯示與控制方向</span></label><label class="camera-label" for="cameraSelect">使用的鏡頭</label><select id="cameraSelect" disabled><option value="">啟動攝影機後可選擇</option></select></div></details>
+      </div>
+    </section>
+  </div>
+
+  <section class="how-to" aria-label="三步驟操作"><article><span class="step-number">01</span><div><h3>移動手掌</h3><p>掌心在黃色框內小幅移動，對準工件。</p></div><svg class="step-art" viewBox="0 0 52 42" fill="none" aria-hidden="true"><path d="M7 21h38M7 21l6-6m-6 6 6 6m32-6-6-6m6 6-6 6M26 5v32m0-32-5 5m5-5 5 5m-5 27-5-5m5 5 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></article><article><span class="step-number">02</span><div><h3>捏合夾取</h3><p>拇指與食指靠攏，夾住並移動工件。</p></div><svg class="step-art" viewBox="0 0 52 42" fill="none" aria-hidden="true"><path d="M17 5v10l7 8m11-18v10l-7 8M24 23v6m4-6v6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><rect x="18" y="28" width="16" height="10" rx="2" stroke="currentColor" stroke-width="1.5"/></svg></article><article><span class="step-number">03</span><div><h3>張開放下</h3><p>移到同色工作站，張開手指完成搬運。</p></div><svg class="step-art" viewBox="0 0 52 42" fill="none" aria-hidden="true"><path d="M15 5v11l-5 7m27-18v11l5 7M8 34v5h36v-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><rect x="18" y="20" width="16" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/></svg></article></section>
+  <details class="learning-note"><summary><span class="learning-dot"></span>AI 如何把你的手，變成機械動作？</summary><div><p><strong>攝影機取得影像 → AI 找出 21 個手部關鍵點 → 程式計算位置與捏合比例 → 機械手臂執行動作。</strong></p><p>固定黃色框將較小的掌心移動範圍映射到整張工作臺；手指可在框外，只要仍在鏡頭內，就能用拇指與食指的距離控制夾爪開合。手指靠近畫面邊緣、手部過大或離開畫面時，會暫停並保持工件，依提示接回控制即可。每次開始與重設，三件工件都會換到新的位置。</p><p>試著調整平滑程度，比較反應速度、抖動與延遲。你會選擇哪一種設定來完成精準搬運？</p><p class="tech-credit">手部辨識：MediaPipe Hand Landmarker。這是固定 XY 工作平面的教學模擬。</p></div></details>
+  <footer><span>AI 工程素養互動教學平台</span><span>大安高工控制科 邵時俊老師</span></footer>
+</main>
+<script>
+/* Course-of-AI · AI 隔空夾取 · dependency-free 2.5D workspace */
+(function () {
+  'use strict';
+
+  const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, Number.isFinite(v) ? v : lo));
+  const TAU = Math.PI * 2;
+  // Contact faces sit 14 px inward of each jaw centre: the 72 px held gap
+  // matches the projected workpiece, while an empty grip nearly closes.
+  const JAW_OPEN = 80;
+  const JAW_HELD = 50;
+  const JAW_EMPTY = 16;
+  const FONT = '"Noto Sans TC", "Microsoft JhengHei", system-ui, sans-serif';
+
+  function shade(hex, amount) {
+    let s = String(hex || '#3b82f6').replace('#', '');
+    if (s.length === 3) s = s.split('').map(x => x + x).join('');
+    if (!/^[0-9a-f]{6}$/i.test(s)) return '#3b82f6';
+    const n = parseInt(s, 16);
+    const c = [n >> 16 & 255, n >> 8 & 255, n & 255].map(v => Math.round(clamp(v + amount, 0, 255)));
+    return `rgb(${c[0]},${c[1]},${c[2]})`;
+  }
+
+  class ArmScene {
+    constructor(canvas) {
+      this.canvas = canvas;
+      this.ctx = canvas.getContext('2d', { alpha: false });
+      this.width = 1;
+      this.height = 1;
+      this.scale = 1;
+      this.offsetX = 0;
+      this.offsetY = 0;
+      this.lift = 0.065;
+      this.openAmount = 1;
+      this.jawSpread = JAW_OPEN;
+      this.lastTime = null;
+      this.destroyed = false;
+      this.state = null;
+      this.resize();
+      this.observer = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(() => this.resize()) : null;
+      if (this.observer) this.observer.observe(canvas);
+    }
+
+    resize() {
+      if (this.destroyed) return;
+      const rect = this.canvas.getBoundingClientRect();
+      this.width = Math.max(1, rect.width || this.canvas.clientWidth || 900);
+      this.height = Math.max(1, rect.height || this.canvas.clientHeight || 650);
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const w = Math.round(this.width * dpr), h = Math.round(this.height * dpr);
+      if (this.canvas.width !== w || this.canvas.height !== h) {
+        this.canvas.width = w;
+        this.canvas.height = h;
+      }
+      this.dpr = dpr;
+      this.scale = Math.min(this.width / 1000, this.height / 720);
+      this.offsetX = (this.width - 1000 * this.scale) / 2;
+      this.offsetY = (this.height - 720 * this.scale) / 2;
+    }
+
+    // World: x = left → right; y = back → front; z = above table.
+    p(x, y, z = 0) {
+      return { x: 220 + 650 * x - 145 * y, y: 242 + 26 * x + 330 * y - 180 * z };
+    }
+
+    project(x, y, z = 0) {
+      const p = this.p(x, y, z);
+      return { x: this.offsetX + p.x * this.scale, y: this.offsetY + p.y * this.scale };
+    }
+
+    worldFromPointer(clientX, clientY) {
+      const rect = this.canvas.getBoundingClientRect();
+      const px = (clientX - rect.left - this.offsetX) / this.scale - 220;
+      const py = (clientY - rect.top - this.offsetY) / this.scale - 242;
+      const det = 650 * 330 + 145 * 26;
+      return { x: clamp((330 * px + 145 * py) / det, 0, 1), y: clamp((-26 * px + 650 * py) / det, 0, 1) };
+    }
+
+    path(points, fill, stroke, width = 1) {
+      const c = this.ctx;
+      c.beginPath();
+      points.forEach((p, i) => i ? c.lineTo(p.x, p.y) : c.moveTo(p.x, p.y));
+      c.closePath();
+      if (fill) { c.fillStyle = fill; c.fill(); }
+      if (stroke) { c.strokeStyle = stroke; c.lineWidth = width; c.stroke(); }
+    }
+
+    plane(x0, y0, x1, y1, z, fill, stroke, width = 1) {
+      this.path([this.p(x0, y0, z), this.p(x1, y0, z), this.p(x1, y1, z), this.p(x0, y1, z)], fill, stroke, width);
+    }
+
+    line(a, b, color, width = 1) {
+      const c = this.ctx;
+      c.beginPath(); c.moveTo(a.x, a.y); c.lineTo(b.x, b.y);
+      c.strokeStyle = color; c.lineWidth = width; c.lineCap = 'round'; c.stroke();
+    }
+
+    ellipse(p, rx, ry, color, stroke, lineWidth = 1) {
+      const c = this.ctx;
+      c.beginPath(); c.ellipse(p.x, p.y, rx, ry, 0.04, 0, TAU);
+      if (color) { c.fillStyle = color; c.fill(); }
+      if (stroke) { c.strokeStyle = stroke; c.lineWidth = lineWidth; c.stroke(); }
+    }
+
+    text(str, x, y, size = 16, color = '#64748b', weight = 500, align = 'left') {
+      const c = this.ctx;
+      c.font = `${weight} ${size}px ${FONT}`; c.fillStyle = color;
+      c.textAlign = align; c.textBaseline = 'middle'; c.fillText(str, x, y);
+    }
+
+    roundRect(x, y, w, h, r, fill, stroke, lineWidth = 1) {
+      const c = this.ctx;
+      c.beginPath();
+      if (c.roundRect) c.roundRect(x, y, w, h, r);
+      else {
+        c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r);
+        c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r);
+        c.arcTo(x, y, x + w, y, r); c.closePath();
+      }
+      if (fill) { c.fillStyle = fill; c.fill(); }
+      if (stroke) { c.strokeStyle = stroke; c.lineWidth = lineWidth; c.stroke(); }
+    }
+
+    background() {
+      const c = this.ctx;
+      const g = c.createLinearGradient(0, 0, 0, 720);
+      g.addColorStop(0, '#f3f8ff'); g.addColorStop(0.68, '#e9f0fa'); g.addColorStop(1, '#e0e8f3');
+      c.fillStyle = g; c.fillRect(0, 0, 1000, 720);
+      // A quiet architectural grid keeps the machine visually grounded.
+      c.save(); c.globalAlpha = 0.45;
+      for (let x = -300; x <= 1300; x += 70) this.line({ x, y: 520 }, { x: x - 160, y: 720 }, '#c8d6e8', 1);
+      for (let y = 540; y < 730; y += 38) this.line({ x: 0, y }, { x: 1000, y: y + 20 }, '#c8d6e8', 1);
+      c.restore();
+      const shadow = c.createRadialGradient(500, 603, 20, 500, 603, 420);
+      shadow.addColorStop(0, '#8096b330'); shadow.addColorStop(1, '#8096b300');
+      this.ellipse({ x: 500, y: 610 }, 440, 71, shadow);
+    }
+
+    table() {
+      const c = this.ctx;
+      // Four steel legs; the rear pair remain subtly visible behind the apron.
+      [[0.02, 0.08], [0.98, 0.08], [0.02, 0.98], [0.98, 0.98]].forEach(([x, y]) => {
+        const a = this.p(x, y, -0.10), b = this.p(x, y, -0.39);
+        this.line({ x: a.x + 6, y: a.y }, { x: b.x + 6, y: b.y }, '#aab8cb', 19);
+        this.line(a, b, '#cbd5e1', 18);
+        this.line({ x: a.x - 4, y: a.y + 2 }, { x: b.x - 4, y: b.y - 2 }, '#e5edf6', 4);
+        this.ellipse({ x: b.x + 2, y: b.y + 6 }, 18, 5, '#a4b2c7');
+      });
+      const corners = [this.p(-0.06, -0.05), this.p(1.06, -0.05), this.p(1.06, 1.05), this.p(-0.06, 1.05)];
+      const deep = corners.map(p => ({ x: p.x, y: p.y + 23 }));
+      this.path([corners[1], corners[2], deep[2], deep[1]], '#b4c2d5', '#a5b5ca', 1.5);
+      this.path([corners[2], corners[3], deep[3], deep[2]], '#c3cfdf', '#aab9cd', 1.5);
+      const top = c.createLinearGradient(0, 180, 550, 620);
+      top.addColorStop(0, '#ffffff'); top.addColorStop(0.6, '#f7fafd'); top.addColorStop(1, '#ecf2f9');
+      this.path(corners, top, '#bdccde', 2);
+      this.plane(0, 0, 1, 1, 0.002, '#e7effa40', '#d4dfed', 1.5);
+      c.save();
+      for (let i = 1; i < 10; i++) {
+        this.line(this.p(i / 10, 0), this.p(i / 10, 1), '#dce6f2', 1);
+        this.line(this.p(0, i / 10), this.p(1, i / 10), '#dce6f2', 1);
+      }
+      c.restore();
+      // Edge fasteners and the front identifier are physical scene details.
+      [[-0.025, -0.025], [1.025, -0.025], [-0.025, 1.025], [1.025, 1.025]].forEach(([x, y]) => {
+        const p = this.p(x, y, 0.004);
+        this.ellipse(p, 4.5, 2.7, '#b5c4d6', '#eff5fc', 1);
+      });
+      const label = this.p(0.5, 1.05, -0.052);
+      this.roundRect(label.x - 83, label.y - 8, 166, 16, 4, '#8b9fb9');
+      this.text('DAAN · AI ENGINEERING', label.x, label.y, 9, '#f8fbff', 700, 'center');
+      const source = this.p(0.23, -0.015);
+      this.text('待搬運區', source.x, source.y - 20, 17, '#7b8ea8', 650, 'center');
+      const dest = this.p(0.80, -0.015);
+      this.text('放置區', dest.x, dest.y - 20, 17, '#7b8ea8', 650, 'center');
+    }
+
+    pad(bin, placed, active) {
+      const c = this.ctx, color = bin.color || '#2563eb';
+      const x = bin.x, y = bin.y, w = 0.14, d = 0.155;
+      c.save();
+      if (active) {
+        const p = this.p(x, y);
+        const halo = c.createRadialGradient(p.x, p.y, 3, p.x, p.y, 74);
+        halo.addColorStop(0, shade(color, 30)); halo.addColorStop(1, '#ffffff00');
+        c.globalAlpha = 0.18;
+        this.ellipse(p, 77, 36, halo);
+        c.globalAlpha = 1;
+      }
+      this.plane(x - w / 2, y - d / 2, x + w / 2, y + d / 2, 0.002, '#ffffff', '#cad7e7', 2);
+      this.plane(x - w / 2 + 0.012, y - d / 2 + 0.015, x + w / 2 - 0.012, y + d / 2 - 0.015, 0.004,
+        placed ? shade(color, 102) : shade(color, 140), placed ? color : shade(color, 65), placed ? 3 : 2);
+      if (!placed) {
+        const center = this.p(x, y, 0.007);
+        this.text(bin.label || String(bin.id || '').toUpperCase(), center.x, center.y, 23, color, 800, 'center');
+      }
+      const tag = this.p(x, y + d / 2 + 0.046);
+      this.roundRect(tag.x - 34, tag.y - 10, 68, 20, 7, placed ? color : '#ffffffdd', placed ? null : '#d7e0ec');
+      this.text(placed ? '已完成' : `${bin.label || bin.id} 區`, tag.x, tag.y, 12, placed ? '#ffffff' : '#6b7e98', 700, 'center');
+      c.restore();
+    }
+
+    block(block, z = 0, hover = false) {
+      const c = this.ctx, x = block.x, y = block.y, color = block.color || '#2563eb';
+      const hx = 0.045, hy = 0.047, h = 0.075;
+      const a = this.p(x - hx, y - hy, z + h), b = this.p(x + hx, y - hy, z + h);
+      const d = this.p(x - hx, y + hy, z + h), e = this.p(x + hx, y + hy, z + h);
+      const db = this.p(x - hx, y + hy, z), eb = this.p(x + hx, y + hy, z), bb = this.p(x + hx, y - hy, z);
+      const shadow = this.p(x + 0.011, y + 0.018, 0);
+      c.save();
+      c.globalAlpha = Math.max(0.13, 0.27 - z * 0.4);
+      this.ellipse(shadow, 37 + z * 34, 14 + z * 17, '#4c638c');
+      c.restore();
+      if (hover) {
+        this.plane(x - 0.062, y - 0.069, x + 0.062, y + 0.069, 0.001, shade(color, 140), color, 2.5);
+      }
+      this.path([d, e, eb, db], shade(color, -27), shade(color, -48), 1.2);
+      this.path([b, e, eb, bb], shade(color, -48), shade(color, -55), 1.2);
+      const top = c.createLinearGradient(a.x, a.y, e.x, e.y);
+      top.addColorStop(0, shade(color, 35)); top.addColorStop(1, color);
+      this.path([a, b, e, d], top, shade(color, -8), 1.2);
+      this.line({ x: a.x + 2, y: a.y + 2 }, { x: b.x - 2, y: b.y + 2 }, '#ffffff88', 2);
+      const tp = this.p(x, y, z + h);
+      this.text(block.label || String(block.id || '').toUpperCase(), tp.x, tp.y, 17, '#ffffff', 800, 'center');
+      const fp = { x: (d.x + e.x + db.x + eb.x) / 4, y: (d.y + e.y + db.y + eb.y) / 4 };
+      this.line({ x: fp.x - 8, y: fp.y - 1 }, { x: fp.x + 8, y: fp.y - 1 }, '#ffffff55', 2);
+    }
+
+    base(active, paused) {
+      const c = this.ctx, p = this.p(-0.015, -0.10), z = this.p(-0.015, -0.10, 0.14);
+      this.ellipse({ x: p.x + 8, y: p.y + 11 }, 69, 24, '#425b7c1f');
+      this.roundRect(p.x - 54, p.y - 13, 108, 35, 9, '#95a8c2', '#768fac', 2);
+      this.roundRect(p.x - 54, p.y - 19, 108, 29, 9, '#d8e4f3', '#adc1db', 2);
+      for (const dx of [-41, 41]) {
+        this.ellipse({ x: p.x + dx, y: p.y - 7 }, 4, 2.8, '#6d839f');
+      }
+      this.path([{ x: p.x - 29, y: p.y - 10 }, { x: p.x + 29, y: p.y - 10 }, { x: z.x + 22, y: z.y - 4 }, { x: z.x - 22, y: z.y - 4 }], '#3b6bc0', '#244d92', 2);
+      this.ellipse({ x: z.x, y: z.y - 3 }, 23, 10, '#6b9bef', '#315f9e', 2);
+      this.roundRect(p.x - 17, p.y + 2, 34, 9, 3, '#1e3f74');
+      const lamp = paused ? '#f59e0b' : active ? '#34d399' : '#9aacbf';
+      this.ellipse({ x: p.x + 40, y: p.y + 1 }, 4, 4, lamp);
+    }
+
+    link(a, b, width, accent) {
+      const c = this.ctx, dx = b.x - a.x, dy = b.y - a.y;
+      const length = Math.hypot(dx, dy) || 1, nx = -dy / length, ny = dx / length;
+      const w1 = width / 2, w2 = width * 0.39;
+      const points = [{ x: a.x + nx * w1, y: a.y + ny * w1 }, { x: b.x + nx * w2, y: b.y + ny * w2 }, { x: b.x - nx * w2, y: b.y - ny * w2 }, { x: a.x - nx * w1, y: a.y - ny * w1 }];
+      const back = points.map(p => ({ x: p.x + 6, y: p.y + 8 }));
+      this.path(back, '#6d87a9', '#526e95', 1.5);
+      this.path([points[1], back[1], back[2], points[2]], '#819bbd', '#526e95', 1);
+      this.path([points[2], back[2], back[3], points[3]], '#a1b5cf', '#6e88a9', 1);
+      const g = c.createLinearGradient(a.x - nx * w1, a.y - ny * w1, a.x + nx * w1, a.y + ny * w1);
+      g.addColorStop(0, '#adc2dc'); g.addColorStop(0.19, '#f4f8fd');
+      g.addColorStop(0.48, '#ffffff'); g.addColorStop(0.76, '#dce6f3'); g.addColorStop(1, '#a3bbd7');
+      this.path(points, g, '#748cae', 1.5);
+      const at = (t, n = 0) => ({ x: a.x + dx * t + nx * n, y: a.y + dy * t + ny * n });
+      // An inset drive cover and a bright machined edge give the link a solid
+      // casting, rather than the appearance of two flat lines between joints.
+      const panelW = width * 0.18;
+      this.path([at(0.22, panelW), at(0.77, panelW * 0.74), at(0.77, -panelW * 0.74), at(0.22, -panelW)], accent, '#365f9a', 1);
+      this.line(at(0.25, panelW - 1.5), at(0.72, panelW * 0.74 - 1.5), '#a9ccff', 1.4);
+      this.line(at(0.15, -w1 * 0.70), at(0.85, -w2 * 0.70), '#ffffff', 2);
+      for (const t of [0.27, 0.72]) {
+        const p = at(t, width * 0.30);
+        this.ellipse(p, 2.4, 2.4, '#567294', '#eff5fd', 0.8);
+        this.line({ x: p.x - 1, y: p.y }, { x: p.x + 1, y: p.y }, '#d7e4f3', 0.8);
+      }
+      // The cable sits against the extrusion and terminates under both joints.
+      this.line(at(0.03, -(w1 + 1)), at(0.97, -(w2 + 1)), '#344e71', 4.5);
+      this.line(at(0.05, -(w1 + 2)), at(0.95, -(w2 + 2)), '#94aac6', 1.2);
+    }
+
+    joint(p, radius, small = false) {
+      const c = this.ctx;
+      this.ellipse({ x: p.x + 5, y: p.y + 6 }, radius + 1, radius + 1, '#43628e', '#314c70', 1.3);
+      const g = c.createLinearGradient(p.x - radius, p.y - radius, p.x + radius, p.y + radius);
+      g.addColorStop(0, '#8bb5f0'); g.addColorStop(0.36, '#4d83ce'); g.addColorStop(1, '#244e89');
+      this.ellipse(p, radius, radius, g, '#315b95', 1.7);
+      this.ellipse(p, radius * 0.73, radius * 0.73, null, '#294e80', 1.6);
+      const cap = c.createLinearGradient(p.x - radius * 0.5, p.y - radius * 0.5, p.x + radius * 0.5, p.y + radius * 0.5);
+      cap.addColorStop(0, '#ffffff'); cap.addColorStop(0.48, '#dce7f3'); cap.addColorStop(1, '#91abc9');
+      this.ellipse(p, radius * 0.56, radius * 0.56, cap, '#d6e6f9', 1.3);
+      this.ellipse(p, radius * 0.28, radius * 0.28, '#687f9c', '#4a668a', 1.2);
+      this.ellipse(p, radius * 0.13, radius * 0.13, '#dfeaf6', '#9aafc8', 0.8);
+      if (!small) {
+        for (let i = 0; i < 6; i++) {
+          const a = Math.PI / 6 + i * Math.PI / 3;
+          const bolt = { x: p.x + Math.cos(a) * radius * 0.85, y: p.y + Math.sin(a) * radius * 0.85 };
+          this.ellipse(bolt, 1.7, 1.7, '#dceaff', '#285082', 0.6);
+        }
+      }
+    }
+
+    gripper(state, wrist, tx, ty) {
+      const c = this.ctx;
+      const center = this.p(tx, ty, this.lift + 0.15);
+      const x = center.x, y = center.y;
+      const rodEnd = { x, y: y - 7 };
+
+      // A fixed wrist yoke, a telescopic Z spindle and a bolted tool flange
+      // overlap physically. All three share the same centreline at every lift.
+      this.roundRect(wrist.x - 17, wrist.y + 1, 34, 24, 5, '#667f9e', '#365575', 1.5);
+      this.roundRect(wrist.x - 12, wrist.y + 1, 24, 22, 3, '#bdccde', '#8da5c2', 1);
+      const sleeveBottom = Math.min(rodEnd.y - 8, wrist.y + 37);
+      const metal = c.createLinearGradient(x - 9, 0, x + 9, 0);
+      metal.addColorStop(0, '#5d789a'); metal.addColorStop(0.28, '#c3d4e7');
+      metal.addColorStop(0.46, '#ffffff'); metal.addColorStop(0.7, '#cfdeec'); metal.addColorStop(1, '#6f8aaa');
+      this.roundRect(x - 10, wrist.y + 12, 20, Math.max(12, sleeveBottom - wrist.y - 6), 3, '#6885aa', '#3e5f87', 1.4);
+      this.roundRect(x - 7, wrist.y + 17, 14, Math.max(9, rodEnd.y - wrist.y - 13), 2, metal, '#6c88a9', 1);
+      this.roundRect(x - 12, sleeveBottom - 3, 24, 7, 2, '#adc1d8', '#5d7b9e', 1);
+      // The lower spindle enters a mounting collar; no free-floating end cap.
+      this.roundRect(x - 15, y - 13, 30, 13, 3, '#829cbb', '#49698f', 1.2);
+      this.ellipse({ x, y: y - 12 }, 15, 4.5, '#e1ebf6', '#7390b2', 1);
+      this.roundRect(x - 23, y - 6, 46, 8, 2, '#c6d5e6', '#7893b4', 1);
+
+      // The front face of the gripper must occlude the rear edge of a held
+      // block where their perspective projections overlap.
+      const held = state.blocks && state.blocks.find(b => b.id === state.heldId);
+      if (held) this.block({ ...held, x: tx, y: ty }, this.lift - 0.062, false);
+
+      // A compact housing and rail still contain both jaw carriages at the
+      // wider open position, while keeping the end-effector visually tighter.
+      const half = 90, bodyH = 22, depthX = 5, depthY = 5;
+      this.path([{ x: x - half, y }, { x: x + half, y }, { x: x + half + depthX, y: y + depthY }, { x: x - half + depthX, y: y + depthY }], '#aac1dd', '#5d7b9f', 1.2);
+      this.path([{ x: x + half, y }, { x: x + half + depthX, y: y + depthY }, { x: x + half + depthX, y: y + bodyH + depthY }, { x: x + half, y: y + bodyH }], '#29496f', '#274569', 1.2);
+      const housing = c.createLinearGradient(0, y, 0, y + bodyH);
+      housing.addColorStop(0, '#4f79ad'); housing.addColorStop(0.35, '#5e86b6'); housing.addColorStop(1, '#294e7d');
+      this.roundRect(x - half, y, half * 2, bodyH, 4, housing, '#2e5079', 1.5);
+      this.line({ x: x - half + 5, y: y + 2.5 }, { x: x + half - 5, y: y + 2.5 }, '#b1d0f0', 1.5);
+      this.roundRect(x - 84, y + 8, 168, 9, 2, '#263f5f', '#213751', 0.8);
+      this.line({ x: x - 84, y: y + 9 }, { x: x + 84, y: y + 9 }, '#a9bfd7', 1.8);
+      this.line({ x: x - 84, y: y + 16 }, { x: x + 84, y: y + 16 }, '#708cae', 1.4);
+      for (const bx of [-84, 84]) this.ellipse({ x: x + bx, y: y + 4 }, 1.9, 1.9, '#dfecfa', '#315473', 0.7);
+
+      // Carriages always overlap the rail; the lower fingers and contact pads
+      // are one connected machined part. The position is animated directly so
+      // changing between empty/held/open never snaps the fingers sideways.
+      const spread = this.jawSpread;
+      const tipY = this.p(tx, ty, this.lift - 0.035).y;
+      for (const side of [-1, 1]) {
+        const jx = x + side * spread;
+        const outer = jx + side * 6.5, inner = jx - side * 6.5;
+        const jawMetal = c.createLinearGradient(jx - 10, 0, jx + 10, 0);
+        jawMetal.addColorStop(0, '#7790ad'); jawMetal.addColorStop(0.33, '#e0eaf5');
+        jawMetal.addColorStop(0.52, '#f9fcff'); jawMetal.addColorStop(1, '#8fa8c4');
+        this.roundRect(jx - 10, y + 6, 20, 18, 2.5, jawMetal, '#456587', 1.5);
+        this.ellipse({ x: jx, y: y + 13 }, 2.6, 2.6, '#4b6481', '#d1deee', 1);
+        const finger = [
+          { x: inner, y: y + 20 }, { x: outer, y: y + 20 },
+          { x: outer, y: tipY + 5 }, { x: inner - side * 5, y: tipY + 5 },
+          { x: inner - side * 5, y: tipY - 8 }, { x: inner, y: tipY - 8 }
+        ];
+        this.path(finger.map(p => ({ x: p.x + 3, y: p.y + 3 })), '#7189a5', '#4f698a', 1);
+        this.path(finger, jawMetal, '#456282', 1.6);
+        this.line({ x: outer - side * 2.5, y: y + 24 }, { x: outer - side * 2.5, y: tipY + 1 }, '#f5f9fd', 2);
+        const padX = inner - side * 4.5;
+        this.roundRect(padX - 3, tipY - 9, 6, 14, 1.2, '#263747', '#172738', 1.1);
+        for (const dy of [-6, -2, 2]) this.line({ x: padX - 1.8, y: tipY + dy }, { x: padX + 1.8, y: tipY + dy }, '#8697a8', 0.9);
+      }
+      this.roundRect(x - 12, y + 5, 24, 12, 2, '#243e5f', '#7094bd', 0.8);
+      this.ellipse({ x, y: y + 11 }, 3.2, 3.2, state.closed ? '#fbbf24' : '#86efac');
+    }
+
+    arm(state) {
+      const c = this.ctx;
+      const tx = clamp(state.x, 0, 1), ty = clamp(state.y, 0, 1);
+      // The wrist follows a fixed XY plane. A short vertical spindle handles
+      // lift, keeping the arm reachable and visible even in the near corner.
+      const bx = -0.015, by = -0.10, shoulderZ = 0.35;
+      const wristZ = 0.56;
+      const dx = tx - bx, dy = (ty - by) * 0.65;
+      const r = Math.max(0.001, Math.hypot(dx, dy)), dz = wristZ - shoulderZ;
+      const d = Math.max(0.001, Math.hypot(r, dz)), l1 = 0.74, l2 = 0.74;
+      const theta = Math.atan2(dz, r) + Math.acos(clamp((l1 * l1 + d * d - l2 * l2) / (2 * l1 * d), -1, 1));
+      const elbowR = l1 * Math.cos(theta), elbowZ = shoulderZ + l1 * Math.sin(theta);
+      const shoulder = this.p(bx, by, shoulderZ);
+      const elbowProjection = this.p(bx + dx / r * elbowR, by + dy / r * elbowR / 0.65, elbowZ);
+      // This is a teaching illustration, not a calibrated robot solver. Keep
+      // the folded elbow visible near the back-left corner; the wrist and
+      // tool still follow the exact workpiece coordinates throughout the task.
+      const elbow = { x: Math.max(64, elbowProjection.x), y: Math.max(96, elbowProjection.y) };
+      const wrist = this.p(tx, ty, wristZ);
+      // A light grounded footprint gives a clear target for the user's hand.
+      const ground = this.p(tx, ty, 0.001);
+      const targetColor = state.paused ? '#d69a30' : state.heldId != null ? '#2563eb' : '#447cbe';
+      c.save();
+      c.setLineDash([5, 5]);
+      this.ellipse(ground, 31, 15, '#2563eb09', targetColor, 1.7);
+      c.setLineDash([]);
+      this.line({ x: ground.x - 9, y: ground.y }, { x: ground.x + 9, y: ground.y }, targetColor, 1.5);
+      this.line({ x: ground.x, y: ground.y - 6 }, { x: ground.x, y: ground.y + 6 }, targetColor, 1.5);
+      c.restore();
+      const pedestal = this.p(bx, by, 0.14);
+      this.line({ x: pedestal.x + 3, y: pedestal.y }, { x: shoulder.x + 3, y: shoulder.y }, '#7596c3', 24);
+      this.line({ x: pedestal.x - 3, y: pedestal.y }, { x: shoulder.x - 3, y: shoulder.y }, '#c4d9f5', 11);
+      this.link(shoulder, elbow, 40, '#467fda');
+      this.joint(shoulder, 25);
+      this.link(elbow, wrist, 31, '#5388dc');
+      this.joint(elbow, 23);
+      this.gripper(state, wrist, tx, ty);
+      // Cover the yoke's mounting edge with the wrist bearing, visibly joining
+      // the articulated forearm and the vertical tool assembly.
+      this.joint(wrist, 17, true);
+    }
+
+    render(state, timeSeconds = 0) {
+      if (this.destroyed || !state || !this.ctx) return;
+      this.state = state;
+      const dt = this.lastTime == null ? 1 / 60 : clamp(timeSeconds - this.lastTime, 0, 0.1);
+      this.lastTime = timeSeconds;
+      const ease = 1 - Math.exp(-dt * 12);
+      this.lift += ((state.heldId != null ? 0.21 : 0.065) - this.lift) * ease;
+      // About 0.3 s to complete 95% of the stroke: visible yet responsive.
+      // Only the illustration eases; the simulation's grip command is immediate.
+      const gripEase = 1 - Math.exp(-dt * 10);
+      const spreadTarget = !state.closed ? JAW_OPEN : state.heldId != null ? JAW_HELD : JAW_EMPTY;
+      this.jawSpread += (spreadTarget - this.jawSpread) * gripEase;
+      this.openAmount += ((state.closed ? 0 : 1) - this.openAmount) * gripEase;
+      const c = this.ctx;
+      c.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+      c.fillStyle = '#edf3fb'; c.fillRect(0, 0, this.width, this.height);
+      c.translate(this.offsetX, this.offsetY); c.scale(this.scale, this.scale);
+      this.background();
+      this.table();
+      const blocks = state.blocks || [], bins = state.bins || [];
+      bins.forEach(bin => this.pad(bin, blocks.some(b => b.id === bin.id && b.placed), state.heldId === bin.id));
+      this.base(state.active, state.paused);
+      blocks.filter(b => b.id !== state.heldId).slice().sort((a, b) => a.y - b.y).forEach(b => this.block(b, 0, state.hoverId === b.id && !state.closed));
+      this.arm(state);
+      c.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+    }
+
+    destroy() {
+      this.destroyed = true;
+      if (this.observer) this.observer.disconnect();
+      this.state = null;
+    }
+  }
+
+  window.ArmScene = ArmScene;
+})();
+
+
+/* Pure state logic for the AI air gripper. All positions use normalized XY.
+ * No camera, renderer, DOM, network, or animation loop is owned by this file.
+ */
+(function exposeGripperLogic(global) {
+  'use strict';
+
+  const MIN = 0.08;
+  const MAX = 0.92;
+  const PICK_RADIUS = 0.09;
+  const BIN_RADIUS = 0.10;
+  const BLOCK_CLEARANCE = 0.115;
+  // Keep a clear destination lane around the fixed pads at X = 0.80.
+  // All starting positions also leave room for the block footprint at edges.
+  const SPAWN_BOUNDS = { left: 0.13, right: 0.64, top: 0.13, bottom: 0.87 };
+  const SPAWN_CLEARANCE = 0.18;
+  const SPAWN_CHANGE = 0.18;
+  const COLORS = { a: '#3b82f6', b: '#f59e0b', c: '#14b8a6' };
+  const clamp = (value, low = MIN, high = MAX) => Math.min(high, Math.max(low, value));
+  const distance = (first, second) => Math.hypot(first.x - second.x, first.y - second.y);
+
+  class GripperSimulation {
+    constructor() {
+      this.onEvent = null;
+      this.active = false;
+      this.paused = false;
+      this.reset();
+    }
+
+    /* Reset the challenge, keeping the caller's input mode and pause state. */
+    reset() {
+      this.x = 0.45;
+      this.y = 0.50;
+      this.targetX = this.x;
+      this.targetY = this.y;
+      this.closed = false;
+      this.heldId = null;
+      this.blocks = this._createStartingBlocks();
+      this.bins = [
+        { id: 'a', label: 'A', color: COLORS.a, x: 0.80, y: 0.25 },
+        { id: 'b', label: 'B', color: COLORS.b, x: 0.80, y: 0.50 },
+        { id: 'c', label: 'C', color: COLORS.c, x: 0.80, y: 0.75 }
+      ];
+      return this.getState();
+    }
+
+    /* Compare against the last starting layout, even after a block was moved
+     * or scored. Random sampling is bounded; the six fallback points are at
+     * least 0.37 apart, so each 0.18 exclusion disk can remove at most one.
+     * With only two earlier blocks plus one previous start, a free point is
+     * always available without relaxing separation or movement constraints.
+     */
+    _createStartingBlocks() {
+      const previous = this._spawnPositions || {};
+      const blocks = [];
+      for (const id of ['a', 'b', 'c']) {
+        const isClear = point =>
+          blocks.every(block => distance(point, block) >= SPAWN_CLEARANCE) &&
+          (!previous[id] || distance(point, previous[id]) >= SPAWN_CHANGE);
+        let point;
+        for (let attempt = 0; attempt < 64; attempt += 1) {
+          const candidate = {
+            x: SPAWN_BOUNDS.left + Math.random() * (SPAWN_BOUNDS.right - SPAWN_BOUNDS.left),
+            y: SPAWN_BOUNDS.top + Math.random() * (SPAWN_BOUNDS.bottom - SPAWN_BOUNDS.top)
+          };
+          if (isClear(candidate)) {
+            point = candidate;
+            break;
+          }
+        }
+        if (!point) {
+          const fallback = [];
+          for (const y of [SPAWN_BOUNDS.top, 0.50, SPAWN_BOUNDS.bottom]) {
+            for (const x of [SPAWN_BOUNDS.left, SPAWN_BOUNDS.right]) fallback.push({ x, y });
+          }
+          point = fallback.find(isClear);
+        }
+        blocks.push({ id, label: id.toUpperCase(), color: COLORS[id], x: point.x, y: point.y, placed: false });
+      }
+      this._spawnPositions = Object.fromEntries(blocks.map(({ id, x, y }) => [id, { x, y }]));
+      return blocks;
+    }
+
+    get placedCount() {
+      return this.blocks.reduce((count, block) => count + Number(block.placed), 0);
+    }
+
+    get complete() {
+      return this.placedCount === this.blocks.length;
+    }
+
+    setTarget(x, y) {
+      if (Number.isFinite(x)) this.targetX = clamp(x);
+      if (Number.isFinite(y)) this.targetY = clamp(y);
+    }
+
+    setActive(active) {
+      const next = Boolean(active);
+      if (next !== this.active) this._freezeTarget();
+      this.active = next;
+    }
+
+    pause(paused) {
+      const next = Boolean(paused);
+      if (next !== this.paused) this._freezeTarget();
+      this.paused = next;
+    }
+
+    _freezeTarget() {
+      this.targetX = this.x;
+      this.targetY = this.y;
+    }
+
+    /* Run from the caller's animation loop. dt is seconds, not milliseconds.
+     * A zero smoothing value follows the target immediately; increasing the
+     * value adds a longer exponential response time. Long frame gaps are capped.
+     */
+    update(dtSeconds, smoothing0to100 = 35) {
+      if (!this.active || this.paused || !Number.isFinite(dtSeconds) || dtSeconds <= 0) return;
+      const dt = Math.min(dtSeconds, 0.10);
+      const smoothing = Number.isFinite(smoothing0to100) ? clamp(smoothing0to100, 0, 100) : 35;
+      const tau = 0.015 + 0.40 * Math.pow(smoothing / 100, 1.3);
+      const alpha = smoothing === 0 ? 1 : 1 - Math.exp(-dt / tau);
+      this.x += (this.targetX - this.x) * alpha;
+      this.y += (this.targetY - this.y) * alpha;
+      if (this.heldId !== null) {
+        const held = this.blocks.find(block => block.id === this.heldId);
+        if (held) {
+          held.x = this.x;
+          held.y = this.y;
+        }
+      }
+    }
+
+    /* Only edges can pick or release. Paused / inactive controls cannot score. */
+    setGrip(closed) {
+      const next = Boolean(closed);
+      if (!this.active || this.paused || next === this.closed) return false;
+      this.closed = next;
+      if (next) this._pick();
+      else this._release();
+      return true;
+    }
+
+    _pick() {
+      if (this.heldId !== null) return;
+      let nearest = null;
+      let nearestDistance = PICK_RADIUS;
+      for (const block of this.blocks) {
+        if (block.placed) continue;
+        // Deliberately use actual gripper XY, never the hand / target XY.
+        const gap = distance(this, block);
+        if (gap <= nearestDistance) {
+          nearest = block;
+          nearestDistance = gap;
+        }
+      }
+      if (!nearest) {
+        this._emit('miss', '夾爪附近沒有可夾取的物品，張開後再試一次。');
+        return;
+      }
+      this.heldId = nearest.id;
+      nearest.x = this.x;
+      nearest.y = this.y;
+      this._emit('pick', `已夾起 ${nearest.label}，請移到相同字母的分流區。`, nearest.id);
+    }
+
+    _release() {
+      if (this.heldId === null) return;
+      const block = this.blocks.find(item => item.id === this.heldId);
+      this.heldId = null;
+      if (!block) return;
+      const nearestBin = this.bins
+        .map(bin => ({ bin, gap: distance(this, bin) }))
+        .filter(candidate => candidate.gap <= BIN_RADIUS)
+        .sort((first, second) => first.gap - second.gap)[0];
+
+      if (nearestBin && nearestBin.bin.id === block.id) {
+        block.x = nearestBin.bin.x;
+        block.y = nearestBin.bin.y;
+        block.placed = true;
+        // Resolve contact with a previously misplaced block so the newly
+        // completed piece cannot hide an unfinished piece underneath itself.
+        for (const other of this.blocks) {
+          if (other.id === block.id || other.placed || distance(other, block) >= BLOCK_CLEARANCE) continue;
+          const clear = this._findClearDrop(other.id, other.x, other.y);
+          other.x = clear.x;
+          other.y = clear.y;
+        }
+        this._emit('placed', `${block.label} 已完成分流。`, block.id);
+        if (this.complete) this._emit('complete', '三個物品都已放入正確分流區！', block.id);
+        return;
+      }
+
+      const drop = this._findClearDrop(block.id, this.x, this.y);
+      block.x = drop.x;
+      block.y = drop.y;
+      block.placed = false;
+      if (nearestBin) {
+        this._emit('wrong-bin', `${block.label} 要放入 ${block.label} 區，請重新夾取。`, block.id);
+      } else {
+        this._emit('drop', `${block.label} 已放下，請夾起並移到相同字母的分流區。`, block.id);
+      }
+    }
+
+    /* Find the closest reachable point that does not overlap another block.
+     * There are only three blocks, so a deterministic small radial search is
+     * sufficient and keeps a misplaced block easy to pick up again.
+     */
+    _findClearDrop(blockId, x, y) {
+      const origin = { x: clamp(x), y: clamp(y) };
+      const others = this.blocks.filter(block => block.id !== blockId);
+      const isClear = point => others.every(block => distance(point, block) >= BLOCK_CLEARANCE);
+      if (isClear(origin)) return origin;
+      for (let ring = 1; ring <= 18; ring += 1) {
+        const candidates = [];
+        const radius = ring * 0.02;
+        for (let step = 0; step < 32; step += 1) {
+          const angle = (Math.PI * 2 * step) / 32;
+          const candidate = {
+            x: clamp(origin.x + Math.cos(angle) * radius),
+            y: clamp(origin.y + Math.sin(angle) * radius)
+          };
+          if (isClear(candidate)) candidates.push(candidate);
+        }
+        if (candidates.length) {
+          candidates.sort((first, second) => distance(first, origin) - distance(second, origin));
+          return candidates[0];
+        }
+      }
+      // Defensive fallback for a future increase in the number of blocks.
+      for (let row = 0; row <= 8; row += 1) {
+        for (let column = 0; column <= 8; column += 1) {
+          const candidate = { x: MIN + column * 0.105, y: MIN + row * 0.105 };
+          if (isClear(candidate)) return candidate;
+        }
+      }
+      return origin;
+    }
+
+    _emit(type, message, blockId) {
+      if (typeof this.onEvent !== 'function') return;
+      const event = { type, message, count: this.placedCount };
+      if (blockId !== undefined) event.blockId = blockId;
+      this.onEvent(event);
+    }
+
+    /* A fresh snapshot prevents a renderer accidentally changing simulation. */
+    getState() {
+      return {
+        x: this.x, y: this.y,
+        targetX: this.targetX, targetY: this.targetY,
+        closed: this.closed, heldId: this.heldId,
+        active: this.active, paused: this.paused,
+        blocks: this.blocks.map(block => ({ ...block })),
+        bins: this.bins.map(bin => ({ ...bin })),
+        placedCount: this.placedCount, complete: this.complete
+      };
+    }
+  }
+
+  class PinchGesture {
+    constructor({ threshold = 0.35, debounceMs = 100 } = {}) {
+      this.threshold = Number.isFinite(threshold) ? clamp(threshold, 0.05, 1.5) : 0.35;
+      this.debounceMs = Number.isFinite(debounceMs) ? clamp(debounceMs, 0, 1000) : 100;
+      this.releaseGap = 0.18;
+      this.reset();
+    }
+
+    get releaseThreshold() {
+      return this.threshold + this.releaseGap;
+    }
+
+    reset({ heldClosed = false } = {}) {
+      this.closed = Boolean(heldClosed);
+      this.armed = false;
+      this.needsOpen = true;
+      this.ratio = null;
+      this._needsPinch = this.closed;
+      this._candidate = null;
+      this._candidateSince = null;
+      this._lastTimestamp = null;
+      return this._snapshot(false);
+    }
+
+    /* Losing the hand must never manufacture an opening / drop command. */
+    lost() {
+      this.armed = false;
+      this.needsOpen = true;
+      this.ratio = null;
+      this._needsPinch = this.closed;
+      this._clearCandidate();
+      this._lastTimestamp = null;
+      return this._snapshot(false);
+    }
+
+    /* landmarks: raw normalized 21 hand landmarks (no mirrored coordinates).
+     * timestamp: monotonic milliseconds. aspectRatio: camera width / height.
+     * Pinch distance is divided by palm width, with X scaled by aspect ratio.
+     * Result.closed is the effective command, not an unfiltered finger pose.
+     */
+    update(landmarks, timestamp, aspectRatio = 1, threshold = this.threshold) {
+      if (!Array.isArray(landmarks) || landmarks.length < 21) return this.lost();
+      const required = [landmarks[4], landmarks[8], landmarks[5], landmarks[17]];
+      if (required.some(point => !point || !Number.isFinite(point.x) || !Number.isFinite(point.y))) {
+        return this.lost();
+      }
+      const aspect = Number.isFinite(aspectRatio) && aspectRatio > 0 ? aspectRatio : 1;
+      const scaledDistance = (first, second) => Math.hypot((first.x - second.x) * aspect, first.y - second.y);
+      const palmWidth = scaledDistance(landmarks[5], landmarks[17]);
+      if (palmWidth < 0.0001) return this.lost();
+      this.ratio = scaledDistance(landmarks[4], landmarks[8]) / palmWidth;
+      if (!Number.isFinite(this.ratio)) return this.lost();
+
+      const nextThreshold = Number.isFinite(threshold) ? clamp(threshold, 0.05, 1.5) : this.threshold;
+      if (nextThreshold !== this.threshold) this._clearCandidate();
+      this.threshold = nextThreshold;
+      const now = Number.isFinite(timestamp) ? timestamp : Date.now();
+      // Treat a stalled camera or clock reset as tracking loss. Merely clearing
+      // debounce would let an open reacquired hand release a held object.
+      if (this._lastTimestamp !== null && (now < this._lastTimestamp || now - this._lastTimestamp > 450)) {
+        this.armed = false;
+        this.needsOpen = true;
+        this._needsPinch = this.closed;
+        this._clearCandidate();
+      }
+      this._lastTimestamp = now;
+
+      if (!this.armed) {
+        if (this.ratio >= this.releaseThreshold) {
+          if (this._confirmed('rearm', now)) {
+            this.armed = true;
+            this.needsOpen = false;
+            this._needsPinch = this.closed;
+          }
+        } else this._clearCandidate();
+        return this._snapshot(false);
+      }
+
+      // When a closed gripper is recovered, the first open hand only rearms.
+      // A fresh pinch must synchronize the hand before a later open can drop.
+      if (this._needsPinch) {
+        if (this.ratio <= this.threshold) {
+          if (this._confirmed('sync-pinch', now)) this._needsPinch = false;
+        } else this._clearCandidate();
+        return this._snapshot(false);
+      }
+
+      const requestedClosed = this.closed
+        ? this.ratio < this.releaseThreshold
+        : this.ratio <= this.threshold;
+      if (requestedClosed === this.closed) {
+        this._clearCandidate();
+        return this._snapshot(false);
+      }
+      if (!this._confirmed(requestedClosed ? 'close' : 'open', now)) return this._snapshot(false);
+      this.closed = requestedClosed;
+      return this._snapshot(true);
+    }
+
+    _confirmed(candidate, timestamp) {
+      if (this._candidate !== candidate) {
+        this._candidate = candidate;
+        this._candidateSince = timestamp;
+      }
+      if (timestamp - this._candidateSince < this.debounceMs) return false;
+      this._clearCandidate();
+      return true;
+    }
+
+    _clearCandidate() {
+      this._candidate = null;
+      this._candidateSince = null;
+    }
+
+    _snapshot(changed) {
+      return {
+        ratio: this.ratio, closed: this.closed, changed,
+        armed: this.armed, needsOpen: this.needsOpen,
+        // Optional UI hint: after rearming a held object, pinch before release.
+        needsPinch: this.armed && this._needsPinch
+      };
+    }
+  }
+
+  global.GripperSimulation = GripperSimulation;
+  global.PinchGesture = PinchGesture;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+
+(function exposeHandWorkspace(global) {
+  'use strict';
+
+  const clamp = (value, low, high) => Math.max(low, Math.min(high, value));
+  const CRITICAL_POINTS = [0, 4, 5, 8, 17];
+  const EDGE_ENTER = 0.025;
+  const EDGE_RECOVER = 0.045;
+  // A fixed palm-sized movement area leaves space for fingers around it. Its
+  // four edges map to the full reachable table; the ABC pads are inside them.
+  const FIXED_BOUNDS = Object.freeze({
+    left: 0.27, top: 0.35, width: 0.46, height: 0.40,
+    right: 0.73, bottom: 0.75, centerX: 0.50, centerY: 0.55
+  });
+
+  class HandWorkspace {
+    constructor() {
+      this.reset();
+    }
+
+    reset() {
+      this._edgeBlocked = false;
+      this._tooCloseBlocked = false;
+      return this.getBounds();
+    }
+
+    getBounds() {
+      // Callers can draw the guide without gaining a mutable control setting.
+      return { ...FIXED_BOUNDS };
+    }
+
+    // The caller passes a display-space palm, applying camera mirroring once.
+    // Clamping is only for the robot target; image landmarks remain untouched.
+    map(palm) {
+      if (!Number.isFinite(palm?.x) || !Number.isFinite(palm?.y)) return { x: 0.5, y: 0.5 };
+      const bounds = this.getBounds();
+      return {
+        x: 0.08 + clamp((palm.x - bounds.left) / bounds.width, 0, 1) * 0.84,
+        y: 0.08 + clamp((palm.y - bounds.top) / bounds.height, 0, 1) * 0.84
+      };
+    }
+
+    // Check raw image coordinates before computing a pinch. A palm outside the
+    // smaller movement box is fine while its control landmarks remain visible.
+    inspect(landmarks) {
+      if (!Array.isArray(landmarks) || landmarks.length < 21) return { usable: false, reason: 'missing' };
+      let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+      for (let i = 0; i < 21; i += 1) {
+        const point = landmarks[i];
+        if (!Number.isFinite(point?.x) || !Number.isFinite(point?.y)) return { usable: false, reason: 'invalid' };
+        minX = Math.min(minX, point.x);
+        maxX = Math.max(maxX, point.x);
+        minY = Math.min(minY, point.y);
+        maxY = Math.max(maxY, point.y);
+      }
+
+      // A larger recovery margin prevents repeated pause/resume at the edge.
+      const margin = this._edgeBlocked ? EDGE_RECOVER : EDGE_ENTER;
+      this._edgeBlocked = CRITICAL_POINTS.some(id => {
+        const point = landmarks[id];
+        return point.x <= margin || point.x >= 1 - margin || point.y <= margin || point.y >= 1 - margin;
+      });
+
+      const widthLimit = this._tooCloseBlocked ? 0.76 : 0.82;
+      const heightLimit = this._tooCloseBlocked ? 0.8 : 0.86;
+      this._tooCloseBlocked = maxX - minX > widthLimit || maxY - minY > heightLimit;
+      if (this._tooCloseBlocked) return { usable: false, reason: 'too-close' };
+      if (this._edgeBlocked) return { usable: false, reason: 'edge' };
+      return { usable: true, reason: null };
+    }
+  }
+
+  global.HandWorkspace = HandWorkspace;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+
+/* AI Air Gripper — MediaPipe hand tracking, browser-local inference.
+ * Runtime: @mediapipe/tasks-vision 0.10.21 (Apache-2.0).
+ * Raw landmarks are never mirrored; use result.mirrored only for presentation.
+ */
+(() => {
+  'use strict';
+  const VERSION = '0.10.21';
+  const CDN = `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${VERSION}`;
+  const MODEL_URL = 'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task';
+  const MODEL_BYTES = 7819105;
+  const CACHE_NAME = 'course-ai-air-gripper-model-v1';
+  const cancelError = () => Object.assign(new Error('操作已取消'), { name: 'AbortError' });
+  const localURL = (path) => new URL(path, document.baseURI).href;
+  const graphicsError = () => Object.assign(new Error(
+    '此瀏覽器目前無法使用手部辨識需要的 WebGL。你仍可使用手動練習；攝影機控制請換用可正常使用 WebGL 的 Chrome 或 Edge 瀏覽器。'
+  ), { code: 'WEBGL_UNAVAILABLE' });
+
+  function hasWebGL(factory) {
+    let canvas, context;
+    try {
+      canvas = factory();
+      context = canvas.getContext('webgl2') || canvas.getContext('webgl');
+      return !!context && !context.isContextLost();
+    } catch (_) { return false; }
+    finally {
+      try { context?.getExtension('WEBGL_lose_context')?.loseContext(); } catch (_) {}
+      if (canvas) { canvas.width = 0; canvas.height = 0; }
+    }
+  }
+
+  async function fetchBytes(url, signal, progress, timeout = 45000) {
+    const controller = new AbortController();
+    const abort = () => controller.abort();
+    if (signal?.aborted) throw cancelError();
+    signal?.addEventListener('abort', abort, { once: true });
+    const timer = setTimeout(abort, timeout);
+    try {
+      const response = await fetch(url, { signal: controller.signal, cache: 'default' });
+      if (!response.ok || (response.headers.get('content-type') || '').includes('text/html')) {
+        throw new Error(`模型來源無法讀取 (${response.status})`);
+      }
+      if (!response.body?.getReader) return await response.arrayBuffer();
+      const reader = response.body.getReader();
+      const chunks = [];
+      let length = 0;
+      const total = Number(response.headers.get('content-length')) || MODEL_BYTES;
+      for (;;) {
+        const item = await reader.read();
+        if (item.done) break;
+        chunks.push(item.value);
+        length += item.value.byteLength;
+        progress?.(length, total);
+      }
+      const joined = new Uint8Array(length);
+      let offset = 0;
+      for (const chunk of chunks) { joined.set(chunk, offset); offset += chunk.length; }
+      return joined.buffer;
+    } finally {
+      clearTimeout(timer);
+      signal?.removeEventListener('abort', abort);
+    }
+  }
+
+  async function chooseRuntime(signal) {
+    if (/^https?:$/.test(location.protocol)) {
+      const controller = new AbortController();
+      const abort = () => controller.abort();
+      signal.addEventListener('abort', abort, { once: true });
+      const timer = setTimeout(abort, 6000);
+      try {
+        const response = await fetch(localURL('./vendor/mediapipe/vision_bundle.mjs'), {
+          method: 'HEAD', signal: controller.signal, cache: 'default'
+        });
+        if (response.ok && !(response.headers.get('content-type') || '').includes('text/html')) {
+          return {
+            module: localURL('./vendor/mediapipe/vision_bundle.mjs'),
+            wasm: localURL('./vendor/mediapipe'),
+            local: true
+          };
+        }
+      } catch (error) { if (signal.aborted) throw cancelError(); }
+      finally { clearTimeout(timer); signal.removeEventListener('abort', abort); }
+    }
+    return { module: `${CDN}/vision_bundle.mjs`, wasm: `${CDN}/wasm`, local: false };
+  }
+
+  async function loadModel(signal, status) {
+    let cache = null;
+    try {
+      if ('caches' in window && isSecureContext) {
+        cache = await caches.open(CACHE_NAME);
+        const response = await cache.match(MODEL_URL);
+        if (response) {
+          const bytes = await response.arrayBuffer();
+          if (bytes.byteLength === MODEL_BYTES) {
+            status('讀取已儲存的手部模型');
+            return bytes;
+          }
+          await cache.delete(MODEL_URL);
+        }
+      }
+    } catch (_) { cache = null; }
+    const sources = /^https?:$/.test(location.protocol)
+      ? [localURL('./models/hand_landmarker.task'), MODEL_URL]
+      : [MODEL_URL];
+    let lastError;
+    for (const url of sources) {
+      if (signal.aborted) throw cancelError();
+      try {
+        let lastUpdate = 0;
+        const bytes = await fetchBytes(url, signal, (current, total) => {
+          const now = performance.now();
+          if (now - lastUpdate > 350 || current === total) {
+            lastUpdate = now;
+            status(`載入手部模型 ${(current / 1000000).toFixed(1)} / ${(total / 1000000).toFixed(1)} MB`);
+          }
+        });
+        if (bytes.byteLength !== MODEL_BYTES) throw new Error('模型檔案不完整，請重新載入');
+        if (cache) {
+          try {
+            await cache.put(MODEL_URL, new Response(bytes.slice(0), {
+              headers: { 'Content-Type': 'application/octet-stream' }
+            }));
+          } catch (_) { /* Browser may deny persistent caching; inference still works. */ }
+        }
+        return bytes;
+      } catch (error) {
+        if (signal.aborted) throw cancelError();
+        lastError = error;
+      }
+    }
+    throw new Error('手部模型載入失敗。請確認網路連線，或使用包含 models 與 vendor 資料夾的完整版本。', { cause: lastError });
+  }
+
+  function workerMain() {
+    let detector;
+    self.onmessage = async (event) => {
+      const message = event.data;
+      if (message.type === 'init') {
+        try {
+          const glCanvas = new OffscreenCanvas(480, 360);
+          const context = glCanvas.getContext('webgl2') || glCanvas.getContext('webgl');
+          if (!context || context.isContextLost()) throw new Error('WEBGL_UNAVAILABLE');
+          const { FilesetResolver, HandLandmarker } = await import(message.runtime.module);
+          const fileset = await FilesetResolver.forVisionTasks(message.runtime.wasm);
+          detector = await HandLandmarker.createFromOptions(fileset, {
+            canvas: glCanvas,
+            baseOptions: { modelAssetBuffer: new Uint8Array(message.model), delegate: 'CPU' },
+            runningMode: 'VIDEO', numHands: 1,
+            minHandDetectionConfidence: 0.55,
+            minHandPresenceConfidence: 0.55,
+            minTrackingConfidence: 0.55
+          });
+          self.postMessage({ type: 'ready' });
+        } catch (error) {
+          self.postMessage({ type: 'error', message: error?.message || String(error) });
+        }
+      } else if (message.type === 'frame') {
+        const started = performance.now();
+        try {
+          const result = detector.detectForVideo(message.bitmap, message.timestamp);
+          self.postMessage({
+            type: 'result', landmarks: result.landmarks?.[0] || null,
+            handedness: result.handedness?.[0]?.[0]?.categoryName || null,
+            inferenceMs: performance.now() - started, timestamp: message.timestamp
+          });
+        } catch (error) {
+          self.postMessage({ type: 'error', message: error?.message || String(error) });
+        } finally { message.bitmap.close(); }
+      }
+    };
+  }
+
+  class HandEngine {
+    constructor({ video, onResults = () => {}, onStatus = () => {}, onError = () => {} }) {
+      if (!video) throw new Error('HandEngine requires a video element');
+      this.video = video;
+      this.onResults = onResults;
+      this.onStatus = onStatus;
+      this.onError = onError;
+      this.running = false;
+      this.loading = false;
+      this.mirrored = true;
+      this.mode = null;
+      this._generation = 0;
+      this._stream = null;
+      this._worker = null;
+      this._workerURL = null;
+      this._detector = null;
+      this._raf = 0;
+      this._busy = false;
+      this._fallbackInProgress = false;
+      this._lastResult = 0;
+      this._fps = 0;
+      this._lastFrameTime = -1;
+      this._lastInference = 0;
+      this._interval = 1000 / 18;
+      this._options = { facingMode: 'user' };
+      this._canvas = null;
+      this._context = null;
+      this._glCanvas = null;
+      this._glContext = null;
+      this._graphics = null;
+      this._runtime = null;
+      this._abort = null;
+      this._workerReadyReject = null;
+      this._workerTimeout = 0;
+    }
+
+    _current(generation) { return this._generation === generation; }
+
+    _status(state, message, detail) {
+      this.onStatus({ state, message, detail, videoWidth: this.video.videoWidth,
+        videoHeight: this.video.videoHeight, mirrored: this.mirrored, mode: this.mode });
+    }
+
+    async start(options = {}) {
+      // stop() disposes synchronously. Claim this request before yielding so a
+      // stop in the same turn always invalidates this start, not the previous one.
+      this.stop({ silent: true });
+      const generation = ++this._generation;
+      this._abort = new AbortController();
+      this._options = { facingMode: 'user', ...options };
+      this.loading = true;
+      this._lastResult = 0;
+      this._fps = 0;
+      this._lastFrameTime = -1;
+      this._lastInference = 0;
+      this._interval = 1000 / 18;
+      try {
+        // The MediaPipe CPU delegate still uses WebGL for image preprocessing.
+        // Detect an unavailable graphics context before requesting the camera.
+        this._graphics = {
+          html: hasWebGL(() => document.createElement('canvas')),
+          offscreen: typeof OffscreenCanvas !== 'undefined' && hasWebGL(() => new OffscreenCanvas(32, 32))
+        };
+        if (!this._graphics.html && !this._graphics.offscreen) throw graphicsError();
+        if (!navigator.mediaDevices?.getUserMedia) {
+          throw new Error('攝影機需要 HTTPS 或 localhost。請使用線上體驗網址，或在本機伺服器開啟此頁。');
+        }
+        this._status('camera', '請允許使用攝影機');
+        const constraints = {
+          width: { ideal: 640 }, height: { ideal: 480 }, frameRate: { ideal: 24, max: 30 }
+        };
+        if (this._options.deviceId) constraints.deviceId = { exact: this._options.deviceId };
+        else constraints.facingMode = { ideal: this._options.facingMode };
+        const stream = await navigator.mediaDevices.getUserMedia({ video: constraints, audio: false });
+        if (!this._current(generation)) { stream.getTracks().forEach((track) => track.stop()); return false; }
+        this._stream = stream;
+        const track = stream.getVideoTracks()[0];
+        const settings = track.getSettings();
+        this.mirrored = settings.facingMode
+          ? settings.facingMode === 'user'
+          : (this._options.facingMode !== 'environment' && !/back|rear|後置|后置/i.test(track.label));
+        track.addEventListener('ended', () => {
+          if (this._current(generation)) this._fail(new Error('攝影機已中斷，請重新啟動。'), generation);
+        }, { once: true });
+        this.video.srcObject = stream;
+        this.video.muted = true;
+        this.video.playsInline = true;
+        await this.video.play();
+        if (!this._current(generation)) return false;
+        if (!this.video.videoWidth || !this.video.videoHeight) {
+          await new Promise((resolve, reject) => {
+            const signal = this._abort.signal;
+            let timer;
+            const cleanup = () => { clearTimeout(timer); this.video.removeEventListener('loadeddata', done); signal.removeEventListener('abort', cancelled); };
+            const done = () => { cleanup(); resolve(); };
+            const cancelled = () => { cleanup(); reject(cancelError()); };
+            timer = setTimeout(() => { cleanup(); reject(new Error('攝影機未提供影像，請確認鏡頭後重新啟動。')); }, 8000);
+            this.video.addEventListener('loadeddata', done, { once: true });
+            signal.addEventListener('abort', cancelled, { once: true });
+          });
+        }
+        if (!this._current(generation)) return false;
+        this._status('loading', '準備手部辨識模型');
+        const runtime = await chooseRuntime(this._abort.signal);
+        if (!this._current(generation)) return false;
+        this._runtime = runtime;
+        const model = await loadModel(this._abort.signal, (message) => {
+          if (this._current(generation)) this._status('loading', message);
+        });
+        if (!this._current(generation)) return false;
+        this._status('loading', '啟動手部辨識引擎');
+        const canWorker = this._graphics.offscreen && typeof Worker !== 'undefined' && typeof OffscreenCanvas !== 'undefined'
+          && typeof createImageBitmap === 'function';
+        if (canWorker) {
+          try { await this._startWorker(runtime, model, generation); }
+          catch (error) {
+            if (!this._current(generation)) return false;
+            this._disposeWorker();
+            await this._startMain(runtime, model, generation);
+          }
+        } else await this._startMain(runtime, model, generation);
+        if (!this._current(generation)) return false;
+        this.loading = false;
+        this.running = true;
+        this._busy = false;
+        this._status('ready', '手部辨識已啟動', this.mode);
+        this._tick(generation);
+        return true;
+      } catch (error) {
+        if (!this._current(generation)) return false;
+        const friendly = this._friendlyError(error);
+        this.stop({ silent: true });
+        if (!this._current(generation + 1)) return false;
+        this.onError(friendly);
+        throw friendly;
+      }
+    }
+
+    async _startWorker(runtime, model, generation) {
+      this._workerURL = URL.createObjectURL(new Blob([`(${workerMain.toString()})();`], { type: 'application/javascript' }));
+      this._worker = new Worker(this._workerURL, { name: 'course-ai-hand-inference' });
+      const worker = this._worker;
+      await new Promise((resolve, reject) => {
+        let ready = false;
+        this._workerReadyReject = reject;
+        this._workerTimeout = setTimeout(() => reject(new Error('背景辨識引擎啟動逾時')), 40000);
+        worker.onmessage = (event) => {
+          if (!this._current(generation)) return;
+          const result = event.data;
+          if (result.type === 'ready') {
+            ready = true;
+            clearTimeout(this._workerTimeout);
+            this._workerReadyReject = null;
+            this.mode = 'worker';
+            resolve();
+          } else if (result.type === 'result') {
+            this._busy = false;
+            this._emitResult(result);
+          } else if (result.type === 'error') {
+            const error = new Error(result.message);
+            if (!ready) reject(error);
+            else this._fallback(generation, error);
+          }
+        };
+        worker.onerror = (event) => {
+          event.preventDefault();
+          const error = new Error(event.message || '背景辨識引擎無法使用');
+          if (!ready) reject(error);
+          else this._fallback(generation, error);
+        };
+        // Keep this short-lived copy for main-thread fallback if worker startup fails.
+        worker.postMessage({ type: 'init', runtime, model });
+      });
+    }
+
+    async _startMain(runtime, model, generation) {
+      if (!this._current(generation)) throw cancelError();
+      // Use a fresh HTML canvas here: some browsers expose OffscreenCanvas but
+      // only provide a usable graphics context on their main-thread HTML canvas.
+      const glCanvas = document.createElement('canvas');
+      glCanvas.width = 480;
+      glCanvas.height = 360;
+      const glContext = glCanvas.getContext('webgl2') || glCanvas.getContext('webgl');
+      if (!glContext || glContext.isContextLost()) throw graphicsError();
+      this._glCanvas = glCanvas;
+      this._glContext = glContext;
+      const { FilesetResolver, HandLandmarker } = await import(runtime.module);
+      if (!this._current(generation)) throw cancelError();
+      const fileset = await FilesetResolver.forVisionTasks(runtime.wasm);
+      if (!this._current(generation)) throw cancelError();
+      const detector = await HandLandmarker.createFromOptions(fileset, {
+        canvas: glCanvas,
+        baseOptions: { modelAssetBuffer: new Uint8Array(model), delegate: 'CPU' },
+        runningMode: 'VIDEO', numHands: 1,
+        minHandDetectionConfidence: 0.55,
+        minHandPresenceConfidence: 0.55,
+        minTrackingConfidence: 0.55
+      });
+      if (!this._current(generation)) { detector.close(); throw cancelError(); }
+      this._detector = detector;
+      this._canvas = document.createElement('canvas');
+      this._context = this._canvas.getContext('2d', { alpha: false, willReadFrequently: true });
+      this.mode = 'main';
+      this._interval = 1000 / 15;
+    }
+
+    async _fallback(generation) {
+      if (!this._current(generation) || this._fallbackInProgress) return;
+      this._fallbackInProgress = true;
+      this._busy = true;
+      this._disposeWorker();
+      try {
+        this._status('loading', '調整辨識模式，請稍候');
+        const model = await loadModel(this._abort.signal, () => {});
+        await this._startMain(this._runtime, model, generation);
+        if (!this._current(generation)) return;
+        this._busy = false;
+        this._fallbackInProgress = false;
+        this._status('ready', '手部辨識已啟動', this.mode);
+      } catch (error) { this._fail(error, generation); }
+    }
+
+    _emitResult(result) {
+      const now = performance.now();
+      if (this._lastResult) {
+        const fps = Math.min(60, 1000 / Math.max(1, now - this._lastResult));
+        this._fps = this._fps ? this._fps * 0.75 + fps * 0.25 : fps;
+      }
+      this._lastResult = now;
+      // Slow devices automatically sample fewer frames, rather than queueing stale ones.
+      const targetInterval = Math.max(this.mode === 'worker' ? 1000 / 18 : 1000 / 15, result.inferenceMs * 1.12);
+      this._interval = Math.min(250, this._interval * 0.85 + targetInterval * 0.15);
+      this.onResults({
+        landmarks: result.landmarks || null,
+        handedness: result.handedness || null,
+        fps: this._fps,
+        inferenceMs: result.inferenceMs,
+        videoWidth: this.video.videoWidth,
+        videoHeight: this.video.videoHeight,
+        mirrored: this.mirrored,
+        timestamp: result.timestamp
+      });
+    }
+
+    _tick(generation) {
+      if (!this.running || !this._current(generation)) return;
+      this._raf = requestAnimationFrame(() => this._tick(generation));
+      const now = performance.now();
+      if (document.hidden || this._busy || this.video.readyState < 2 || now - this._lastInference < this._interval
+        || this.video.currentTime === this._lastFrameTime) return;
+      const width = 480;
+      const height = Math.round(width * this.video.videoHeight / this.video.videoWidth);
+      if (!height || !Number.isFinite(height)) return;
+      this._lastInference = now;
+      this._lastFrameTime = this.video.currentTime;
+      this._busy = true;
+      if (this._worker) {
+        createImageBitmap(this.video, { resizeWidth: width, resizeHeight: height, resizeQuality: 'low' })
+          .then((bitmap) => {
+            if (!this._current(generation) || !this._worker) { bitmap.close(); return; }
+            try { this._worker.postMessage({ type: 'frame', bitmap, timestamp: now }, [bitmap]); }
+            catch (error) { bitmap.close(); throw error; }
+          })
+          .catch((error) => {
+            if (this._current(generation)) this._fallback(generation, error);
+          });
+      } else if (this._detector) {
+        try {
+          if (this._canvas.width !== width || this._canvas.height !== height) {
+            this._canvas.width = width;
+            this._canvas.height = height;
+          }
+          this._context.drawImage(this.video, 0, 0, width, height);
+          const started = performance.now();
+          const result = this._detector.detectForVideo(this._canvas, now);
+          this._busy = false;
+          this._emitResult({
+            landmarks: result.landmarks?.[0] || null,
+            handedness: result.handedness?.[0]?.[0]?.categoryName || null,
+            inferenceMs: performance.now() - started,
+            timestamp: now
+          });
+        } catch (error) { this._fail(error, generation); }
+      } else this._busy = false;
+    }
+
+    _friendlyError(error) {
+      if (error.code === 'WEBGL_UNAVAILABLE' || /activeTexture|WEBGL_UNAVAILABLE|GLctx|No OpenGL canvas|Failed to obtain WebGL context/.test(error.message || '')) {
+        return graphicsError();
+      }
+      if (error.name === 'NotAllowedError' || error.name === 'SecurityError') {
+        return new Error('攝影機權限未開啟。請在網址列允許攝影機，再按「啟動攝影機」。');
+      }
+      if (error.name === 'NotFoundError' || error.name === 'OverconstrainedError') {
+        return new Error('找不到可用的攝影機。請確認鏡頭已連接，或切換其他攝影機。');
+      }
+      if (error.name === 'NotReadableError') {
+        return new Error('攝影機無法開啟，可能正被其他程式使用。請關閉其他使用鏡頭的程式後再試。');
+      }
+      if (error.name === 'AbortError') return new Error('載入逾時，請確認網路與攝影機後重新啟動。');
+      return error instanceof Error ? error : new Error(String(error));
+    }
+
+    _fail(error, generation) {
+      if (!this._current(generation)) return;
+      const friendly = this._friendlyError(error);
+      this.stop({ silent: true });
+      this.onError(friendly);
+    }
+
+    _disposeWorker() {
+      clearTimeout(this._workerTimeout);
+      if (this._worker) {
+        this._worker.onmessage = null;
+        this._worker.onerror = null;
+        this._worker.terminate();
+        this._worker = null;
+      }
+      if (this._workerURL) { URL.revokeObjectURL(this._workerURL); this._workerURL = null; }
+    }
+
+    async stop({ silent = false } = {}) {
+      ++this._generation;
+      this.running = false;
+      this.loading = false;
+      this._abort?.abort();
+      this._abort = null;
+      cancelAnimationFrame(this._raf);
+      this._raf = 0;
+      this._workerReadyReject?.(cancelError());
+      this._workerReadyReject = null;
+      this._disposeWorker();
+      if (this._detector) { try { this._detector.close(); } catch (_) {} this._detector = null; }
+      try { this._glContext?.getExtension('WEBGL_lose_context')?.loseContext(); } catch (_) {}
+      if (this._glCanvas) { this._glCanvas.width = 0; this._glCanvas.height = 0; }
+      this._glCanvas = null;
+      this._glContext = null;
+      if (this._stream) { this._stream.getTracks().forEach((track) => track.stop()); this._stream = null; }
+      this.video.pause();
+      this.video.srcObject = null;
+      if (this._canvas) { this._canvas.width = 0; this._canvas.height = 0; }
+      this._canvas = null;
+      this._context = null;
+      this._busy = false;
+      this._fallbackInProgress = false;
+      this.mode = null;
+      if (!silent) this._status('stopped', '攝影機已停止');
+    }
+
+    async listCameras() {
+      if (!navigator.mediaDevices?.enumerateDevices) return [];
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      return devices.filter((device) => device.kind === 'videoinput').map((device, index) => ({
+        deviceId: device.deviceId, label: device.label || `攝影機 ${index + 1}`
+      }));
+    }
+
+    async switchCamera(options) {
+      if (options && (options.deviceId || options.facingMode)) return this.start(options);
+      const generation = this._generation;
+      const cameras = await this.listCameras();
+      if (!this._current(generation)) return false;
+      const currentId = this._stream?.getVideoTracks()[0]?.getSettings().deviceId;
+      if (cameras.length > 1) {
+        const next = (cameras.findIndex((camera) => camera.deviceId === currentId) + 1) % cameras.length;
+        return this.start({ deviceId: cameras[next].deviceId });
+      }
+      return this.start({ facingMode: this.mirrored ? 'environment' : 'user' });
+    }
+  }
+
+  HandEngine.VERSION = VERSION;
+  window.HandEngine = HandEngine;
+})();
+
+
+(function startAirGripper() {
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const put = (id, text) => { if ($(id).textContent !== text) $(id).textContent = text; };
+  const sim = new GripperSimulation();
+  const pinch = new PinchGesture();
+  const workspace = new HandWorkspace();
+  const scene = new ArmScene($('robotCanvas'));
+  let mode = 'hand';
+  let paused = false;
+  let busy = false;
+  let ready = false;
+  let handSeen = false;
+  let lastResultAt = 0;
+  let lastResults = null;
+  let gesture = { armed: false, needsOpen: true, needsPinch: false, ratio: null };
+  let currentPalm = null;
+  let handSafety = { usable: false, reason: 'missing' };
+  let cameraDevices = [];
+  let selectedDevice = '';
+  let uiGeneration = 0;
+  let messageUntil = 0;
+  let lastUiUpdate = 0;
+  let lastTick = 0;
+  let raf = 0;
+  let manualPointerId = null;
+  let pendingTouchGrip = false;
+
+  // A single portable page can be used both under Course-of-AI and in preview.
+  if (location.hostname !== 'shihchun-shao.github.io' || !location.pathname.includes('/Course-of-AI/')) {
+    $('homeLink').href = 'https://shihchun-shao.github.io/Course-of-AI/';
+  }
+
+  function badge(id, text, tone = 'neutral') {
+    const el = $(id);
+    if (el.dataset.text !== text) {
+      el.replaceChildren(Object.assign(document.createElement('i'), {}), document.createTextNode(text));
+      el.dataset.text = text;
+    }
+    const cls = `status-pill ${tone}`;
+    if (el.className !== cls) el.className = cls;
+  }
+
+  function say(text, tone = '', duration = 3300) {
+    put('sceneMessage', text);
+    $('sceneMessage').className = `scene-message ${tone}`.trim();
+    messageUntil = performance.now() + duration;
+  }
+
+  function rearm() {
+    gesture = pinch.reset({ heldClosed: sim.closed });
+    handSeen = false;
+    handSafety = { usable: false, reason: 'missing' };
+    sim.setActive(false);
+  }
+
+  function handBoundaryHint() {
+    if (handSafety.reason === 'too-close') return '手離鏡頭遠一點，讓拇指與食指完整入鏡';
+    if (handSafety.reason === 'edge') return '手靠近畫面邊緣，請移回鏡頭中央';
+    if (handSafety.reason === 'invalid') return '手部位置不清楚，請將完整手掌放回鏡頭內';
+    return '';
+  }
+
+  function releaseCameraView() {
+    ready = false;
+    busy = false;
+    handSeen = false;
+    lastResults = null;
+    currentPalm = null;
+    lastResultAt = 0;
+    $('cameraStage').classList.remove('live');
+    $('cameraPlaceholder').hidden = false;
+    $('trackingOverlay').hidden = true;
+    $('fpsBadge').hidden = true;
+    $('loadingMessage').hidden = true;
+    clearOverlay();
+    if (mode === 'hand') rearm();
+  }
+
+  function engineStatus(status) {
+    if (mode !== 'hand' && status.state !== 'stopped') return;
+    if (status.state === 'camera' || status.state === 'loading') {
+      busy = true;
+      $('loadingMessage').hidden = false;
+      put('loadingMessage', status.message);
+      badge('cameraBadge', status.state === 'camera' ? '等待攝影機' : '準備辨識', 'blue');
+      if ($('cameraVideo').srcObject && $('cameraVideo').videoWidth) {
+        $('cameraPlaceholder').hidden = true;
+        $('cameraStage').classList.add('live');
+      }
+    } else if (status.state === 'ready') {
+      busy = false;
+      ready = true;
+      $('loadingMessage').hidden = true;
+      $('errorMessage').hidden = true;
+      $('cameraPlaceholder').hidden = true;
+      $('cameraStage').classList.add('live');
+      $('mirrorCamera').checked = Boolean(status.mirrored);
+      $('cameraVideo').style.transform = $('mirrorCamera').checked ? 'scaleX(-1)' : 'none';
+      $('trackingOverlay').hidden = false;
+      put('trackingOverlay', '先張開拇指與食指，準備接回控制');
+      say('將一隻手放入鏡頭，先張開拇指與食指。', '', 2500);
+      const generation = uiGeneration;
+      refreshCameras(generation);
+    } else if (status.state === 'stopped') {
+      releaseCameraView();
+    }
+    updateUi();
+  }
+
+  function showCameraError(error) {
+    releaseCameraView();
+    if (mode !== 'hand') return;
+    $('errorMessage').hidden = false;
+    put('errorMessage', error.message || '無法啟動攝影機，請確認權限後再試一次。');
+    say('攝影機尚未就緒，也可以先使用滑鼠／觸控練習。', 'warn', 5000);
+    updateUi();
+  }
+
+  const engine = new HandEngine({ video: $('cameraVideo'), onStatus: engineStatus, onResults: receiveHand, onError: showCameraError });
+
+  async function refreshCameras(generation) {
+    const list = await engine.listCameras().catch(() => []);
+    if (generation !== uiGeneration || mode !== 'hand' || !ready) return;
+    cameraDevices = list;
+    const actual = $('cameraVideo').srcObject?.getVideoTracks()[0]?.getSettings()?.deviceId;
+    selectedDevice = actual || selectedDevice || list[0]?.deviceId || '';
+    $('cameraSelect').replaceChildren();
+    if (!list.length) $('cameraSelect').add(new Option('目前鏡頭', ''));
+    list.forEach((device, index) => $('cameraSelect').add(new Option(device.label || `攝影機 ${index + 1}`, device.deviceId)));
+    $('cameraSelect').value = selectedDevice;
+    updateUi();
+  }
+
+  async function startCamera(options = {}) {
+    if (mode !== 'hand') return;
+    const generation = ++uiGeneration;
+    busy = true;
+    ready = false;
+    workspace.reset();
+    rearm();
+    $('errorMessage').hidden = true;
+    $('loadingMessage').hidden = false;
+    put('loadingMessage', '準備啟動攝影機…');
+    updateUi();
+    try {
+      const success = await engine.start(options);
+      if (!success || generation !== uiGeneration) return;
+      ready = true;
+    } catch (error) {
+      // HandEngine reports current errors through onError; cancellation is silent.
+      if (generation === uiGeneration && mode === 'hand' && $('errorMessage').hidden && error.name !== 'AbortError') showCameraError(error);
+    } finally {
+      if (generation === uiGeneration) { busy = false; updateUi(); }
+    }
+  }
+
+  async function stopCamera(message = '攝影機已停止，工件位置已保留。') {
+    ++uiGeneration;
+    sim.setActive(false);
+    rearm();
+    releaseCameraView();
+    updateUi();
+    await engine.stop();
+    if (mode === 'hand') say(message, '', 3500);
+  }
+
+  async function setMode(next) {
+    if (next === mode) return;
+    clearManualHold();
+    ++uiGeneration;
+    mode = next;
+    sim.setActive(false);
+    pinch.reset({ heldClosed: sim.closed });
+    workspace.reset();
+    releaseCameraView();
+    $('errorMessage').hidden = true;
+    $('handMode').classList.toggle('selected', mode === 'hand');
+    $('manualMode').classList.toggle('selected', mode === 'manual');
+    $('handMode').setAttribute('aria-pressed', String(mode === 'hand'));
+    $('manualMode').setAttribute('aria-pressed', String(mode === 'manual'));
+    $('cameraButtons').hidden = mode === 'manual';
+    $('manualControls').hidden = mode !== 'manual';
+    $('robotCanvas').classList.toggle('manual-input', mode === 'manual');
+    put('inputBadge', mode === 'manual' ? '滑鼠／觸控練習' : '攝影機控制');
+    put('cameraTitle', mode === 'manual' ? '練習模式與設定' : '手部辨識與控制');
+    put('placeholderTitle', mode === 'manual' ? '先熟悉定位、夾取與放下' : '伸出一隻手，開始控制');
+    put('placeholderText', mode === 'manual' ? '滑鼠左鍵按住夾取，拖曳搬運，放開即鬆爪。' : '完整手掌留在鏡頭內，掌心小幅移動即可。');
+    put('cameraNote', mode === 'manual' ? '練習模式使用手動輸入，攝影機已關閉' : '影像在你的瀏覽器中處理');
+    await engine.stop();
+    if (mode === 'manual') {
+      sim.setActive(!paused);
+      sim.setGrip(false);
+      say('先對準工件，按住滑鼠左鍵夾取，放開即鬆爪。', '', 4500);
+    } else say('按「啟動攝影機」，用手掌控制機械手臂。', '', 4000);
+    updateUi();
+  }
+
+  function receiveHand(result) {
+    if (mode !== 'hand' || !engine.running) return;
+    lastResultAt = performance.now();
+    lastResults = result;
+    const points = result.landmarks;
+    // Check original image coordinates before evaluating a pinch. The smaller
+    // palm movement box is not a crop: visible fingers outside it remain usable.
+    handSafety = workspace.inspect(points);
+    if (handSafety.reason === 'missing' || handSafety.reason === 'invalid') {
+      handSeen = false;
+      currentPalm = null;
+      gesture = pinch.lost();
+      sim.setActive(false);
+      drawOverlay(result);
+      updateUi();
+      return;
+    }
+    handSeen = true;
+    const palmIds = [0, 5, 9, 13, 17];
+    const rawPalm = palmIds.reduce((sum, id) => ({ x: sum.x + points[id].x / palmIds.length, y: sum.y + points[id].y / palmIds.length }), { x: 0, y: 0 });
+    currentPalm = { x: $('mirrorCamera').checked ? 1 - rawPalm.x : rawPalm.x, y: rawPalm.y };
+    if (!handSafety.usable) {
+      // Keep a carried block closed while a fingertip approaches the image edge.
+      // Re-entry uses the same deliberate open → pinch rearming as tracking loss.
+      gesture = pinch.lost();
+      sim.setActive(false);
+      drawOverlay(result);
+      updateUi();
+      return;
+    }
+    if (!paused) {
+      gesture = pinch.update(points, result.timestamp, result.videoWidth / result.videoHeight || 4 / 3, Number($('pinchRange').value));
+      const canControl = gesture.armed && !gesture.needsPinch;
+      sim.setActive(canControl);
+      if (canControl) {
+        const target = workspace.map(currentPalm);
+        sim.setTarget(target.x, target.y);
+        if (gesture.changed) sim.setGrip(gesture.closed);
+      }
+    }
+    drawOverlay(result);
+  }
+
+  function cameraGeometry() {
+    const canvas = $('handOverlay');
+    const rect = $('cameraStage').getBoundingClientRect();
+    const dpr = Math.min(devicePixelRatio || 1, 2);
+    const width = Math.max(1, rect.width), height = Math.max(1, rect.height);
+    if (canvas.width !== Math.round(width * dpr) || canvas.height !== Math.round(height * dpr)) {
+      canvas.width = Math.round(width * dpr); canvas.height = Math.round(height * dpr);
+    }
+    const context = canvas.getContext('2d');
+    context.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const vw = lastResults?.videoWidth || $('cameraVideo').videoWidth || 640;
+    const vh = lastResults?.videoHeight || $('cameraVideo').videoHeight || 480;
+    const scale = Math.min(width / vw, height / vh);
+    const fw = vw * scale, fh = vh * scale;
+    return { context, width, height, fw, fh, ox: (width - fw) / 2, oy: (height - fh) / 2 };
+  }
+
+  function clearOverlay() {
+    const canvas = $('handOverlay');
+    canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+  }
+
+  function drawOverlay(result) {
+    const g = cameraGeometry(), c = g.context;
+    c.clearRect(0, 0, g.width, g.height);
+    if (mode !== 'hand' || !ready) return;
+    const mirror = $('mirrorCamera').checked;
+    const toPoint = point => ({ x: g.ox + (mirror ? 1 - point.x : point.x) * g.fw, y: g.oy + point.y * g.fh });
+    // The fixed guide and the robot target use the same immutable palm bounds.
+    const bounds = workspace.getBounds();
+    const rx = g.ox + bounds.left * g.fw, ry = g.oy + bounds.top * g.fh;
+    c.save(); c.strokeStyle = '#ffe033a6'; c.lineWidth = 2; c.setLineDash([6, 5]);
+    c.strokeRect(rx, ry, bounds.width * g.fw, bounds.height * g.fh);
+    c.setLineDash([]); c.font = '10px system-ui, sans-serif';
+    c.fillStyle = '#14253bd9'; c.fillRect(rx, ry - 20, 108, 17);
+    c.fillStyle = '#ffe033'; c.fillText('固定掌心操作範圍', rx + 7, ry - 8); c.restore();
+    const points = result?.landmarks;
+    if (!points || points.length < 21 || !points.slice(0, 21).every(p => Number.isFinite(p?.x) && Number.isFinite(p?.y)) || !$('showLandmarks').checked) return;
+    const edges = [[0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],[5,9],[9,10],[10,11],[11,12],[9,13],[13,14],[14,15],[15,16],[13,17],[0,17],[17,18],[18,19],[19,20]];
+    c.lineCap = 'round'; c.lineJoin = 'round';
+    c.beginPath();
+    for (const [a, b] of edges) { const p = toPoint(points[a]), q = toPoint(points[b]); c.moveTo(p.x,p.y); c.lineTo(q.x,q.y); }
+    c.strokeStyle = '#1b2438a6'; c.lineWidth = 6; c.stroke();
+    c.strokeStyle = '#ffe033'; c.lineWidth = 4; c.stroke();
+    for (let i = 0; i < 21; i++) {
+      const p = toPoint(points[i]); c.beginPath(); c.arc(p.x, p.y, i === 4 || i === 8 ? 5.5 : 3.5, 0, Math.PI * 2);
+      c.fillStyle = '#ffe033'; c.fill(); c.strokeStyle = '#26334dcc'; c.lineWidth = 1.5; c.stroke();
+    }
+    const thumb = toPoint(points[4]), index = toPoint(points[8]);
+    c.strokeStyle = '#ffe033'; c.lineWidth = 4;
+    c.beginPath(); c.moveTo(thumb.x, thumb.y); c.lineTo(index.x, index.y); c.stroke();
+    if (currentPalm) {
+      const x = g.ox + currentPalm.x * g.fw, y = g.oy + currentPalm.y * g.fh;
+      c.strokeStyle = '#ffe033'; c.lineWidth = 2.5; c.beginPath(); c.arc(x,y,8,0,Math.PI*2); c.stroke();
+      c.fillStyle = '#ffe033'; c.beginPath(); c.arc(x,y,2.5,0,Math.PI*2); c.fill();
+    }
+  }
+
+  function nearestBlock() {
+    if (!sim.active || paused || sim.closed) return null;
+    return sim.blocks.filter(b => !b.placed).map(b => ({ block: b, distance: Math.hypot(sim.x - b.x, sim.y - b.y) })).filter(x => x.distance <= 0.09).sort((a,b) => a.distance - b.distance)[0]?.block || null;
+  }
+
+  function taskUi() {
+    put('placedCount', String(sim.placedCount));
+    $('completion').hidden = !sim.complete;
+    $('sceneMessage').hidden = sim.complete;
+    for (const block of sim.blocks) {
+      const el = $(`task-${block.id}`);
+      el.classList.toggle('done', block.placed);
+      el.querySelector('small').textContent = block.placed ? '已完成' : sim.heldId === block.id ? '搬運中' : '待搬運';
+      el.querySelector('.task-check').textContent = block.placed ? '✓' : '○';
+    }
+  }
+
+  sim.onEvent = event => {
+    const messages = {
+      pick: `已夾起 ${event.blockId?.toUpperCase()}，移到同色工作站後${mode === 'manual' ? '放開滑鼠或手指' : '張開放下'}。`,
+      placed: `${event.blockId?.toUpperCase()} 工件已送達！`,
+      'wrong-bin': `這是另一個工作站，請把 ${event.blockId?.toUpperCase()} 送到同色區域。`,
+      drop: '工件已放在桌面，可以重新夾取。',
+      miss: '再靠近一點：先張開夾爪，對準工件後再夾取。',
+      complete: '三個工件都已送達正確工作站！'
+    };
+    say(messages[event.type] || event.message, ['placed','complete'].includes(event.type) ? 'success' : ['wrong-bin','miss'].includes(event.type) ? 'warn' : '', 3600);
+    taskUi(); updateUi();
+  };
+
+  function updateUi() {
+    const manual = mode === 'manual';
+    $('startButton').disabled = manual || busy || ready;
+    $('stopButton').disabled = manual || !(busy || ready || engine.loading || engine.running);
+    $('switchButton').disabled = manual || !ready || busy || cameraDevices.length < 2;
+    $('cameraSelect').disabled = manual || !ready || busy || cameraDevices.length < 2;
+    $('pinchRange').disabled = manual;
+    $('mirrorCamera').disabled = manual;
+    $('showLandmarks').disabled = manual;
+    $('pauseButton').disabled = !manual && !ready;
+    put('gripValue', sim.closed ? '閉合' : '張開');
+    put('heldValue', sim.heldId ? `工件 ${sim.heldId.toUpperCase()}` : '—');
+    put('pinchRatio', !manual && gesture.ratio != null ? gesture.ratio.toFixed(2) : '—');
+    if (manual) {
+      badge('cameraBadge', '手動練習', 'blue');
+      put('handValue', '手動輸入');
+    } else if (busy) {
+      put('handValue', '準備中');
+    } else if (!ready) {
+      badge('cameraBadge', '尚未啟動');
+      put('handValue', '等待啟動');
+    } else if (handBoundaryHint()) {
+      badge('cameraBadge', handSafety.reason === 'too-close' ? '請稍微退後' : '調整手部位置', 'warn');
+      put('handValue', handSafety.reason === 'too-close' ? '距離太近' : handSafety.reason === 'edge' ? '靠近邊緣' : '位置不清楚');
+    } else if (!handSeen) {
+      badge('cameraBadge', '等待手部', 'warn');
+      put('handValue', '尚未入鏡');
+    } else if (!gesture.armed || gesture.needsPinch) {
+      badge('cameraBadge', '接回控制', 'blue');
+      put('handValue', gesture.needsPinch && gesture.armed ? '請先捏合' : '請先張開');
+    } else {
+      badge('cameraBadge', '辨識中', 'good');
+      put('handValue', '已追蹤');
+    }
+    if (sim.complete) badge('workStatus', '任務完成', 'good');
+    else if (paused) badge('workStatus', '已暫停', 'warn');
+    else if (sim.active) badge('workStatus', sim.heldId ? '搬運中' : '可操作', 'good');
+    else if (ready) badge('workStatus', handBoundaryHint() && sim.heldId ? '工件已保持' : '等待手部', 'warn');
+    else badge('workStatus', '等待操作');
+    if (ready && !manual) {
+      const needHint = paused || !handSafety.usable || !handSeen || !gesture.armed || gesture.needsPinch;
+      $('trackingOverlay').hidden = !needHint;
+      put('trackingOverlay', paused ? '已暫停，按「繼續」接回控制' : handBoundaryHint() || (!handSeen ? '讓完整手掌與指尖出現在鏡頭內' : !gesture.armed ? '先張開拇指與食指' : '先捏合，再移動與張開放下'));
+      $('fpsBadge').hidden = !lastResults;
+      if (lastResults) put('fpsBadge', `${Number(lastResults.fps || 0).toFixed(0)} FPS`);
+    }
+    if (performance.now() > messageUntil && !sim.complete) {
+      const target = nearestBlock();
+      let instruction;
+      if (paused) instruction = '機械手臂已暫停，按「繼續」恢復操作。';
+      else if (!manual && !ready) instruction = busy ? '正在準備攝影機與手部辨識…' : '先啟動攝影機，或切換至滑鼠／觸控練習。';
+      else if (!manual && handBoundaryHint()) instruction = `${handBoundaryHint()}。${sim.heldId ? '工件已保持，依提示接回控制。' : '掌心只需小幅移動。'}`;
+      else if (!manual && !handSeen) instruction = sim.heldId ? '手部離開畫面，工件已保持。重新入鏡後依提示接回控制。' : '把一隻手放入鏡頭，讓手掌與指尖完整入鏡。';
+      else if (!manual && !gesture.armed) instruction = '先張開拇指與食指，準備接回控制。';
+      else if (!manual && gesture.needsPinch) instruction = '工件已保持：先捏合，再張開即可放下。';
+      else if (sim.heldId) instruction = `把 ${sim.heldId.toUpperCase()} 工件移到同色工作站，再${manual ? '放開滑鼠或手指' : '張開手指'}。`;
+      else if (sim.closed) instruction = manual ? '放開滑鼠或手指鬆爪，重新對準後再按住。' : '先張開手指，再對準工件捏合。';
+      else if (pendingTouchGrip) instruction = '保持按住，待夾爪靠近並夾住工件後再拖曳。';
+      else if (target) instruction = `已對準 ${target.label}，${manual ? '按住滑鼠左鍵夾取' : '捏合拇指與食指'}。`;
+      else instruction = manual ? '移動游標／觸控工作臺，將夾爪對準工件。' : '掌心在黃色框內小幅移動，讓夾爪對準工件。';
+      put('sceneMessage', instruction);
+      $('sceneMessage').className = 'scene-message';
+    }
+  }
+
+  function resetTask() {
+    clearManualHold(false);
+    sim.reset();
+    if (mode === 'hand') rearm();
+    else sim.setActive(!paused);
+    taskUi();
+    say(mode === 'hand' && ready ? '工件已重新隨機分散，先張開手指再開始。' : '工件已重新隨機分散，從工件 A 開始試試看。');
+    updateUi();
+  }
+
+  function togglePause() {
+    if (!paused) clearManualHold();
+    paused = !paused;
+    sim.pause(paused);
+    if (mode === 'hand') rearm();
+    else { sim.setActive(!paused); if (!paused) sim.setGrip(false); }
+    $('pauseButton').setAttribute('aria-pressed', String(paused));
+    put('pauseLabel', paused ? '繼續' : '暫停');
+    $('pauseButton').title = paused ? '繼續操作機械手臂' : '暫停機械手臂';
+    say(paused ? '機械手臂已暫停，工件位置已保留。' : mode === 'hand' ? '先張開手指，依提示接回控制。' : '可以繼續操作。');
+    updateUi();
+  }
+
+  function manualMove(event) {
+    if (mode !== 'manual' || paused || sim.complete) return;
+    if (manualPointerId !== null && event.pointerId !== manualPointerId) return;
+    if (event.pointerType === 'touch' && manualPointerId === null) return;
+    // A missed pointerup must never leave the claw closed after the button is up.
+    if (event.pointerType === 'mouse' && manualPointerId !== null && !(event.buttons & 1)) clearManualHold();
+    const world = scene.worldFromPointer(event.clientX, event.clientY);
+    sim.setTarget(world.x, world.y);
+  }
+
+  function clearManualHold(releaseGrip = true) {
+    const pointerId = manualPointerId;
+    manualPointerId = null;
+    pendingTouchGrip = false;
+    const canvas = $('robotCanvas');
+    canvas.classList.remove('is-grabbing');
+    if (pointerId !== null && canvas.hasPointerCapture(pointerId)) canvas.releasePointerCapture(pointerId);
+    if (releaseGrip && mode === 'manual') sim.setGrip(false);
+  }
+
+  function endManualHold(event) {
+    if (manualPointerId === null || (event && event.pointerId !== manualPointerId)) return;
+    clearManualHold();
+    updateUi();
+  }
+
+  $('startButton').addEventListener('click', () => startCamera(selectedDevice ? { deviceId: selectedDevice } : {}));
+  $('stopButton').addEventListener('click', () => stopCamera());
+  $('manualMode').addEventListener('click', () => setMode('manual'));
+  $('handMode').addEventListener('click', () => setMode('hand'));
+  $('resetButton').addEventListener('click', resetTask);
+  $('playAgain').addEventListener('click', resetTask);
+  $('pauseButton').addEventListener('click', togglePause);
+  $('switchButton').addEventListener('click', () => {
+    const index = cameraDevices.findIndex(device => device.deviceId === selectedDevice);
+    selectedDevice = cameraDevices[(index + 1) % cameraDevices.length]?.deviceId || '';
+    startCamera({ deviceId: selectedDevice });
+  });
+  $('cameraSelect').addEventListener('change', () => { selectedDevice = $('cameraSelect').value; startCamera({ deviceId: selectedDevice }); });
+  $('smoothRange').addEventListener('input', () => put('smoothValue', `${$('smoothRange').value}%`));
+  $('pinchRange').addEventListener('input', () => { put('pinchValue', Number($('pinchRange').value).toFixed(2)); rearm(); });
+  $('showLandmarks').addEventListener('change', () => { if (lastResults) drawOverlay(lastResults); });
+  $('mirrorCamera').addEventListener('change', () => {
+    $('cameraVideo').style.transform = $('mirrorCamera').checked ? 'scaleX(-1)' : 'none';
+    workspace.reset(); currentPalm = null; rearm();
+    if (lastResults) drawOverlay(lastResults);
+  });
+  $('robotCanvas').addEventListener('pointerdown', event => {
+    if (mode !== 'manual' || paused || !sim.active || sim.complete || manualPointerId !== null || event.isPrimary === false || event.button !== 0) return;
+    event.preventDefault();
+    const canvas = $('robotCanvas');
+    canvas.focus({ preventScroll: true });
+    manualPointerId = event.pointerId;
+    canvas.setPointerCapture(event.pointerId);
+    canvas.classList.add('is-grabbing');
+    manualMove(event);
+    // Touch has no hover: move the actual tool to the pressed point before
+    // closing, without teleporting or picking a block at the old position.
+    pendingTouchGrip = event.pointerType === 'touch';
+    if (!pendingTouchGrip) sim.setGrip(true);
+    updateUi();
+  });
+  $('robotCanvas').addEventListener('pointermove', manualMove);
+  $('robotCanvas').addEventListener('pointerup', endManualHold);
+  $('robotCanvas').addEventListener('pointercancel', endManualHold);
+  $('robotCanvas').addEventListener('lostpointercapture', endManualHold);
+  window.addEventListener('pointerup', endManualHold);
+  window.addEventListener('pointercancel', endManualHold);
+  window.addEventListener('blur', () => { clearManualHold(); updateUi(); });
+  $('robotCanvas').addEventListener('contextmenu', event => { if (mode === 'manual') event.preventDefault(); });
+  $('robotCanvas').addEventListener('keydown', event => {
+    if (mode !== 'manual' || paused) return;
+    const directions = { ArrowLeft: [-1,0], ArrowRight:[1,0], ArrowUp:[0,-1], ArrowDown:[0,1] };
+    if (directions[event.key]) {
+      event.preventDefault(); const [dx,dy] = directions[event.key], step = event.shiftKey ? 0.01 : 0.035;
+      sim.setTarget(sim.targetX + dx * step, sim.targetY + dy * step);
+    }
+  });
+
+  const overlayResize = new ResizeObserver(() => { if (lastResults) drawOverlay(lastResults); });
+  overlayResize.observe($('cameraStage'));
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) { clearManualHold(); updateUi(); }
+    if (document.hidden && (engine.running || engine.loading)) stopCamera('已因切換頁面停止攝影機，按「啟動攝影機」繼續。');
+  });
+  window.addEventListener('pagehide', event => {
+    clearManualHold();
+    ++uiGeneration; engine.stop({ silent: true }); sim.setActive(false); rearm();
+    cancelAnimationFrame(raf); raf = 0;
+    if (!event.persisted) { scene.destroy(); overlayResize.disconnect(); }
+  });
+  window.addEventListener('pageshow', event => {
+    if (event.persisted) {
+      releaseCameraView();
+      if (mode === 'manual') sim.setActive(!paused);
+      updateUi();
+      if (!raf) { lastTick = performance.now(); raf = requestAnimationFrame(tick); }
+    }
+  });
+
+  function tick(now) {
+    const dt = lastTick ? (now - lastTick) / 1000 : 1 / 60;
+    lastTick = now;
+    if (mode === 'hand' && ready && handSeen && now - lastResultAt > 700) {
+      handSeen = false; currentPalm = null; handSafety = { usable: false, reason: 'missing' };
+      gesture = pinch.lost(); sim.setActive(false); clearOverlay();
+    }
+    sim.update(dt, Number($('smoothRange').value));
+    if (mode === 'manual' && !paused && pendingTouchGrip && manualPointerId !== null && Math.hypot(sim.x - sim.targetX, sim.y - sim.targetY) <= 0.025) {
+      pendingTouchGrip = false;
+      sim.setGrip(true);
+    }
+    const state = sim.getState();
+    state.mode = mode; state.hoverId = nearestBlock()?.id || null;
+    scene.render(state, now / 1000);
+    if (now - lastUiUpdate > 90) { updateUi(); lastUiUpdate = now; }
+    raf = requestAnimationFrame(tick);
+  }
+
+  taskUi(); updateUi();
+  raf = requestAnimationFrame(tick);
+})();
+
+</script>
+</body>
+</html>
