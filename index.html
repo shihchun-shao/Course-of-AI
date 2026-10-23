@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="AI 工程素養互動教學平台">
-<title>AI 工程素養互動教學平台</title>
+<meta name="description" content="AI 系統整合互動教學平台">
+<title>AI 系統整合互動教學平台</title>
 <style>
 :root{
   --bg:#f3f7fb;--card:#fff;--text:#0e1b3d;--muted:#66758d;--line:#cbd8e8;
@@ -27,17 +27,37 @@ body{
 .hero-copy{padding-left:4px}
 .hero h1{
   margin:0;font-size:clamp(48px,5vw,72px);line-height:.98;
-  letter-spacing:-.035em;font-weight:900;
+  letter-spacing:-.035em;font-weight:900;color:#10244f;
 }
-.tagline{margin:20px 0 14px;font-size:clamp(18px,1.7vw,22px);font-weight:800;color:#13264d}
-.lead{margin:0;max-width:800px;font-size:17px;line-height:1.9;color:#53637c}
-.flow{margin-top:30px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.hero h1 .accent-title{color:#10244f}
+.tagline{
+  margin:20px 0 14px;font-size:clamp(18px,1.7vw,22px);font-weight:800;
+  color:#13264d;display:flex;flex-wrap:wrap;align-items:center;gap:0
+}
+.tagline .t-ai{color:#1769ff}.tagline .t-cv{color:#008d73}.tagline .t-auto{color:#d97706}
+.tagline .t-sys{color:#7c3aed}.tagline .t-gen{color:#e11d48}.tagline .sep{color:#9aa9bd;margin:0 7px}
+.lead{margin:0;max-width:800px;font-size:17px;line-height:1.9;color:#111827}
+.lead .k-ai,.lead .k-cv,.lead .k-auto,.lead .k-hrc,.lead .k-sys,.lead .k-gen,.lead .learning{color:#111827;font-weight:inherit;background:none}
+.flow{margin-top:30px;display:flex;align-items:center;gap:7px;flex-wrap:nowrap}
 .flow-box{
-  min-width:94px;padding:10px 15px;border:1.3px solid #bfd0e7;border-radius:11px;
-  background:#fff;color:#31476a;text-align:center;font-size:14px;font-weight:800
+  min-width:112px;padding:11px 9px;border:1.3px solid var(--flow-line);border-radius:12px;
+  background:var(--flow-bg);color:#31476a;text-align:center;font-size:13px;font-weight:700;line-height:1.35
 }
-.arrow{color:#8fa3bf;font-size:20px}
-.note{margin-top:22px;font-size:14px;font-weight:700;color:#435676}
+.flow-box strong{display:block;font-size:15px;font-weight:900;color:var(--flow-accent)}
+.flow-box .zh{display:block;margin-top:2px;font-size:12px;font-weight:900;color:#31476a}
+.flow-box small{display:block;margin-top:7px;padding-top:7px;border-top:1px solid var(--flow-rule);font-size:10px;line-height:1.4;font-weight:600;color:#687993}
+.flow-box.f1{--flow-accent:#1769ff;--flow-bg:#f3f7ff;--flow-line:#a9c8ff;--flow-rule:#dbe8ff}
+.flow-box.f2{--flow-accent:#008d73;--flow-bg:#f2fbf8;--flow-line:#9ed9ca;--flow-rule:#d7eee8}
+.flow-box.f3{--flow-accent:#e56a00;--flow-bg:#fff8f1;--flow-line:#ffc08a;--flow-rule:#ffe0c5}
+.flow-box.f4{--flow-accent:#7c3aed;--flow-bg:#f8f5ff;--flow-line:#c7b1ff;--flow-rule:#e4dcff}
+.flow-box.f5{--flow-accent:#e11d48;--flow-bg:#fff5f7;--flow-line:#f4a2b5;--flow-rule:#ffdce4}
+.flow-box.f6{--flow-accent:#087ea4;--flow-bg:#f2fbff;--flow-line:#9ed8ea;--flow-rule:#d8eff6}
+.arrow{color:#8fa3bf;font-size:20px;font-weight:800}
+.note{
+  margin-top:22px;padding:11px 14px;border-left:4px solid #1769ff;border-radius:8px;
+  background:linear-gradient(90deg,#eef5ff 0%,#f8fbff 100%);font-size:14px;font-weight:800;color:#10244f
+}
+.note .gen{color:#10244f}
 .hero-person{display:flex;flex-direction:column;align-items:center;justify-content:center}
 .hero-person img{width:min(100%,390px);display:block;object-fit:contain}
 .credit{
@@ -76,8 +96,8 @@ body{
   .hero h1{font-size:44px}
   .tagline{font-size:16px}
   .lead{font-size:15px}
-  .flow{gap:8px}
-  .flow-box{min-width:80px;padding:8px 10px;font-size:12px}
+  .flow{gap:8px;overflow-x:auto;padding-bottom:6px}
+  .flow-box{min-width:108px;padding:9px 8px;font-size:12px}
   .section-title{font-size:28px}
   .units{grid-template-columns:1fr}
   .unit{min-height:220px}
@@ -89,19 +109,19 @@ body{
 <main class="wrap">
 <section class="hero">
   <div class="hero-copy">
-    <h1>AI 工程素養<br>互動教學平台</h1>
-    <div class="tagline">AI × Computer Vision × Automation × System Integration x ChatGPT</div>
-    <p class="lead">從 AI 基礎概念、電腦視覺與客製化模型，逐步延伸至自動化控制、人機協作與工程系統整合。透過互動操作與真實工程案例，讓學生從「看得懂、做得出、能改好」的學習歷程中，建立 AI 時代所需要的工程實作與系統整合能力。</p>
+    <h1>AI <span class="accent-title">系統整合</span><br>互動教學平台</h1>
+    <div class="tagline"><span class="t-ai">AI</span><span class="sep">×</span><span class="t-cv">Computer Vision</span><span class="sep">×</span><span class="t-auto">Automation</span><span class="sep">×</span><span class="t-sys">System Integration</span><span class="sep">×</span><span class="t-gen">Generative AI</span></div>
+    <p class="lead">從 <span class="k-ai">AI 基礎概念</span>、<span class="k-cv">電腦視覺與客製化模型</span>出發，逐步延伸至<span class="k-auto">自動化控制</span>、<span class="k-hrc">人機協作</span>與<span class="k-sys">智慧系統整合</span>，並導入<span class="k-gen">生成式 AI</span> 作為學習、設計與工程開發的協作工具。透過互動式網頁操作、真實工程案例與生成式 AI 輔助，讓學生從<span class="learning">「看得懂、做得出、能改好」</span>的學習歷程中，理解感知、AI 分析、決策、控制與系統作動之間的關聯，建立將 AI 技術整合至實際工程情境中的實作與系統整合能力。</p>
 
     <div class="flow">
-      <span class="flow-box">Camera</span><span class="arrow">→</span>
-      <span class="flow-box">Image</span><span class="arrow">→</span>
-      <span class="flow-box">AI Model</span><span class="arrow">→</span>
-      <span class="flow-box">Detection</span><span class="arrow">→</span>
-      <span class="flow-box">Decision</span><span class="arrow">→</span>
-      <span class="flow-box">Application</span>
+      <span class="flow-box f1"><strong>Input</strong><span class="zh">感知輸入</span><small>Camera / Sensor<br>Human Input</small></span><span class="arrow">→</span>
+      <span class="flow-box f2"><strong>Perception</strong><span class="zh">感知與辨識</span><small>Image / Feature<br>Detection / Tracking</small></span><span class="arrow">→</span>
+      <span class="flow-box f3"><strong>Intelligence</strong><span class="zh">AI 與演算法</span><small>Machine Learning<br>Deep Learning / Custom Model</small></span><span class="arrow">→</span>
+      <span class="flow-box f4"><strong>Decision</strong><span class="zh">智慧判斷</span><small>Logic / Analysis<br>Decision</small></span><span class="arrow">→</span>
+      <span class="flow-box f5"><strong>Control</strong><span class="zh">控制與作動</span><small>PLC / Motor<br>Robot / Actuator</small></span><span class="arrow">→</span>
+      <span class="flow-box f6"><strong>Application</strong><span class="zh">工程應用</span><small>Smart Factory / Traffic<br>HRC / Smart Home</small></span>
     </div>
-    <div class="note">從演算法理解，到真實工程系統整合。</div>
+    <div class="note">從演算法理解，到智慧系統整合；從 AI 操作，到<span class="gen">生成式 AI 協作</span>。</div>
   </div>
 
   <div class="hero-person">
