@@ -50,13 +50,13 @@ button.stop{background:var(--red)}button.gray{background:#475569}button:disabled
 select{min-height:40px;border:1px solid #cbd5e1;border-radius:9px;background:#fff;color:#0f172a;padding:7px 10px;font-weight:800}
 .progress{height:7px;background:#e2e8f0;border-radius:999px;overflow:hidden;margin-top:12px;display:none}.progress>div{height:100%;width:0;background:var(--blue);transition:width .2s}
 .notice{display:none;margin-top:10px;padding:10px 12px;border-radius:11px;font-size:13px;line-height:1.55;font-weight:750}.info{background:#eff6ff;color:#1e40af}.ok{background:#ecfdf5;color:#166534}.alert{background:#fef2f2;color:#991b1b}
-.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}.metric{padding:12px;border:1px solid var(--line);border-radius:12px;background:#fff}.metric small{display:block;color:var(--muted);font-size:11px;font-weight:800}.metric strong{display:block;margin-top:4px;font-size:17px;color:#0f172a}
+.metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:12px}.metric{min-width:0;padding:12px;border:1px solid var(--line);border-radius:12px;background:#fff}.metric small{display:block;color:var(--muted);font-size:11px;font-weight:800}.metric strong{display:block;margin-top:4px;font-size:17px;color:#0f172a}
 .flow{margin-top:18px;display:grid;grid-template-columns:repeat(9,auto);justify-content:center;align-items:center;gap:8px;color:#64748b;font-size:12px;font-weight:850}.node{padding:7px 9px;border-radius:999px;background:#fff;border:1px solid var(--line);color:#334155}.arrow{color:#94a3b8;font-size:16px}
 .content-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:16px;margin-top:18px}.content-card{padding:18px}.content-card h2{font-size:20px;margin:0 0 12px}.step{display:grid;grid-template-columns:36px 1fr;gap:10px;align-items:start;padding:11px 0;border-top:1px solid #edf1f5}.step:first-of-type{border-top:0}.step-num{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:#dbeafe;color:#1d4ed8;font-size:12px;font-weight:950}.step b{display:block;font-size:14px}.step span{display:block;margin-top:3px;color:var(--muted);font-size:13px;line-height:1.65}.fact{padding:11px 12px;border-radius:12px;background:#f8fafc;border:1px solid var(--line);margin-top:9px;font-size:13px;line-height:1.65;color:#475569}.fact b{color:#0f172a}.limit{margin-top:12px;background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;padding:12px;border-radius:12px;font-size:13px;line-height:1.65;font-weight:700}
 footer{margin-top:28px;background:#fff;border-top:1px solid var(--line);padding:22px;text-align:center;color:var(--muted);font-size:13px;line-height:1.8}
 #sourceCanvas,#inputCanvas{display:none}
-@media(max-width:920px){.stages,.content-grid{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(2,1fr)}.flow{grid-template-columns:1fr;justify-items:center}.arrow{transform:rotate(90deg)}}
-@media(max-width:640px){header{padding:18px 16px}.badge{display:inline-flex;margin:9px 0 0}.hero{padding:14px}.hero-top{display:block}.demo-badge{display:inline-flex;margin-top:10px}.controls button{flex:1 1 42%}.metrics{grid-template-columns:1fr 1fr}.mode-row{align-items:stretch}.mode-row label{width:100%}select{width:100%}}
+@media(max-width:920px){.stages,.content-grid{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(3,minmax(0,1fr))}.flow{grid-template-columns:1fr;justify-items:center}.arrow{transform:rotate(90deg)}}
+@media(max-width:640px){header{padding:18px 16px}.badge{display:inline-flex;margin:9px 0 0}.hero{padding:14px}.hero-top{display:block}.demo-badge{display:inline-flex;margin-top:10px}.controls button{flex:1 1 42%}.metrics{grid-template-columns:repeat(3,minmax(0,1fr))}.mode-row{align-items:stretch}.mode-row label{width:100%}select{width:100%}.metric{padding:9px 7px}.metric small{font-size:10px}.metric strong{font-size:15px}}
 
 /* Apple demo clip: kept separate from the live RetinaFace simulation */
 .apple-demo{margin-top:18px;padding:20px}
@@ -68,6 +68,11 @@ footer{margin-top:28px;background:#fff;border-top:1px solid var(--line);padding:
 .hidden-ai-input{position:absolute;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none}
 .hidden-ai-input #video,.hidden-ai-input #overlay,.hidden-ai-input #cameraPlaceholder{display:none!important}
 .camera-stage>.apple-video{position:relative;display:block;width:100%;height:100%;max-height:none;aspect-ratio:auto;object-fit:contain;background:#070b16;border:0;border-radius:0}
+.stage-controls{margin-top:12px;align-items:center;min-height:42px}
+.playback-status{display:inline-flex;align-items:center;min-height:34px;padding:6px 12px;border-radius:999px;background:#f1f5f9;color:#475569;border:1px solid #cbd5e1;font-size:13px;font-weight:800}
+.playback-status[data-state="playing"]{color:#166534;background:#dcfce7;border-color:#86efac}
+.playback-status[data-state="paused"]{color:#92400e;background:#fef3c7;border-color:#fcd34d}
+.playback-status[data-state="error"]{color:#991b1b;background:#fee2e2;border-color:#fca5a5}
 </style>
 </head>
 <body>
@@ -94,10 +99,14 @@ footer{margin-top:28px;background:#fff;border-top:1px solid var(--line);padding:
       <div class="stage-card">
         <div class="stage-title"><span>Apple Center Stage｜原始示範影片</span><span>影片示範</span></div>
         <div class="camera-stage">
-          <video class="apple-video" controls playsinline preload="metadata" aria-label="Apple Center Stage 示範影片">
+          <video id="appleDemoVideo" class="apple-video" controls playsinline preload="metadata" aria-label="Apple Center Stage 示範影片">
             <source src="./apple.mp4" type="video/mp4">
             你的瀏覽器不支援 MP4 影片播放。
           </video>
+        </div>
+        <div class="controls stage-controls">
+          <button id="applePlayPause" type="button">開始播放</button>
+          <span id="applePlaybackStatus" class="playback-status" role="status" aria-live="polite">尚未播放</span>
         </div>
       </div>
 
@@ -105,6 +114,16 @@ footer{margin-top:28px;background:#fff;border-top:1px solid var(--line);padding:
         <div class="stage-title"><span>Center Stage｜智慧取景模擬</span><span id="ratioLabel">1X</span></div>
         <div id="smartStage" class="smart-stage">
           <canvas id="smartCanvas" width="640" height="360"></canvas>
+        </div>
+        <div class="controls stage-controls">
+          <button id="startBtn">開始體驗</button>
+          <button id="stopBtn" class="stop" disabled>停止體驗</button>
+          <button id="switchBtn" class="gray" disabled>切換鏡頭</button>
+        </div>
+        <div class="metrics">
+          <div class="metric"><small>偵測人物數量</small><strong id="faceCount">0</strong></div>
+          <div class="metric"><small>模擬倍率</small><strong id="zoomMetric">1X</strong></div>
+          <div class="metric"><small>推論 FPS</small><strong id="fpsMetric">0</strong></div>
         </div>
       </div>
     </div>
@@ -115,24 +134,13 @@ footer{margin-top:28px;background:#fff;border-top:1px solid var(--line);padding:
       <div id="cameraPlaceholder" class="placeholder"><div><b>尚未啟動攝影機</b>按下「開始體驗」開啟 AI 攝影機。</div></div>
     </div>
 
-    <div class="controls">
-      <button id="startBtn">開始體驗</button>
-      <button id="stopBtn" class="stop" disabled>停止體驗</button>
-      <button id="switchBtn" class="gray" disabled>切換鏡頭</button>
-    </div>
-
 
     <div id="progress" class="progress"><div id="bar"></div></div>
     <div id="info" class="notice info"></div>
     <div id="ok" class="notice ok"></div>
     <div id="err" class="notice alert"></div>
 
-    <div class="metrics">
-      <div class="metric"><small>偵測人物數量</small><strong id="faceCount">0</strong></div>
-      <div class="metric"><small>顯示模式</small><strong id="ratioMetric">中央裁切</strong></div>
-      <div class="metric"><small>模擬倍率</small><strong id="zoomMetric">1X</strong></div>
-      <div class="metric"><small>推論 FPS</small><strong id="fpsMetric">0</strong></div>
-    </div>
+
   </section>
 
   <div class="flow" aria-label="Center Stage 工程流程">
@@ -201,7 +209,6 @@ const stopBtn=document.getElementById('stopBtn');
 const switchBtn=document.getElementById('switchBtn');
 const faceCount=document.getElementById('faceCount');
 const ratioLabel=document.getElementById('ratioLabel');
-const ratioMetric=document.getElementById('ratioMetric');
 const zoomMetric=document.getElementById('zoomMetric');
 const fpsMetric=document.getElementById('fpsMetric');
 const progress=document.getElementById('progress');
@@ -325,7 +332,6 @@ function updateSmartFraming(){
   // Both camera stages retain exactly the same 4:3 frame; image uses contain.
   ratioLabel.textContent=single?'1X':'0.5X';
   ratioLabel.classList.toggle('zoom-wide',!single);
-  ratioMetric.textContent=single?'中央裁切':'完整畫面';
   zoomMetric.textContent=single?'1X':'0.5X';
 }
 function renderSmart(){
@@ -429,6 +435,27 @@ async function stopAll(){
   stopBtn.disabled=true;startBtn.disabled=false;switchBtn.disabled=true;
 }
 
+// Apple clip controls are intentionally independent of Webcam / RetinaFace.
+const appleDemoVideo=document.getElementById('appleDemoVideo');
+const applePlayPause=document.getElementById('applePlayPause');
+const applePlaybackStatus=document.getElementById('applePlaybackStatus');
+function updateApplePlayback(){
+  let status='尚未播放',state='idle';
+  if(appleDemoVideo.error){status='影片載入失敗';state='error'}
+  else if(appleDemoVideo.ended){status='播放完畢';state='ended'}
+  else if(!appleDemoVideo.paused){status='播放中';state='playing'}
+  else if(appleDemoVideo.currentTime>0){status='已暫停';state='paused'}
+  applePlaybackStatus.textContent=status;
+  applePlaybackStatus.dataset.state=state;
+  applePlayPause.textContent=appleDemoVideo.paused?'開始播放':'暫停播放';
+}
+applePlayPause.addEventListener('click',async()=>{
+  if(!appleDemoVideo.paused){appleDemoVideo.pause();return}
+  try{if(appleDemoVideo.ended)appleDemoVideo.currentTime=0;await appleDemoVideo.play()}
+  catch(e){applePlaybackStatus.textContent='無法播放影片，請確認 apple.mp4 已放在同一資料夾';applePlaybackStatus.dataset.state='error'}
+});
+['play','playing','pause','ended','loadedmetadata','error','emptied'].forEach(ev=>appleDemoVideo.addEventListener(ev,updateApplePlayback));
+updateApplePlayback();
 startBtn.addEventListener('click',startAll);
 stopBtn.addEventListener('click',()=>{clearNotices();stopAll()});
 switchBtn.addEventListener('click',switchCamera);
