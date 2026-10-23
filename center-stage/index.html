@@ -64,6 +64,10 @@ footer{margin-top:28px;background:#fff;border-top:1px solid var(--line);padding:
 .apple-demo p{margin:0 0 14px;color:var(--muted);font-size:14px;line-height:1.65}
 .apple-video{display:block;width:100%;max-height:600px;aspect-ratio:16/9;object-fit:contain;background:#070b16;border:1px solid #1e293b;border-radius:16px}
 .apple-source{font-size:12px!important;margin:10px 0 0!important}
+/* V12: Apple demo replaces the left display; inference camera stays hidden. */
+.hidden-ai-input{position:absolute;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none}
+.hidden-ai-input #video,.hidden-ai-input #overlay,.hidden-ai-input #cameraPlaceholder{display:none!important}
+.camera-stage>.apple-video{position:relative;display:block;width:100%;height:100%;max-height:none;aspect-ratio:auto;object-fit:contain;background:#070b16;border:0;border-radius:0}
 </style>
 </head>
 <body>
@@ -81,18 +85,19 @@ footer{margin-top:28px;background:#fff;border-top:1px solid var(--line);padding:
     <div class="hero-top">
       <div>
         <h2>從人臉偵測到智慧相機控制</h2>
-        <p>左側顯示 RetinaFace 人臉偵測框；右側僅依人臉數量切換固定中央裁切或完整畫面，不追蹤人臉位置。</p>
+        <p>左側播放 Apple Center Stage 原始示範影片；右側透過 Webcam 與 RetinaFace 偵測人臉數量，模擬固定中央裁切或完整畫面，不追蹤人臉位置。</p>
       </div>
       <div class="demo-badge">Webcam 即時互動</div>
     </div>
 
     <div class="stages">
       <div class="stage-card">
-        <div class="stage-title"><span>原始相機｜AI 偵測</span><span>RetinaFace</span></div>
+        <div class="stage-title"><span>Apple Center Stage｜原始示範影片</span><span>影片示範</span></div>
         <div class="camera-stage">
-          <video id="video" playsinline autoplay muted></video>
-          <canvas id="overlay"></canvas>
-          <div id="cameraPlaceholder" class="placeholder"><div><b>尚未啟動攝影機</b>按下「開始體驗」，讓 AI 先找出畫面中的人臉。</div></div>
+          <video class="apple-video" controls playsinline preload="metadata" aria-label="Apple Center Stage 示範影片">
+            <source src="./apple.mp4" type="video/mp4">
+            你的瀏覽器不支援 MP4 影片播放。
+          </video>
         </div>
       </div>
 
@@ -102,6 +107,12 @@ footer{margin-top:28px;background:#fff;border-top:1px solid var(--line);padding:
           <canvas id="smartCanvas" width="640" height="360"></canvas>
         </div>
       </div>
+    </div>
+
+    <div class="hidden-ai-input" aria-hidden="true">
+      <video id="video" playsinline autoplay muted></video>
+      <canvas id="overlay"></canvas>
+      <div id="cameraPlaceholder" class="placeholder"><div><b>尚未啟動攝影機</b>按下「開始體驗」開啟 AI 攝影機。</div></div>
     </div>
 
     <div class="controls">
@@ -149,17 +160,6 @@ footer{margin-top:28px;background:#fff;border-top:1px solid var(--line);padding:
       <div class="fact"><b>AI 不只辨識，還要做控制</b><br>真正的工程應用是把偵測結果轉換成「鏡頭下一步要怎麼取景」的控制決策。</div>
       <div class="limit">本頁是教學用的「工程邏輯模擬」，不是 Apple 內部 Center Stage 演算法。一般 Webcam 也沒有 iPhone 17 的方形感光元件與 95° 前鏡頭，因此重點是理解 AI 偵測結果如何驅動智慧取景，而不是重現硬體成像品質。</div>
     </aside>
-  </section>
-
-
-  <section class="card apple-demo" aria-labelledby="appleDemoTitle">
-    <h2 id="appleDemoTitle">Apple Center Stage｜原始示範影片</h2>
-    <p>先觀看產品的取景效果，再與上方 RetinaFace 智慧取景模擬比較。</p>
-    <video class="apple-video" controls playsinline preload="metadata" aria-label="Apple Center Stage 示範影片">
-      <source src="./apple.mp4" type="video/mp4">
-      你的瀏覽器不支援 MP4 影片播放。
-    </video>
-    <p class="apple-source">影片素材：使用者提供的 Apple 示範片段。此教學模擬不代表 Apple 原始演算法。</p>
   </section>
 
 </main>
