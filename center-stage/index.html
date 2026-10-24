@@ -73,9 +73,39 @@ footer{margin-top:28px;background:#fff;border-top:1px solid var(--line);padding:
 .playback-status[data-state="playing"]{color:#166534;background:#dcfce7;border-color:#86efac}
 .playback-status[data-state="paused"]{color:#92400e;background:#fef3c7;border-color:#fcd34d}
 .playback-status[data-state="error"]{color:#991b1b;background:#fee2e2;border-color:#fca5a5}
+
+/* International Visit navigation */
+body{padding-bottom:88px}
+.visit-tour-nav{
+  position:fixed;left:50%;bottom:18px;transform:translateX(-50%);
+  z-index:99999;display:flex;align-items:center;gap:8px;
+  padding:8px;background:rgba(255,255,255,.96);
+  border:1px solid #cbd8e8;border-radius:16px;
+  box-shadow:0 12px 32px rgba(15,35,70,.18);
+  backdrop-filter:blur(10px);
+}
+.visit-tour-nav a,.visit-tour-nav span{
+  min-height:42px;display:flex;align-items:center;justify-content:center;
+  padding:9px 14px;border-radius:10px;text-decoration:none;
+  font-size:13px;font-weight:900;white-space:nowrap;
+}
+.visit-tour-nav a{color:#fff;background:#1769ff}
+.visit-tour-nav a.tour-home{color:#10244f;background:#eef4fb;border:1px solid #cbd8e8}
+.visit-tour-nav span{color:#5f7089;background:#fff}
+@media(max-width:640px){
+  body{padding-bottom:82px}
+  .visit-tour-nav{bottom:10px;width:calc(100% - 20px);gap:5px;padding:6px}
+  .visit-tour-nav a,.visit-tour-nav span{flex:1 1 0;padding:8px 7px;font-size:11px;min-width:0}
+}
+
 </style>
 </head>
 <body>
+<nav class="visit-tour-nav" aria-label="International Visit 導覽">
+  <a class="tour-home" href="../international-visit/">← 導覽首頁</a>
+  <span>STOP 01 / 03</span>
+  <a href="../smart-room/">STOP 02 →</a>
+</nav>
 <header>
   <div class="header-inner">
     <a class="back" href="../">← 回互動教學平台首頁</a>
