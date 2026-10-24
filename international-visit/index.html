@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="AI Engineering International Visit - Interactive Tour">
+<title>AI Engineering International Visit</title>
+<style>
+:root{
+  --navy:#10244f;--blue:#1769ff;--green:#008d73;--purple:#7c3aed;--orange:#e56a00;
+  --text:#14213d;--muted:#66758d;--line:#ccd9e8;--bg:#eef4fa;--card:#fff;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;background:linear-gradient(180deg,#fff 0%,var(--bg) 100%);
+  color:var(--text);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+}
+a{text-decoration:none;color:inherit}
+.wrap{max-width:1280px;margin:0 auto;padding:20px 28px 52px}
+.hero{
+  background:#fff;border:1.4px solid #c8d8eb;border-radius:24px;padding:42px 42px 34px;
+  box-shadow:0 16px 42px rgba(30,65,110,.07)
+}
+.eyebrow{font-weight:900;letter-spacing:.13em;color:var(--blue);font-size:13px;text-transform:uppercase}
+h1{margin:12px 0 12px;font-size:clamp(42px,5vw,68px);line-height:1.02;letter-spacing:-.035em;color:var(--navy)}
+.hero-sub{max-width:900px;margin:0;color:#31476a;font-size:19px;line-height:1.7;font-weight:700}
+.hero-sub .zh{display:block;margin-top:6px;color:#5d6d84;font-size:15px;font-weight:600}
+.flow{display:flex;align-items:stretch;gap:12px;margin-top:28px;overflow-x:auto;padding-bottom:4px}
+.flow-card{flex:1;min-width:205px;border-radius:16px;padding:17px 18px;border:1.3px solid var(--flow-line);background:var(--flow-bg)}
+.flow-card strong{display:block;font-size:19px;color:var(--flow-accent)}
+.flow-card span{display:block;margin-top:4px;font-size:13px;color:#5c6e86;font-weight:800;line-height:1.45}
+.f1{--flow-accent:var(--blue);--flow-bg:#f3f7ff;--flow-line:#a9c8ff}.f2{--flow-accent:var(--green);--flow-bg:#f2fbf8;--flow-line:#9ed9ca}.f3{--flow-accent:var(--purple);--flow-bg:#f8f5ff;--flow-line:#c7b1ff}
+.arrow{display:flex;align-items:center;color:#91a4bf;font-size:28px;font-weight:900}
+.meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:24px}.pill{padding:9px 13px;border-radius:999px;background:#f3f6fa;color:#405470;font-size:13px;font-weight:900;border:1px solid #d9e3ee}
+.section-head{display:flex;justify-content:space-between;gap:18px;align-items:end;margin:36px 4px 14px}.section-head h2{margin:0;font-size:32px;color:var(--navy)}.section-head p{margin:0;color:#6a7b91;font-size:14px;font-weight:700}
+.tour{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+.card{position:relative;background:#fff;border:1.3px solid var(--line);border-radius:20px;padding:24px 23px 22px;display:flex;flex-direction:column;min-height:420px;overflow:hidden;box-shadow:0 12px 30px rgba(30,65,110,.045)}
+.card:before{content:"";position:absolute;top:0;left:0;right:0;height:6px;background:var(--accent)}
+.card:nth-child(1){--accent:var(--blue)}.card:nth-child(2){--accent:var(--green)}.card:nth-child(3){--accent:var(--purple)}
+.step{display:flex;align-items:center;gap:10px}.step-no{color:var(--accent);font-weight:950;font-size:13px;letter-spacing:.08em}
+.kicker{margin-top:22px;font-size:12px;font-weight:950;letter-spacing:.12em;color:var(--accent)}
+.card h3{margin:7px 0 4px;font-size:27px;line-height:1.15;color:#14254a}.card .zh-title{font-size:16px;color:#52657e;font-weight:900;margin-bottom:14px}
+.desc{margin:0;color:#61728a;line-height:1.7;font-size:14px}
+.question{margin:18px 0 0;padding:13px 14px;border-left:4px solid var(--accent);background:#f8fafc;border-radius:9px;color:#253a5d;font-size:14px;font-weight:850;line-height:1.55}
+.actions{margin-top:auto;padding-top:20px;display:grid;gap:10px}
+.btn{display:flex;align-items:center;justify-content:space-between;padding:13px 15px;border-radius:12px;font-weight:950;font-size:14px;border:1.2px solid var(--accent);color:var(--accent);background:#fff;transition:.15s ease}.btn:hover{transform:translateY(-1px);box-shadow:0 8px 20px rgba(20,50,90,.08)}.btn.primary{background:var(--accent);color:#fff}
+.closing{margin-top:24px;text-align:center;background:#fff;border:1.3px solid var(--line);border-radius:20px;padding:28px 24px}.closing .big{font-size:clamp(30px,4vw,48px);font-weight:950;color:var(--navy);letter-spacing:-.025em}.closing .big span{color:var(--blue)}.closing p{margin:9px auto 0;max-width:850px;color:#66758d;line-height:1.7;font-weight:700}
+.footer{text-align:center;color:#718198;font-size:12px;font-weight:800;margin-top:22px}
+@media(max-width:950px){.tour{grid-template-columns:1fr}.card{min-height:auto}.hero{padding:32px 26px}.section-head{align-items:start;flex-direction:column}.flow{gap:8px}.arrow{font-size:22px}}
+@media(max-width:620px){.wrap{padding:12px 14px 34px}.hero{border-radius:18px;padding:26px 20px}.hero-sub{font-size:16px}.flow-card{min-width:180px}.card{padding:22px 19px}.section-head h2{font-size:27px}}
+@media print{body{background:#fff}.wrap{max-width:none}.btn{display:none}.card{box-shadow:none;break-inside:avoid}}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <section class="hero">
+    <div class="eyebrow">International Student Visit · Interactive Tour</div>
+    <h1>AI Engineering<br>Interactive Learning</h1>
+    <p class="hero-sub">
+      See how AI moves from understanding people to interacting with smart environments and controlling machines.
+      <span class="zh">From seeing people, to understanding gestures, to controlling machines, explore how AI becomes part of real-world engineering systems through three interactive experiences.</span>
+    </p>
+    <div class="flow" aria-label="tour flow">
+      <div class="flow-card f1"><strong>AI CAN SEE</strong><span>Computer Vision<br>Face Detection</span></div>
+      <div class="arrow">→</div>
+      <div class="flow-card f2"><strong>AI CAN UNDERSTAND</strong><span>Human Intention<br>Gesture Interaction</span></div>
+      <div class="arrow">→</div>
+      <div class="flow-card f3"><strong>AI CAN ACT</strong><span>Vision + Control<br>Human–Robot Collaboration</span></div>
+    </div>
+    <div class="meta">
+      <span class="pill">Audience｜International Students</span>
+      <span class="pill">Format｜Live Web Interaction</span>
+      <span class="pill">Focus｜AI × Computer Vision × Control</span>
+    </div>
+  </section>
+
+  <div class="section-head">
+    <h2>Three Interactive Stops</h2>
+    <p>Click each activity to open the existing Course-of-AI teaching resource.</p>
+  </div>
+
+  <section class="tour">
+    <article class="card">
+      <div class="step"><div class="step-no">STOP 01</div></div>
+      <div class="kicker">AI VISION</div>
+      <h3>From Face Detection to Center Stage</h3>
+      <div class="zh-title">從人臉偵測到 Apple Center Stage</div>
+      <p class="desc">Start with webcam face detection. Then connect the same idea to a familiar engineering application: a smart camera that automatically adjusts framing when people move or when more people enter the scene.</p>
+      <div class="question">Key question: <strong>If a person moves, how can the camera keep the person in the center?</strong></div>
+      <div class="actions">
+        <a class="btn primary" href="../center-stage/">Enter STOP 01 <span>→</span></a>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="step"><div class="step-no">STOP 02</div></div>
+      <div class="kicker">AI INTERACTION</div>
+      <h3>Gesture-Controlled Smart Room</h3>
+      <div class="zh-title">手勢控制智慧房間</div>
+      <p class="desc">Use a webcam to recognize hand gestures and convert the AI result into smart-room actions such as lighting, air conditioning and curtain control. Students experience how AI becomes a human–machine interface.</p>
+      <div class="question">Key message: <strong>Your hand becomes the controller.</strong></div>
+      <div class="actions">
+        <a class="btn primary" href="../smart-room/">Enter STOP 02 <span>→</span></a>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="step"><div class="step-no">STOP 03</div></div>
+      <div class="kicker">AI ENGINEERING</div>
+      <h3>Human–Robot Collaboration</h3>
+      <div class="zh-title">AI 人機協作｜手部控制機械手臂</div>
+      <p class="desc">Detect hand landmarks, map palm position to robot coordinates, and use finger opening and closing to grasp and place objects. This connects AI perception directly to motion and control.</p>
+      <div class="question">Engineering flow: <strong>Camera → Hand Position → Coordinates → Robot Motion → Gripper Action</strong></div>
+      <div class="actions">
+        <a class="btn primary" href="../human-robot-collaboration/">Enter STOP 03 <span>→</span></a>
+      </div>
+    </article>
+  </section>
+
+  <section class="closing">
+    <div class="big"><span>SEE</span> → UNDERSTAND → ACT</div>
+    <p>From computer vision to human–machine interaction and intelligent control, students learn how AI becomes part of a complete engineering system.</p>
+  </section>
+
+  <div class="footer">AI 系統整合互動教學平台｜大安高工控制科 邵時俊老師製作</div>
+</main>
+</body>
+</html>
