@@ -1,0 +1,1080 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#1769ff" />
+  <meta name="description" content="以手勢控制攝影機裁剪、畫筆描線與複製圖像的 AI 互動畫布。" />
+  <title>Gesture Canvas Studio</title>
+  <style>
+    :root {
+      --ink: #e9f1f3;
+      --muted: #91a4ac;
+      --line: rgba(255, 255, 255, .11);
+      --panel: rgba(19, 29, 34, .78);
+      --panel-strong: #17252b;
+      --paper: #f7f5ef;
+      --teal: #55d8c4;
+      --blue: #71a7ff;
+      --amber: #f6c76c;
+      --red: #ff827c;
+      --shadow: 0 24px 70px rgba(0, 0, 0, .32);
+      font-family: "Aptos", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+      color: var(--ink);
+      background: #081116;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { min-height: 100%; }
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at 18% 8%, rgba(38, 111, 113, .24), transparent 30%),
+        radial-gradient(circle at 84% 16%, rgba(46, 71, 136, .22), transparent 29%),
+        linear-gradient(135deg, #071014 0%, #101b20 54%, #091116 100%);
+    }
+
+    button { font: inherit; }
+    .app-shell { width: min(1480px, calc(100% - 44px)); margin: 0 auto; padding: 30px 0 34px; }
+    .topbar { display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; margin-bottom: 24px; }
+    .eyebrow { color: var(--teal); font-size: 11px; font-weight: 800; letter-spacing: .23em; text-transform: uppercase; }
+    h1 { margin: 8px 0 8px; font-size: clamp(29px, 4vw, 48px); line-height: 1; letter-spacing: -.055em; font-weight: 720; }
+    .subtitle { margin: 0; color: var(--muted); font-size: 14px; letter-spacing: .02em; }
+    .top-meta { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 9px; }
+    .pill { display: inline-flex; align-items: center; gap: 8px; min-height: 34px; padding: 0 13px; color: #c8d9dc; border: 1px solid var(--line); border-radius: 999px; background: rgba(255,255,255,.045); font-size: 12px; }
+    .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--amber); box-shadow: 0 0 0 4px rgba(246,199,108,.12); }
+    .status-dot.live { background: var(--teal); box-shadow: 0 0 0 4px rgba(85,216,196,.13); }
+
+    .studio-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; align-items: stretch; }
+    .card { overflow: hidden; border: 1px solid var(--line); border-radius: 25px; background: var(--panel); box-shadow: var(--shadow); backdrop-filter: blur(22px); }
+    .panel-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 16px; padding: 21px 22px 17px; border-bottom: 1px solid var(--line); }
+    .panel-head-actions { display: flex; flex: 0 0 auto; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; }
+    .panel-kicker { margin-bottom: 7px; color: var(--muted); font-size: 10px; font-weight: 800; letter-spacing: .19em; text-transform: uppercase; }
+    .panel-title { margin: 0; font-size: 19px; letter-spacing: -.025em; }
+    .panel-note { margin: 7px 0 0; color: #8ea1a8; font-size: 12px; line-height: 1.5; }
+    .tiny-button, .primary-button, .secondary-button { cursor: pointer; border: 0; transition: transform .18s ease, background .18s ease, border-color .18s ease; }
+    .tiny-button:hover, .primary-button:hover, .secondary-button:hover { transform: translateY(-1px); }
+    .tiny-button { padding: 8px 11px; color: #b8cbcf; border: 1px solid var(--line); border-radius: 10px; background: rgba(255,255,255,.055); font-size: 11px; }
+    .canvas-card { min-height: 0; display: flex; flex-direction: column; align-self: start; }
+    .camera-card { min-height: 730px; display: flex; flex-direction: column; }
+    .canvas-zone { position: relative; flex: none; min-height: 0; padding: 20px; }
+    .canvas-frame { position: relative; width: 100%; height: auto; aspect-ratio: 4 / 3; min-height: 0; overflow: hidden; border: 1px solid #dedbd1; border-radius: 16px; background: var(--paper); box-shadow: inset 0 0 0 1px rgba(0,0,0,.04); }
+    #artboard { display: block; width: 100%; height: 100%; min-height: 0; cursor: crosshair; }
+    .canvas-empty { display: none; }
+    .canvas-empty.is-hidden { opacity: 0; }
+    .canvas-empty .empty-icon { display: grid; place-items: center; width: 52px; height: 52px; border: 1px solid #d6d4cb; border-radius: 50%; color: #8c908a; font-size: 23px; }
+    .canvas-empty strong { color: #757b75; font-size: 13px; }
+    .canvas-empty span { font-size: 11px; }
+    .canvas-footer { display: flex; justify-content: space-between; gap: 14px; padding: 15px 21px 19px; border-top: 1px solid var(--line); color: var(--muted); font-size: 11px; }
+    .canvas-footer span { display: inline-flex; gap: 8px; align-items: center; }
+    .canvas-footer-actions { display: flex; align-items: center; justify-content: flex-end; gap: 10px; }
+    .canvas-footer .key { padding: 3px 6px; border: 1px solid rgba(255,255,255,.13); border-radius: 5px; color: #c9d2d4; background: rgba(255,255,255,.05); font-size: 10px; }
+
+    .camera-card { background: linear-gradient(145deg, rgba(24,38,43,.9), rgba(12,22,28,.86)); }
+    .camera-stage { padding: 20px 20px 14px; }
+    .viewport { position: relative; overflow: hidden; width: 100%; aspect-ratio: 4 / 3; border: 1px solid rgba(255,255,255,.12); border-radius: 17px; background: #0b1419; box-shadow: inset 0 0 0 1px rgba(255,255,255,.035); isolation: isolate; }
+    .viewport::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgba(4,13,16,.05), rgba(4,13,16,.18)); z-index: 2; }
+    #video, #freezeCanvas, #overlayCanvas, #interactionCanvas { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+    #video { background: #0b1419; z-index: 0; }
+    #freezeCanvas { z-index: 0; opacity: 0; transition: opacity .22s ease; }
+    .viewport.is-frozen #video { opacity: 0; }
+    .viewport.is-frozen #freezeCanvas { opacity: 1; }
+    #overlayCanvas { z-index: 3; pointer-events: none; }
+    #interactionCanvas { z-index: 4; pointer-events: none; }
+    .camera-placeholder { position: absolute; inset: 0; z-index: 1; display: grid; place-content: center; justify-items: center; gap: 10px; color: #91a5ab; text-align: center; background: radial-gradient(circle at 50% 40%, rgba(56,113,118,.24), transparent 42%), #101c21; }
+    .camera-placeholder.is-hidden { display: none; }
+    .camera-placeholder .camera-glyph { display: grid; place-items: center; width: 60px; height: 60px; border: 1px solid rgba(126,224,209,.28); border-radius: 18px; color: var(--teal); background: rgba(85,216,196,.07); font-size: 25px; }
+    .camera-placeholder strong { color: #c7d6d8; font-size: 14px; }
+    .camera-placeholder span { max-width: 245px; color: #71868d; font-size: 11px; line-height: 1.6; }
+    .stage-badge { position: absolute; z-index: 6; top: 13px; left: 13px; display: inline-flex; align-items: center; gap: 8px; min-height: 30px; padding: 0 11px; border: 1px solid rgba(255,255,255,.12); border-radius: 999px; color: #e3ebec; background: rgba(6,15,18,.58); backdrop-filter: blur(12px); font-size: 11px; font-weight: 750; }
+    .stage-badge .badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--teal); }
+    .stage-badge[data-tone="amber"] .badge-dot { background: var(--amber); }
+    .stage-badge[data-tone="blue"] .badge-dot { background: var(--blue); }
+    .cursor-marker { position: absolute; z-index: 7; width: 22px; height: 22px; margin: -11px 0 0 -11px; border: 2px solid #fff; border-radius: 50%; background: rgba(113,167,255,.68); box-shadow: 0 0 0 5px rgba(113,167,255,.2), 0 4px 16px rgba(0,0,0,.25); pointer-events: none; opacity: 0; transition: opacity .14s ease; }
+    .cursor-marker.is-visible { opacity: 1; }
+    .cursor-marker::after { content: ""; position: absolute; top: 50%; left: 50%; width: 4px; height: 4px; margin: -2px; border-radius: 50%; background: #fff; }
+    .freeze-label { position: absolute; z-index: 6; right: 13px; top: 13px; display: none; padding: 8px 10px; border: 1px solid rgba(255,255,255,.13); border-radius: 9px; color: #e9dba9; background: rgba(47,37,16,.65); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
+    .viewport.is-frozen .freeze-label { display: block; }
+    .countdown-overlay { position: absolute; z-index: 8; inset: 0; display: grid; place-items: center; color: #fff; font-size: clamp(86px, 15vw, 168px); font-weight: 900; line-height: 1; text-shadow: 0 5px 24px rgba(0,0,0,.65), 0 0 8px rgba(255,255,255,.42); pointer-events: none; opacity: 0; transition: opacity .14s ease; }
+    .countdown-overlay.is-visible { opacity: 1; }
+
+    .steps { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 7px; padding: 0 20px 18px; }
+    .step { position: relative; min-height: 63px; padding: 11px 10px 9px; border: 1px solid rgba(255,255,255,.09); border-radius: 12px; background: rgba(255,255,255,.035); opacity: .62; }
+    .step::before { content: ""; position: absolute; left: 10px; right: 10px; top: -1px; height: 2px; border-radius: 2px; background: transparent; }
+    .step.is-active { border-color: rgba(85,216,196,.42); background: rgba(85,216,196,.075); opacity: 1; }
+    .step.is-active::before { background: var(--teal); }
+    .step.is-done { opacity: .9; }
+    .step-num { color: var(--muted); font-size: 9px; font-weight: 800; letter-spacing: .1em; }
+    .step-name { margin-top: 6px; color: #dce7e8; font-size: 11px; font-weight: 750; }
+    .step-gesture { margin-top: 3px; color: #7f949a; font-size: 10px; }
+
+    .control-panel { display: block; margin: 0 20px 20px; padding: 15px 16px; border: 1px solid rgba(255,255,255,.1); border-radius: 14px; background: rgba(2,10,13,.31); }
+    .status-line { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .gesture-token { display: grid; place-items: center; width: 40px; height: 40px; flex: 0 0 auto; border: 1px solid rgba(85,216,196,.3); border-radius: 12px; color: var(--teal); background: rgba(85,216,196,.08); font-size: 20px; }
+    .status-copy { min-width: 0; }
+    .status-title { overflow: hidden; color: #e4eeee; font-size: 13px; font-weight: 750; text-overflow: ellipsis; white-space: nowrap; }
+    .status-detail { overflow: hidden; margin-top: 4px; color: #82989d; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+    .primary-button, .secondary-button { min-height: 35px; padding: 0 13px; border-radius: 9px; font-size: 11px; font-weight: 750; }
+    .primary-button { color: #0a2523; background: var(--teal); }
+    .secondary-button { color: #bfd0d2; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.055); }
+    .secondary-button.is-active { color: var(--teal); border-color: rgba(85,216,196,.4); background: rgba(85,216,196,.09); }
+    button:disabled { cursor: not-allowed; opacity: .45; transform: none !important; }
+
+    .legend { display: flex; flex-wrap: wrap; gap: 12px; padding: 0 22px 21px; color: #789097; font-size: 10px; }
+    .legend span { display: inline-flex; align-items: center; gap: 6px; }
+    .legend i { display: inline-block; width: 7px; height: 7px; border-radius: 50%; }
+    .legend .teal { background: var(--teal); }
+    .legend .blue { background: var(--blue); }
+    .legend .amber { background: var(--amber); }
+
+    @media (max-width: 980px) {
+      .app-shell { width: min(720px, calc(100% - 26px)); padding-top: 22px; }
+      .topbar { align-items: flex-start; flex-direction: column; }
+      .top-meta { justify-content: flex-start; }
+      .studio-grid { grid-template-columns: 1fr; }
+      .canvas-card, .camera-card { min-height: 0; }
+      .canvas-zone { min-height: 0; }
+      .canvas-frame, #artboard { min-height: 0; }
+    }
+    @media (max-width: 520px) {
+      .app-shell { width: calc(100% - 18px); }
+      .panel-head { padding: 17px 16px 14px; }
+      .canvas-zone, .camera-stage { padding: 13px; }
+      .steps { padding: 0 13px 13px; gap: 5px; }
+      .step { min-height: 60px; padding: 9px 7px; }
+      .step-name { font-size: 10px; }
+      .step-gesture { font-size: 9px; }
+      .control-panel { margin: 0 13px 13px; }
+      .legend, .canvas-footer { padding-left: 16px; padding-right: 16px; }
+    }
+
+    /* ===== Course-of-AI 視覺系統｜僅覆寫顏色與表面質感，不更動操作/版面 ===== */
+    :root {
+      --ink: #0e1b3d;
+      --muted: #66758d;
+      --line: #d8e3ef;
+      --panel: #ffffff;
+      --panel-strong: #ffffff;
+      --paper: #ffffff;
+      --teal: #008d73;
+      --blue: #1769ff;
+      --amber: #d98912;
+      --red: #c93737;
+      --shadow: 0 6px 24px rgba(27, 61, 105, .075);
+      color-scheme: light;
+      color: var(--ink);
+      background: #f3f7fb;
+    }
+    body {
+      color: var(--ink);
+      background: linear-gradient(180deg, #ffffff 0%, #f3f7fb 320px, #edf3f9 100%);
+    }
+    button:focus-visible, a:focus-visible {
+      outline: 3px solid #8cb9ff;
+      outline-offset: 3px;
+    }
+    .eyebrow { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; color: #5b7395; letter-spacing: .12em; }
+    .eyebrow-divider { color: #b8c8da; font-size: 12px; }
+    .platform-back {
+      color: #1769ff;
+      font-size: 12px;
+      font-weight: 750;
+      letter-spacing: .02em;
+      text-decoration: none;
+      border-radius: 4px;
+    }
+    .platform-back:hover { color: #1459d6; text-decoration: underline; text-underline-offset: 3px; }
+    h1 { color: #10244f; }
+    .subtitle { color: #66758d; }
+    .pill {
+      color: #526983;
+      border-color: #d8e3ef;
+      background: #ffffff;
+    }
+    .status-dot { background: #d98912; box-shadow: 0 0 0 4px #d989121a; }
+    .status-dot.live { background: #008d73; box-shadow: 0 0 0 4px #008d731a; }
+    .card {
+      border-color: #d5e1ef;
+      background: #ffffff;
+      box-shadow: var(--shadow);
+      backdrop-filter: none;
+    }
+    .panel-head { border-bottom-color: #e5ecf5; }
+    .panel-kicker { color: #7689a4; }
+    .panel-title { color: #10244f; }
+    .panel-note { color: #6b7d94; }
+    .tiny-button {
+      color: #526983;
+      border-color: #dae4f1;
+      background: #f6f9fd;
+    }
+    .tiny-button:hover { background: #edf4ff; border-color: #bcd1ed; color: #1769ff; }
+    .primary-button { color: #ffffff; background: #1769ff; }
+    .primary-button:hover:not(:disabled) { background: #1459d6; }
+    .secondary-button {
+      color: #60748e;
+      border-color: #d9e3ef;
+      background: #f6f9fd;
+    }
+    .secondary-button:hover { background: #edf4ff; }
+    .secondary-button.is-active { color: #1769ff; border-color: #9dbfff; background: #eaf2ff; }
+    .canvas-frame {
+      border-color: #d9e2ef;
+      background: #ffffff;
+      box-shadow: inset 0 0 0 1px rgba(25, 59, 109, .025);
+    }
+    .canvas-footer { color: #73849a; border-top-color: #e5ecf5; }
+    .canvas-footer .key { color: #526983; border-color: #d7e3f0; background: #f3f7fc; }
+    .camera-card { background: #ffffff; }
+    .viewport {
+      border-color: #1c304e;
+      background: #0e1729;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .025);
+    }
+    #video { background: #0e1729; }
+    .camera-placeholder {
+      color: #adc1df;
+      background: radial-gradient(circle at 50% 42%, rgba(29, 75, 138, .36), transparent 54%), #0e1729;
+    }
+    .camera-placeholder .camera-glyph {
+      color: #85afff;
+      background: rgba(74, 124, 222, .12);
+      border-color: rgba(133, 175, 255, .28);
+    }
+    .camera-placeholder strong { color: #dce8fc; }
+    .camera-placeholder span { color: #91a6c7; }
+    .stage-badge {
+      color: #e5efff;
+      border-color: rgba(207, 226, 255, .16);
+      background: rgba(10, 23, 43, .75);
+    }
+    .stage-badge .badge-dot { background: #48ddb8; }
+    .stage-badge[data-tone="amber"] .badge-dot { background: #f6c76c; }
+    .stage-badge[data-tone="blue"] .badge-dot { background: #81aaff; }
+    .cursor-marker { background: rgba(23, 105, 255, .7); box-shadow: 0 0 0 5px rgba(23,105,255,.2), 0 4px 16px rgba(0,0,0,.2); }
+    .freeze-label { color: #ffe09f; background: rgba(74, 53, 18, .72); }
+    .step {
+      border-color: #e0e8f3;
+      background: #f7f9fc;
+      opacity: .82;
+    }
+    .step.is-active {
+      border-color: #9dc0ff;
+      background: #ebf3ff;
+      opacity: 1;
+    }
+    .step.is-active::before { background: #1769ff; }
+    .step.is-done { opacity: 1; background: #f5fafb; }
+    .step-num { color: #6982a8; }
+    .step-name { color: #243d62; }
+    .step-gesture { color: #70849d; }
+    .control-panel { border-color: #dce6f2; background: #f5f8fc; }
+    .gesture-token { border-color: #c4dafb; color: #1769ff; background: #eaf2ff; }
+    .status-title { color: #1b3154; }
+    .status-detail { color: #667d9c; }
+    .legend { color: #788ba2; }
+    .legend .teal { background: #008d73; }
+    .legend .blue { background: #1769ff; }
+    .legend .amber { background: #d98912; }
+    /* ===== 配色覆寫結束 ===== */
+  </style>
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <div>
+        <div class="eyebrow"><a class="platform-back" href="../index.html" aria-label="返回 AI 系統整合互動教學平台">← 回 AI 教學首頁</a><span class="eyebrow-divider" aria-hidden="true">/</span><span>AI Interaction Lab / 01</span></div>
+        <h1>Gesture Canvas Studio</h1>
+        <p class="subtitle">用手勢把攝影機中的形狀剪下，帶回左側畫布。</p>
+      </div>
+      <div class="top-meta">
+        <div class="panel-head-actions">
+          <button class="primary-button" id="enableCamera" type="button">啟動攝影機</button>
+          <button class="tiny-button" id="resetFlow" type="button">恢復顯示</button>
+        </div>
+        <div class="pill"><span class="status-dot" id="cameraDot"></span><span id="cameraStatus">尚未啟動攝影機</span></div>
+        <div class="pill">MediaPipe Hands · 本機辨識</div>
+      </div>
+    </header>
+
+    <section class="studio-grid" aria-label="手勢互動工作區">
+      <section class="card canvas-card">
+        <div class="panel-head">
+          <div>
+            <div class="panel-kicker">Destination / Canvas 01</div>
+            <h2 class="panel-title">空白畫布</h2>
+            <p class="panel-note">剪下的封閉圖形會在這裡等待你的手勢放置。</p>
+          </div>
+        </div>
+        <div class="canvas-zone">
+          <div class="canvas-frame">
+            <canvas id="artboard" aria-label="可放置剪下圖形的畫布"></canvas>
+            <div class="canvas-empty" id="canvasEmpty">
+              <div class="empty-icon">＋</div>
+              <strong>畫布目前是空的</strong>
+              <span>完成右側手勢流程後，圖形會出現在這裡</span>
+            </div>
+          </div>
+        </div>
+        <div class="canvas-footer">
+          <span><span class="key">ESC</span> 重置目前流程</span>
+          <div class="canvas-footer-actions">
+            <span id="canvasInfo">0 個圖形</span>
+            <button class="tiny-button" id="downloadCanvas" type="button">儲存畫布圖片</button>
+            <button class="tiny-button" id="clearCanvas" type="button">清除畫布</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="card camera-card">
+        <div class="panel-head">
+          <div>
+            <div class="panel-kicker">Source / Camera 02</div>
+            <h2 class="panel-title">即時手勢感測</h2>
+            <p class="panel-note">先用食指＋中指倒數定格，再用布、食指與食指＋拇指完成裁剪；凍結時用大拇指＋小拇指恢復顯示，三指可清空畫布。</p>
+          </div>
+        </div>
+
+        <div class="camera-stage">
+          <div class="viewport" id="viewport">
+            <video id="video" autoplay muted playsinline></video>
+            <video id="analysisVideo" autoplay muted playsinline style="display:none"></video>
+            <canvas id="freezeCanvas"></canvas>
+            <canvas id="overlayCanvas"></canvas>
+            <canvas id="interactionCanvas"></canvas>
+            <div class="camera-placeholder" id="cameraPlaceholder">
+              <div class="camera-glyph">◉</div>
+              <strong>等待攝影機</strong>
+              <span>允許瀏覽器使用攝影機後，AI 會在瀏覽器內辨識手勢。</span>
+            </div>
+            <div class="stage-badge" id="gestureBadge"><span class="badge-dot"></span><span id="gestureText">等待手勢</span></div>
+            <div class="freeze-label"><span id="freezeLabelText">FRAME LOCKED · 裁剪模式</span></div>
+            <div class="countdown-overlay" id="countdownOverlay" aria-live="assertive" aria-atomic="true"></div>
+            <div class="cursor-marker" id="cursorMarker" aria-hidden="true"></div>
+          </div>
+        </div>
+
+        <div class="steps" aria-label="互動步驟">
+          <div class="step is-active" data-step="0"><div class="step-num">01</div><div class="step-name">倒數定格</div><div class="step-gesture">食指＋中指</div></div>
+          <div class="step" data-step="1"><div class="step-num">02</div><div class="step-name">移動裁剪框</div><div class="step-gesture">布</div></div>
+          <div class="step" data-step="2"><div class="step-num">03</div><div class="step-name">描出形狀</div><div class="step-gesture">食指</div></div>
+          <div class="step" data-step="3"><div class="step-num">04</div><div class="step-name">捏合移動並貼上</div><div class="step-gesture">捏合 → 食指</div></div>
+          <div class="step" data-step="4"><div class="step-num">05</div><div class="step-name">畫布清除</div><div class="step-gesture">OK 手勢</div></div>
+        </div>
+
+        <div class="control-panel">
+          <div class="status-line">
+            <div class="gesture-token" id="gestureToken">✦</div>
+            <div class="status-copy">
+              <div class="status-title" id="statusTitle">先啟動攝影機</div>
+              <div class="status-detail" id="statusDetail">啟動攝影機後即可開始手勢流程。</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="legend">
+          <span><i class="teal"></i>AI 關節點</span>
+          <span><i class="blue"></i>手勢指標</span>
+          <span><i class="amber"></i>畫面已鎖定</span>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <script type="module">
+    const $ = (selector) => document.querySelector(selector);
+    const video = $('#video');
+    const analysisVideo = $('#analysisVideo');
+    const viewport = $('#viewport');
+    const freezeCanvas = $('#freezeCanvas');
+    const overlayCanvas = $('#overlayCanvas');
+    const interactionCanvas = $('#interactionCanvas');
+    const artboard = $('#artboard');
+    const freezeCtx = freezeCanvas.getContext('2d');
+    const overlayCtx = overlayCanvas.getContext('2d');
+    const interactionCtx = interactionCanvas.getContext('2d');
+    const artCtx = artboard.getContext('2d');
+    const canvasBackground = new Image();
+    canvasBackground.addEventListener('load', () => {
+      if (artboard.width) drawArtboard();
+    });
+    canvasBackground.src = './assets/canvas-background.png';
+
+    const state = {
+      mode: 'idle',
+      stream: null,
+      handLandmarker: null,
+      raf: 0,
+      aiLoading: false,
+      lastVideoTime: -1,
+      currentGesture: 'none',
+      stableGesture: 'none',
+      gestureSince: 0,
+      cooldownUntil: 0,
+      pointer: { x: .5, y: .5 },
+      cropRect: { x: .25, y: .17, w: .5, h: .66 },
+      drawPath: [],
+      snapshot: null,
+      cutout: null,
+      copyPosition: { x: .5, y: .5 },
+      cameraPosition: { x: .5, y: .5 },
+      copyTransferred: false,
+      countdownActive: false,
+      countdownTimer: 0,
+      artItems: 0,
+      artworks: [],
+      lastLandmarks: null,
+      lastDrawPoint: null,
+    };
+
+    const icons = { none: '✦', scissors: '✌', paper: '✋', index: '☝', pinch: '🤏', thumbPinky: '🤙', clear: '🧹' };
+    const labels = { none: '等待手勢', scissors: '剪刀', paper: '布', index: '食指', pinch: '食指＋拇指', thumbPinky: '大拇指＋小拇指', clear: 'OK 手勢' };
+    const stageMap = { idle: 0, crop: 1, draw: 2, ready: 3, move: 3, done: 4 };
+
+    function setStatus(title, detail, gesture = state.currentGesture) {
+      $('#statusTitle').textContent = title;
+      $('#statusDetail').textContent = detail;
+      $('#gestureToken').textContent = icons[gesture] || icons.none;
+    }
+
+    function setCameraStatus(text, live = false) {
+      $('#cameraStatus').textContent = text;
+      $('#cameraDot').classList.toggle('live', live);
+    }
+
+    function updateSteps() {
+      const active = stageMap[state.mode] ?? 0;
+      document.querySelectorAll('.step').forEach((step) => {
+        const n = Number(step.dataset.step);
+        step.classList.toggle('is-active', n === active && state.mode !== 'done');
+        step.classList.toggle('is-done', n < active || state.mode === 'done');
+      });
+    }
+
+    function setMode(mode) {
+      state.mode = mode;
+      viewport.classList.toggle('is-frozen', ['crop', 'draw', 'ready', 'move', 'done'].includes(mode));
+      updateSteps();
+      drawInteractionLayer();
+    }
+
+    function sizeCameraCanvases() {
+      const width = 960;
+      const height = 720;
+      [freezeCanvas, overlayCanvas, interactionCanvas].forEach((canvas) => {
+        canvas.width = width;
+        canvas.height = height;
+      });
+      if (!freezeCanvas.dataset.demoReady) {
+        drawDemoBackdrop();
+      }
+    }
+
+    function drawDemoBackdrop() {
+      const g = freezeCtx.createLinearGradient(0, 0, freezeCanvas.width, freezeCanvas.height);
+      g.addColorStop(0, '#183c42');
+      g.addColorStop(.5, '#0d2027');
+      g.addColorStop(1, '#10192b');
+      freezeCtx.fillStyle = g;
+      freezeCtx.fillRect(0, 0, freezeCanvas.width, freezeCanvas.height);
+      freezeCtx.strokeStyle = 'rgba(125, 225, 213, .08)';
+      freezeCtx.lineWidth = 2;
+      for (let x = 0; x < freezeCanvas.width; x += 80) {
+        freezeCtx.beginPath(); freezeCtx.moveTo(x, 0); freezeCtx.lineTo(x, freezeCanvas.height); freezeCtx.stroke();
+      }
+      for (let y = 0; y < freezeCanvas.height; y += 80) {
+        freezeCtx.beginPath(); freezeCtx.moveTo(0, y); freezeCtx.lineTo(freezeCanvas.width, y); freezeCtx.stroke();
+      }
+      freezeCtx.strokeStyle = 'rgba(224, 247, 243, .18)';
+      freezeCtx.lineWidth = 4;
+      freezeCtx.beginPath();
+      freezeCtx.arc(freezeCanvas.width / 2, freezeCanvas.height / 2, 80, 0, Math.PI * 2);
+      freezeCtx.stroke();
+      freezeCtx.beginPath();
+      freezeCtx.moveTo(freezeCanvas.width / 2 - 112, freezeCanvas.height / 2);
+      freezeCtx.lineTo(freezeCanvas.width / 2 + 112, freezeCanvas.height / 2);
+      freezeCtx.moveTo(freezeCanvas.width / 2, freezeCanvas.height / 2 - 112);
+      freezeCtx.lineTo(freezeCanvas.width / 2, freezeCanvas.height / 2 + 112);
+      freezeCtx.stroke();
+      freezeCanvas.dataset.demoReady = 'true';
+    }
+
+    function setupArtboard() {
+      const rect = artboard.getBoundingClientRect();
+      artboard.width = Math.max(720, Math.floor(rect.width * 2));
+      artboard.height = Math.max(560, Math.floor(rect.height * 2));
+      artboard.dataset.hasContent = 'false';
+      drawArtboard();
+    }
+
+    function getArtboardCutoutSize(image) {
+      const sourceW = interactionCanvas.width || image.width || 1;
+      const scale = artboard.width / sourceW;
+      return {
+        width: image.width * scale,
+        height: image.height * scale,
+      };
+    }
+
+    function drawArtboard() {
+      const w = artboard.width;
+      const h = artboard.height;
+      artCtx.clearRect(0, 0, w, h);
+      if (canvasBackground.complete && canvasBackground.naturalWidth) {
+        artCtx.drawImage(canvasBackground, 0, 0, w, h);
+      } else {
+        artCtx.fillStyle = '#ffffff';
+        artCtx.fillRect(0, 0, w, h);
+      }
+      state.artworks.forEach((artwork) => {
+        const drawW = artwork.width || artwork.image.width;
+        const drawH = artwork.height || artwork.image.height;
+        const x = artwork.x * w - drawW / 2;
+        const y = artwork.y * h - drawH / 2;
+        artCtx.save();
+        artCtx.shadowColor = 'rgba(18,53,50,.2)';
+        artCtx.shadowBlur = 22;
+        artCtx.shadowOffsetY = 8;
+        artCtx.drawImage(artwork.image, x, y, drawW, drawH);
+        artCtx.restore();
+      });
+      if (state.cutout && state.mode === 'move' && state.copyTransferred) {
+        const { width: drawW, height: drawH } = getArtboardCutoutSize(state.cutout);
+        const x = state.copyPosition.x * w - drawW / 2;
+        const y = state.copyPosition.y * h - drawH / 2;
+        artCtx.save();
+        artCtx.globalAlpha = .18;
+        artCtx.shadowColor = '#55d8c4';
+        artCtx.shadowBlur = 28;
+        artCtx.drawImage(state.cutout, x, y, drawW, drawH);
+        artCtx.restore();
+        artCtx.save();
+        artCtx.globalAlpha = .88;
+        artCtx.setLineDash([10, 8]);
+        artCtx.strokeStyle = '#55a99d';
+        artCtx.lineWidth = 3;
+        artCtx.strokeRect(x - 8, y - 8, drawW + 16, drawH + 16);
+        artCtx.restore();
+      }
+    }
+
+    function updateCanvasInfo() {
+      $('#canvasInfo').textContent = `${state.artItems} 個圖形`;
+      $('#canvasEmpty').classList.toggle('is-hidden', state.artItems > 0 || (state.mode === 'move' && state.copyTransferred));
+    }
+
+    function clearCaptureCountdown() {
+      if (state.countdownTimer) {
+        clearTimeout(state.countdownTimer);
+        state.countdownTimer = 0;
+      }
+      state.countdownActive = false;
+      const overlay = $('#countdownOverlay');
+      overlay.textContent = '';
+      overlay.classList.remove('is-visible');
+    }
+
+    function startScissorsCountdown() {
+      if (state.mode !== 'idle' || state.countdownActive) return;
+      state.countdownActive = true;
+      state.cooldownUntil = performance.now() + 3200;
+      const values = ['3', '2', '1'];
+      let index = 0;
+      const overlay = $('#countdownOverlay');
+      const tick = () => {
+        // 倒數發生在即時畫面尚未定格的 idle 模式；ready 是描圖完成後的狀態。
+        if (!state.countdownActive || state.mode !== 'idle') return;
+        overlay.textContent = values[index];
+        overlay.classList.add('is-visible');
+        if (index === values.length - 1) {
+          state.countdownTimer = setTimeout(() => {
+            state.countdownTimer = 0;
+            if (!state.countdownActive || state.mode !== 'idle') return;
+            if (video.readyState < 2) {
+              clearCaptureCountdown();
+              setStatus('無法擷取攝影機畫面', '請確認攝影機仍在運作後，再做一次食指＋中指。', 'scissors');
+              return;
+            }
+            clearCaptureCountdown();
+            freezeCtx.drawImage(video, 0, 0, freezeCanvas.width, freezeCanvas.height);
+            captureFullFrame();
+            enterCropMode(true);
+          }, 750);
+          return;
+        }
+        index += 1;
+        state.countdownTimer = setTimeout(tick, 750);
+      };
+      setStatus('準備截圖 3、2、1', '保持食指＋中指伸出，倒數完成後才會截圖。', 'scissors');
+      tick();
+    }
+
+    function drawLandmarks(landmarks) {
+      overlayCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+      if (!landmarks) return;
+      const connections = [
+        [0,1],[1,2],[2,3],[3,4], [0,5],[5,6],[6,7],[7,8],
+        [0,9],[9,10],[10,11],[11,12], [0,13],[13,14],[14,15],[15,16],
+        [0,17],[17,18],[18,19],[19,20], [5,9],[9,13],[13,17]
+      ];
+      overlayCtx.lineCap = 'round';
+      overlayCtx.lineJoin = 'round';
+      overlayCtx.strokeStyle = 'rgba(85,216,196,.82)';
+      overlayCtx.lineWidth = 4;
+      connections.forEach(([a, b]) => {
+        overlayCtx.beginPath();
+        overlayCtx.moveTo(landmarks[a].x * overlayCanvas.width, landmarks[a].y * overlayCanvas.height);
+        overlayCtx.lineTo(landmarks[b].x * overlayCanvas.width, landmarks[b].y * overlayCanvas.height);
+        overlayCtx.stroke();
+      });
+      landmarks.forEach((point, index) => {
+        overlayCtx.beginPath();
+        overlayCtx.fillStyle = index === 8 ? '#fff3bf' : '#55d8c4';
+        overlayCtx.arc(point.x * overlayCanvas.width, point.y * overlayCanvas.height, index === 8 ? 8 : 5, 0, Math.PI * 2);
+        overlayCtx.fill();
+      });
+    }
+
+    function drawInteractionLayer() {
+      interactionCtx.clearRect(0, 0, interactionCanvas.width, interactionCanvas.height);
+      if (state.mode === 'crop') {
+        const w = interactionCanvas.width;
+        const h = interactionCanvas.height;
+        const r = state.cropRect;
+        interactionCtx.fillStyle = 'rgba(4, 13, 16, .54)';
+        interactionCtx.fillRect(0, 0, w, h);
+        interactionCtx.clearRect(r.x * w, r.y * h, r.w * w, r.h * h);
+        interactionCtx.save();
+        interactionCtx.strokeStyle = '#f6c76c';
+        interactionCtx.lineWidth = 4;
+        interactionCtx.setLineDash([12, 8]);
+        interactionCtx.strokeRect(r.x * w, r.y * h, r.w * w, r.h * h);
+        interactionCtx.setLineDash([]);
+        interactionCtx.strokeStyle = 'rgba(246,199,108,.56)';
+        interactionCtx.lineWidth = 2;
+        for (let i = 1; i < 3; i++) {
+          interactionCtx.beginPath(); interactionCtx.moveTo((r.x + r.w * i / 3) * w, r.y * h); interactionCtx.lineTo((r.x + r.w * i / 3) * w, (r.y + r.h) * h); interactionCtx.stroke();
+          interactionCtx.beginPath(); interactionCtx.moveTo(r.x * w, (r.y + r.h * i / 3) * h); interactionCtx.lineTo((r.x + r.w) * w, (r.y + r.h * i / 3) * h); interactionCtx.stroke();
+        }
+        interactionCtx.restore();
+      }
+      if (['draw', 'ready', 'move', 'done'].includes(state.mode) && state.drawPath.length > 1) {
+        interactionCtx.save();
+        interactionCtx.lineWidth = 7;
+        interactionCtx.lineCap = 'round';
+        interactionCtx.lineJoin = 'round';
+        interactionCtx.strokeStyle = state.mode === 'ready' || state.mode === 'move' || state.mode === 'done' ? '#f6c76c' : '#ffffff';
+        interactionCtx.shadowColor = state.mode === 'ready' ? 'rgba(246,199,108,.75)' : 'rgba(85,216,196,.75)';
+        interactionCtx.shadowBlur = 14;
+        interactionCtx.beginPath();
+        state.drawPath.forEach((point, index) => {
+          const x = point.x * interactionCanvas.width;
+          const y = point.y * interactionCanvas.height;
+          if (index === 0) interactionCtx.moveTo(x, y); else interactionCtx.lineTo(x, y);
+        });
+        interactionCtx.stroke();
+        interactionCtx.restore();
+      }
+      if (state.mode === 'move' && state.cutout && !state.copyTransferred) drawCameraCutout();
+    }
+
+    function drawCameraCutout() {
+      if (!state.cutout || state.copyTransferred) return;
+      const w = interactionCanvas.width;
+      const h = interactionCanvas.height;
+      const drawW = state.cutout.width * w / freezeCanvas.width;
+      const drawH = state.cutout.height * h / freezeCanvas.height;
+      const x = state.cameraPosition.x * w;
+      const y = state.cameraPosition.y * h;
+      interactionCtx.save();
+      interactionCtx.translate(x, y);
+      interactionCtx.scale(-1, 1);
+      interactionCtx.globalAlpha = .96;
+      interactionCtx.shadowColor = 'rgba(0,0,0,.35)';
+      interactionCtx.shadowBlur = 22;
+      interactionCtx.shadowOffsetY = 9;
+      interactionCtx.drawImage(state.cutout, -drawW / 2, -drawH / 2, drawW, drawH);
+      interactionCtx.shadowColor = 'transparent';
+      interactionCtx.globalAlpha = .9;
+      interactionCtx.setLineDash([10, 8]);
+      interactionCtx.strokeStyle = '#f6c76c';
+      interactionCtx.lineWidth = 3;
+      interactionCtx.strokeRect(-drawW / 2 - 8, -drawH / 2 - 8, drawW + 16, drawH + 16);
+      interactionCtx.restore();
+    }
+
+    function updateCursor(rawPoint, visible = true) {
+      state.pointer = rawPoint;
+      const rect = viewport.getBoundingClientRect();
+      const displayX = 1 - rawPoint.x;
+      $('#cursorMarker').style.left = `${displayX * rect.width}px`;
+      $('#cursorMarker').style.top = `${rawPoint.y * rect.height}px`;
+      $('#cursorMarker').classList.toggle('is-visible', visible);
+    }
+
+    function classifyHand(landmarks) {
+      if (!landmarks || landmarks.length < 21) return 'none';
+      const index = landmarks[8].y < landmarks[6].y - .015;
+      const middle = landmarks[12].y < landmarks[10].y - .015;
+      const ring = landmarks[16].y < landmarks[14].y - .015;
+      const pinky = landmarks[20].y < landmarks[18].y - .015;
+      const thumbOpen = Math.hypot(landmarks[4].x - landmarks[0].x, landmarks[4].y - landmarks[0].y) > Math.hypot(landmarks[3].x - landmarks[0].x, landmarks[3].y - landmarks[0].y) + .025
+        && Math.hypot(landmarks[4].x - landmarks[5].x, landmarks[4].y - landmarks[5].y) > .1;
+      const pinchDistance = Math.hypot(landmarks[4].x - landmarks[8].x, landmarks[4].y - landmarks[8].y);
+      if (middle && ring && pinky && !index && !thumbOpen) return 'clear';
+      if (thumbOpen && pinky && !index && !middle && !ring) return 'thumbPinky';
+      if (pinchDistance < .085 && index) return 'pinch';
+      if (index && middle && ring && pinky) return 'paper';
+      if (index && middle && !ring && !pinky) return 'scissors';
+      if (index && !middle && !ring && !pinky) return 'index';
+      return 'none';
+    }
+
+    function updateGesture(gesture, landmarks) {
+      const now = performance.now();
+      state.lastLandmarks = landmarks;
+      if (gesture !== state.currentGesture) {
+        state.currentGesture = gesture;
+        state.gestureSince = now;
+        $('#gestureText').textContent = labels[gesture];
+        $('#gestureBadge').dataset.tone = gesture === 'paper' ? 'blue' : gesture === 'scissors' ? 'amber' : '';
+      }
+      if (state.countdownActive && gesture !== 'scissors') {
+        clearCaptureCountdown();
+        if (state.mode === 'idle') setStatus('定格倒數已取消', '請保持食指＋中指伸出，再重新開始倒數。', 'scissors');
+      }
+      const stableFor = now - state.gestureSince;
+      const stableWindow = gesture === 'thumbPinky' ? 160 : (state.mode === 'crop' && gesture === 'index') || (state.mode === 'move' && gesture === 'index') ? 80 : 300;
+      const stable = stableFor > stableWindow;
+      if (gesture === 'clear') {
+        updateCursor({ x: landmarks?.[0]?.x || .5, y: landmarks?.[0]?.y || .5 }, false);
+        if (stable && now > state.cooldownUntil) {
+          clearCanvas();
+          state.cooldownUntil = now + 900;
+          setStatus('畫布已清空', '偵測到中指＋無名指＋小拇指；也可以使用左側下方的清除畫布按鈕。', 'clear');
+        }
+        return;
+      }
+      if (gesture === 'thumbPinky' && ['crop', 'draw', 'ready', 'move', 'done'].includes(state.mode)) {
+        updateCursor({ x: landmarks?.[0]?.x || .5, y: landmarks?.[0]?.y || .5 });
+        if (stable && now > state.cooldownUntil) resetFlow();
+        return;
+      }
+      if (gesture === 'paper' && state.mode === 'crop') {
+        const wrist = landmarks?.[0] || { x: .5, y: .5 };
+        updateCursor({ x: wrist.x, y: wrist.y });
+        state.cropRect.x = Math.max(.02, Math.min(.98 - state.cropRect.w, wrist.x - state.cropRect.w / 2));
+        state.cropRect.y = Math.max(.02, Math.min(.98 - state.cropRect.h, wrist.y - state.cropRect.h / 2));
+        drawInteractionLayer();
+      } else if (state.mode === 'move' && landmarks) {
+        const thumb = landmarks?.[4] || { x: .5, y: .5 };
+        const indexTip = landmarks?.[8] || { x: .5, y: .5 };
+        const pinchPoint = { x: (thumb.x + indexTip.x) / 2, y: (thumb.y + indexTip.y) / 2 };
+        updateCursor(pinchPoint);
+        if (!state.copyTransferred) {
+          state.cameraPosition = pinchPoint;
+          drawInteractionLayer();
+          if (1 - pinchPoint.x <= .12) {
+            state.copyTransferred = true;
+            state.copyPosition = { x: 1 - pinchPoint.x, y: pinchPoint.y };
+            $('#freezeLabelText').textContent = 'IMAGE ENTERED CANVAS · 已移入畫布';
+            updateCanvasInfo();
+            drawInteractionLayer();
+            drawArtboard();
+            setStatus('圖片已移入左側畫布', '圖片已從攝影機左邊緣轉入畫布；繼續移動後伸出單獨食指即可貼上。', 'pinch');
+          }
+        } else {
+          state.copyPosition = { x: 1 - pinchPoint.x, y: pinchPoint.y };
+          drawArtboard();
+        }
+      } else if (state.mode === 'draw' && gesture === 'index') {
+        const point = landmarks?.[8] || { x: .5, y: .5 };
+        updateCursor(point);
+        addDrawPoint(point);
+      } else if (['crop', 'draw', 'ready', 'move'].includes(state.mode) && landmarks?.[8]) {
+        updateCursor(landmarks[8], state.mode === 'draw');
+      }
+
+      if (stable && now > state.cooldownUntil) {
+        if (state.mode === 'idle' && gesture === 'scissors') startScissorsCountdown();
+        else if (state.mode === 'crop' && gesture === 'index') enterDrawMode();
+        else if (state.mode === 'ready' && gesture === 'pinch') cutShape();
+        else if (state.mode === 'move' && gesture === 'index' && state.copyTransferred) placeCutout();
+      }
+    }
+
+    function enterCropMode(frameCaptured = false) {
+      if (state.mode !== 'idle') return;
+      if (!frameCaptured) {
+        if (video.readyState >= 2) freezeCtx.drawImage(video, 0, 0, freezeCanvas.width, freezeCanvas.height);
+        captureFullFrame();
+      } else if (!state.snapshot) {
+        captureFullFrame();
+      }
+      $('#freezeLabelText').textContent = 'FRAME LOCKED · 裁剪模式';
+      state.cropRect = { x: .25, y: .17, w: .5, h: .66 };
+      setMode('crop');
+      state.cooldownUntil = performance.now() + 700;
+      updateCursor({ x: .5, y: .5 });
+      setStatus('畫面已鎖定，請用布移動指標', '讓張開的手掌在右側攝影機中移動，裁剪框會跟著指標走。', 'scissors');
+    }
+
+    function enterDrawMode() {
+      if (state.mode !== 'crop') return;
+      setMode('draw');
+      state.drawPath = [];
+      state.lastDrawPoint = null;
+      state.cooldownUntil = performance.now();
+      setStatus('畫筆已出現，請用食指描線', '沿著想保留的形狀描線，形成任意封閉輪廓即可。', 'index');
+    }
+
+    function segmentsIntersect(a, b, c, d) {
+      const denominator = (b.x - a.x) * (d.y - c.y) - (b.y - a.y) * (d.x - c.x);
+      if (Math.abs(denominator) < .00001) return false;
+      const t = ((c.x - a.x) * (d.y - c.y) - (c.y - a.y) * (d.x - c.x)) / denominator;
+      const u = ((c.x - a.x) * (b.y - a.y) - (c.y - a.y) * (b.x - a.x)) / denominator;
+      return t >= 0 && t <= 1 && u >= 0 && u <= 1;
+    }
+
+    function findClosureStart(point) {
+      if (state.drawPath.length < 16) return -1;
+      const lastSafeIndex = state.drawPath.length - 11;
+      let closestIndex = -1;
+      let closestDistance = Infinity;
+      for (let index = 0; index <= lastSafeIndex; index += 1) {
+        const distance = Math.hypot(point.x - state.drawPath[index].x, point.y - state.drawPath[index].y);
+        if (distance < .065 && distance < closestDistance) {
+          closestIndex = index;
+          closestDistance = distance;
+        }
+      }
+      if (closestIndex >= 0) return closestIndex;
+      const previous = state.drawPath[state.drawPath.length - 2];
+      for (let index = 0; index < lastSafeIndex; index += 1) {
+        if (segmentsIntersect(previous, point, state.drawPath[index], state.drawPath[index + 1])) return index + 1;
+      }
+      return -1;
+    }
+
+    function addDrawPoint(point) {
+      if (state.mode !== 'draw') return;
+      const last = state.drawPath[state.drawPath.length - 1];
+      if (last && Math.hypot(point.x - last.x, point.y - last.y) < .008) return;
+      state.drawPath.push({ x: point.x, y: point.y });
+      state.lastDrawPoint = point;
+      drawInteractionLayer();
+      if (state.drawPath.length > 16) {
+        const closureStart = findClosureStart(point);
+        if (closureStart >= 0) {
+          const closedPath = state.drawPath.slice(closureStart);
+          closedPath.push({ ...closedPath[0] });
+          state.drawPath = closedPath;
+          setMode('ready');
+          state.cooldownUntil = performance.now() + 800;
+          setStatus('偵測到封閉圖形，等待食指＋拇指剪下', '整張攝影機畫面已定格；請用食指＋拇指剪下封閉圖形。', 'pinch');
+        }
+      }
+    }
+
+    function captureFullFrame() {
+      const snapshot = document.createElement('canvas');
+      snapshot.width = freezeCanvas.width;
+      snapshot.height = freezeCanvas.height;
+      snapshot.getContext('2d').drawImage(freezeCanvas, 0, 0);
+      state.snapshot = snapshot;
+    }
+
+    function cutShape() {
+      if (state.mode !== 'ready' || state.drawPath.length < 3) return;
+      const sourceCanvas = state.snapshot || freezeCanvas;
+      const W = sourceCanvas.width;
+      const H = sourceCanvas.height;
+      const xs = state.drawPath.map((p) => p.x * W);
+      const ys = state.drawPath.map((p) => p.y * H);
+      const minX = Math.max(0, Math.floor(Math.min(...xs)));
+      const minY = Math.max(0, Math.floor(Math.min(...ys)));
+      const maxX = Math.min(W, Math.ceil(Math.max(...xs)));
+      const maxY = Math.min(H, Math.ceil(Math.max(...ys)));
+      const cut = document.createElement('canvas');
+      cut.width = Math.max(1, maxX - minX);
+      cut.height = Math.max(1, maxY - minY);
+      const ctx = cut.getContext('2d');
+      ctx.save();
+      ctx.translate(-minX, -minY);
+      ctx.beginPath();
+      state.drawPath.forEach((point, index) => {
+        const x = point.x * W; const y = point.y * H;
+        if (index === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      });
+      ctx.closePath();
+      ctx.clip();
+      ctx.drawImage(sourceCanvas, 0, 0, W, H);
+      ctx.restore();
+      const oriented = document.createElement('canvas');
+      oriented.width = cut.width;
+      oriented.height = cut.height;
+      const orientedCtx = oriented.getContext('2d');
+      orientedCtx.save();
+      orientedCtx.translate(oriented.width, 0);
+      orientedCtx.scale(-1, 1);
+      orientedCtx.drawImage(cut, 0, 0);
+      orientedCtx.restore();
+      state.cutout = oriented;
+      state.copyPosition = { x: .5, y: .5 };
+      state.cameraPosition = { x: .5, y: .5 };
+      state.copyTransferred = false;
+      setMode('move');
+      state.cooldownUntil = performance.now();
+      updateCursor({ x: .5, y: .5 });
+      updateCanvasInfo();
+      drawArtboard();
+      setStatus('圖形已剪下，請在右側畫面移動', '圖片會先跟著捏合點移動；移到攝影機左邊緣後才會轉入畫布，伸出單獨食指即可貼上。', 'pinch');
+    }
+
+    function placeCutout() {
+      if (state.mode !== 'move' || !state.cutout || !state.copyTransferred) return;
+      const { width: drawW, height: drawH } = getArtboardCutoutSize(state.cutout);
+      state.artworks.push({ image: state.cutout, x: state.copyPosition.x, y: state.copyPosition.y, width: drawW, height: drawH });
+      state.artItems = state.artworks.length;
+      updateCanvasInfo();
+      $('#freezeLabelText').textContent = 'SNAPSHOT PLACED · 已完成';
+      setMode('done');
+      drawArtboard();
+      state.cooldownUntil = performance.now() + 900;
+      $('#cursorMarker').classList.remove('is-visible');
+      setStatus('已放置到左側畫布', '完成一次手勢剪裁。做出剪刀可以開始下一次創作。', 'index');
+    }
+
+    function resetFlow() {
+      clearCaptureCountdown();
+      state.drawPath = [];
+      state.snapshot = null;
+      state.cutout = null;
+      state.cameraPosition = { x: .5, y: .5 };
+      state.copyTransferred = false;
+      state.lastLandmarks = null;
+      state.currentGesture = 'none';
+      state.gestureSince = performance.now();
+      state.cooldownUntil = 0;
+      state.lastVideoTime = -1;
+      setMode('idle');
+      $('#gestureText').textContent = '等待手勢';
+      $('#gestureBadge').dataset.tone = '';
+      $('#cursorMarker').classList.remove('is-visible');
+      overlayCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+      interactionCtx.clearRect(0, 0, interactionCanvas.width, interactionCanvas.height);
+      updateCanvasInfo();
+      $('#freezeLabelText').textContent = 'FRAME LOCKED · 裁剪模式';
+      if (state.stream) {
+        $('#cameraPlaceholder').classList.add('is-hidden');
+        video.play().catch(() => {});
+        analysisVideo.play().catch(() => {});
+        setCameraStatus(state.handLandmarker ? '攝影機已啟動 · AI 追蹤中' : '攝影機已啟動 · AI 準備中', true);
+        setStatus('請對著鏡頭伸出食指＋中指', '攝影機已恢復顯示，偵測後會倒數 3、2、1 再定格。');
+        if (state.handLandmarker && !state.raf) state.raf = requestAnimationFrame(processFrame);
+      } else {
+        $('#cameraPlaceholder').classList.remove('is-hidden');
+        setCameraStatus('尚未啟動攝影機', false);
+        setStatus('先啟動攝影機', '啟動攝影機後即可開始手勢流程。');
+      }
+    }
+
+    function clearCanvas() {
+      state.artworks = [];
+      state.artItems = 0;
+      setupArtboard();
+      updateCanvasInfo();
+    }
+
+    function downloadCanvas() {
+      const link = document.createElement('a');
+      const stamp = new Date().toISOString().replace(/[.:]/g, '-');
+      link.download = `gesture-canvas-${stamp}.png`;
+      link.href = artboard.toDataURL('image/png');
+      link.click();
+      setStatus('畫布圖片已儲存', 'PNG 圖片已下載到瀏覽器的下載資料夾。', 'none');
+    }
+
+    async function loadHandLandmarker() {
+      if (state.handLandmarker || state.aiLoading) return;
+      state.aiLoading = true;
+      setCameraStatus('載入 AI 模型中…');
+      try {
+        const vision = await import('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14');
+        const fileset = await vision.FilesetResolver.forVisionTasks('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm');
+        state.handLandmarker = await vision.HandLandmarker.createFromOptions(fileset, {
+          baseOptions: {
+            modelAssetPath: 'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task',
+            delegate: 'GPU'
+          },
+          runningMode: 'VIDEO',
+          numHands: 1,
+          minHandDetectionConfidence: .55,
+          minHandPresenceConfidence: .55,
+          minTrackingConfidence: .55
+        });
+        setCameraStatus('AI 已就緒 · 等待手勢', true);
+      } catch (error) {
+        console.warn('MediaPipe 載入失敗。', error);
+        setCameraStatus('AI 模型載入失敗');
+        setStatus('AI 模型尚未載入', '請檢查網路後重試。');
+      } finally {
+        state.aiLoading = false;
+      }
+    }
+
+    async function startCamera() {
+      if (!navigator.mediaDevices?.getUserMedia) {
+        setStatus('此瀏覽器不支援攝影機', '請以 HTTPS 或 localhost 開啟本頁。');
+        return;
+      }
+      try {
+        state.stream = await navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 1280 }, height: { ideal: 960 }, facingMode: 'user' }, audio: false });
+        video.srcObject = state.stream;
+        analysisVideo.srcObject = state.stream;
+        await Promise.all([video.play(), analysisVideo.play()]);
+        $('#cameraPlaceholder').classList.add('is-hidden');
+        setCameraStatus('攝影機已啟動 · AI 準備中', true);
+        setStatus('請對著鏡頭伸出食指＋中指', '偵測到手勢後，動態畫面會倒數 3、2、1，再整張定格。');
+        await loadHandLandmarker();
+        if (!state.raf) state.raf = requestAnimationFrame(processFrame);
+      } catch (error) {
+        console.warn('攝影機未啟動。', error);
+        setCameraStatus('攝影機未授權');
+        setStatus('無法存取攝影機', '請允許瀏覽器使用攝影機權限後重試。');
+      }
+    }
+
+    function processFrame() {
+      state.raf = requestAnimationFrame(processFrame);
+      if (!state.handLandmarker || analysisVideo.readyState < 2) return;
+      if (analysisVideo.currentTime === state.lastVideoTime) return;
+      state.lastVideoTime = analysisVideo.currentTime;
+      try {
+        const result = state.handLandmarker.detectForVideo(analysisVideo, performance.now());
+        const landmarks = result.landmarks?.[0] || null;
+        drawLandmarks(landmarks);
+        if (landmarks) updateGesture(classifyHand(landmarks), landmarks);
+        else if (state.mode === 'idle') {
+          overlayCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+          $('#gestureText').textContent = '等待手勢';
+        }
+      } catch (error) {
+        console.warn('手勢辨識暫時失敗。', error);
+      }
+    }
+
+    $('#enableCamera').addEventListener('click', startCamera);
+    $('#resetFlow').addEventListener('click', resetFlow);
+    $('#downloadCanvas').addEventListener('click', downloadCanvas);
+    $('#clearCanvas').addEventListener('click', clearCanvas);
+    window.addEventListener('keydown', (event) => { if (event.key === 'Escape') resetFlow(); });
+    window.addEventListener('resize', () => { sizeCameraCanvases(); setupArtboard(); });
+
+    sizeCameraCanvases();
+    setupArtboard();
+    updateCanvasInfo();
+    updateSteps();
+  </script>
+</body>
+</html>
