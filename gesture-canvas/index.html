@@ -524,21 +524,13 @@
       const w = artboard.width;
       const h = artboard.height;
       const fontSize = Math.max(15, Math.round(w * .017));
-      const padX = Math.round(fontSize * .8);
-      const padY = Math.round(fontSize * .5);
-      const margin = Math.max(12, Math.round(w * .018));
       artCtx.save();
       artCtx.font = `700 ${fontSize}px "Noto Sans TC", "Microsoft JhengHei", sans-serif`;
-      const boxW = Math.ceil(artCtx.measureText(label).width + padX * 2);
-      const boxH = fontSize + padY * 2;
-      const x = w - margin - boxW;
-      const y = h - margin - boxH;
-      artCtx.fillStyle = 'rgba(255, 253, 246, .91)';
-      artCtx.fillRect(x, y, boxW, boxH);
       artCtx.fillStyle = '#0e3936';
-      artCtx.textAlign = 'left';
+      artCtx.textAlign = 'center';
       artCtx.textBaseline = 'middle';
-      artCtx.fillText(label, x + padX, y + boxH / 2);
+      // 日期置於背景圖「我們控制」標語正下方的留白區，避開 DAAN 字樣及橘色底線。
+      artCtx.fillText(label, w * .50, h * .966);
       artCtx.restore();
     }
 
