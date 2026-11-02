@@ -516,6 +516,32 @@
       };
     }
 
+    // 在畫布本身繪製當地西元日期，使畫面與下載的 PNG 都含有日期。
+    function drawArtboardDate() {
+      const today = new Date();
+      const date = `${today.getFullYear()}/${String(today.getMonth() + 1).padStart(2, '0')}/${String(today.getDate()).padStart(2, '0')}`;
+      const label = date;
+      const w = artboard.width;
+      const h = artboard.height;
+      const fontSize = Math.max(15, Math.round(w * .017));
+      const padX = Math.round(fontSize * .8);
+      const padY = Math.round(fontSize * .5);
+      const margin = Math.max(12, Math.round(w * .018));
+      artCtx.save();
+      artCtx.font = `700 ${fontSize}px "Noto Sans TC", "Microsoft JhengHei", sans-serif`;
+      const boxW = Math.ceil(artCtx.measureText(label).width + padX * 2);
+      const boxH = fontSize + padY * 2;
+      const x = w - margin - boxW;
+      const y = h - margin - boxH;
+      artCtx.fillStyle = 'rgba(255, 253, 246, .91)';
+      artCtx.fillRect(x, y, boxW, boxH);
+      artCtx.fillStyle = '#0e3936';
+      artCtx.textAlign = 'left';
+      artCtx.textBaseline = 'middle';
+      artCtx.fillText(label, x + padX, y + boxH / 2);
+      artCtx.restore();
+    }
+
     function drawArtboard() {
       const w = artboard.width;
       const h = artboard.height;
@@ -556,6 +582,7 @@
         artCtx.strokeRect(x - 8, y - 8, drawW + 16, drawH + 16);
         artCtx.restore();
       }
+      drawArtboardDate();
     }
 
     function updateCanvasInfo() {
@@ -987,6 +1014,7 @@
     }
 
     function downloadCanvas() {
+      drawArtboard(); // 存檔當下重新取得日期，確保下載圖片內的日期正確。
       const link = document.createElement('a');
       const stamp = new Date().toISOString().replace(/[.:]/g, '-');
       link.download = `gesture-canvas-${stamp}.png`;
